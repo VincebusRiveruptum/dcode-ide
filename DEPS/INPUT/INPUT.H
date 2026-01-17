@@ -1,16 +1,16 @@
 #ifndef DEPS_INPUT_H
 #define DEPS_INPUT_H
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <conio.h>
-#include <dos.h>
+
 #include <time.h>
 #include <ctype.h>
+#include <dos.h>
 
-#include "../../HAL/VGAREGS.H"
+#include "..\VGA\VGAREGS.H"
 
 #ifndef __cplusplus
 typedef unsigned char bool;

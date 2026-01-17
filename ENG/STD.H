@@ -7,14 +7,11 @@
 #include <conio.h>
 #include <string.h>
 
-
-#endif
-
 /* Const. ================================================================*/
 #define true 1
 #define false 0
 
 /* Tyypes ================================================================*/
-typedef unsigned char Bool;
+typedef unsigned char bool;
 
 #endif

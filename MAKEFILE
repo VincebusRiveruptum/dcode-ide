@@ -1,0 +1,78 @@
+# Compile with Watcom 10.6 or OpenWatcom
+
+CC = wcc386
+APPNAME = DCODE
+CFLAGS = -iAPP -iENG -iDEPS\LOG -iDEPS\DATA -iDEPS\INPUT -iDEPS\LOG /4r /s /otexan
+OBJDIR = BIN
+
+# Object files in BIN
+OBJS = $(OBJDIR)\MAIN.OBJ $(OBJDIR)\FILES.OBJ $(OBJDIR)\STATUSB.OBJ $(OBJDIR)\TOOLBAR.OBJ $(OBJDIR)\WIN.OBJ $(OBJDIR)\TESTS.OBJ
+
+# Linker directive file
+LNK = $(OBJDIR)\$(APPNAME).lnk
+
+# Final executable
+$(APPNAME).EXE: $(OBJS)
+    @%create $(LNK)
+    @%append $(LNK) system dos4g
+    @%append $(LNK) name $(APPNAME)
+    @for %i in ($(OBJS)) do @%append $(LNK) file %i
+    wlink @$(LNK)
+
+# Compile rules for each .c -> .obj in BIN
+# External DEPS
+$(OBJDIR)\DATA.OBJ: DEPS\DATA\DATA.C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+
+$(OBJDIR)\ENV.OBJ: DEPS\ENV\ENV.C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+
+$(OBJDIR)\INPUT.OBJ: DEPS\INPUT\INPUT.C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+
+$(OBJDIR)\LOG.OBJ: DEPS\LOG\LOG.C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+
+$(OBJDIR)\FILES.OBJ: ENG\FILES.C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+
+# ENG
+$(OBJDIR)\STATUSB.OBJ: ENG\STATUSB.C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+
+$(OBJDIR)\TESTS.OBJ: ENG\TESTS.C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+
+$(OBJDIR)\TOOLBAR.OBJ: ENG\TOOLBAR.C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+
+$(OBJDIR)\WIN.OBJ: ENG\WIN.C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+
+# Main
+$(OBJDIR)\MAIN.OBJ: APP\MAIN.C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+
+preclean: .SYMBOLIC
+    del .\BIN\*.exe
+    del .\BIN\*.err
+    del .\BIN\*.lnk
+    del .\BIN\*.obj
+
+postclean: .SYMBOLIC
+    copy *.exe .\BIN
+    del .\BIN\*.err
+    del .\BIN\*.lnk
+    del .\BIN\*.obj
+
+build: preclean $(APPNAME).EXE postclean

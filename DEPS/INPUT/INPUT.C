@@ -1,5 +1,4 @@
 #include "INPUT.H"
-#include <dos.h>
 
 // BIOS Data Area (BDA) addresses for 32-bit protected mode
 volatile unsigned char keyboardTable[256];          // Stores the current keys status

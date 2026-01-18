@@ -111,3 +111,16 @@ There is a scenario where the file is too large, so we need to read it by chunks
 ----------------
 
 We need to define the structs involved. I´ll avoid using linked lists as i want to keep it simple and fast.
+
+/////////////////////
+
+Now i'm planning on the next step, we already have:
+
+1. Keyboard Handling by ISR chaining allowing us to detect combined keystrokes and type text on screen with DOS codepage
+and keyboard languaje management.
+
+2. Video handling, basic TUI functions for filling, clearing the screen and drawing squares with a background/foreground color.
+
+The next step could be implementing the TUI arquitecture which i already made a draft in @TUI.H , it is very HTML like as has some styling and event handling similutides. This will help programmers with a previous web development mindest. 
+
+So i want to hear your opinion, what do you think about this? Lets discuss.

@@ -100,6 +100,41 @@
  *   ÷ -> ö -> (246/0xF6) - Division sign
  */
 
+
+ #define TUI_MAX_NAME_SIZE 16
+ // Button Types
+
+#define TUI_BUTTON_TYPE_DEFAULT 0x00
+#define TUI_BUTTON_TYPE_PRIMARY 0x01
+#define TUI_BUTTON_TYPE_DANGER 0x02
+#define TUI_BUTTON_TYPE_WARNING 0x03
+#define TUI_BUTTON_TYPE_SUCCESS 0x04
+
+// Position types
+
+#define TUI_POSITION_TYPE_ABSOLUTE 0x00
+#define TUI_POSITION_TYPE_RELATIVE 0x01
+
+// Justify types
+#define TUI_JUSTIFY_EVENLY 0x00
+#define TUI_JUSTIFY_BETWEEN 0x01
+#define TUI_JUSTIFY_STRETCH 0x02
+
+// Align types
+#define TUI_ALIGN_START 0x00
+#define TUI_ALIGN_CENTER 0x01
+#define TUI_ALIGN_END 0x02
+
+// Direction types
+#define TUI_DIRECTION_ROW 0x00
+#define TUI_DIRECTION_COLUMN 0x01
+
+// Input types
+
+#define TUI_INPUT_TEXT 1
+#define TUI_INPUT_NUMBER 2
+#define TUI_INPUT_PASSWORD 3
+
 /* Prototypes ==============================================*/
 
 void tg_init_video();
@@ -114,6 +149,124 @@ void tg_set25Lines();
 
 void tg_set43Lines_asm();
 void tg_set25Lines_asm();
+
+/* Types ===================================================*/
+
+typedef struct Position {
+    unsigned char type;
+    unsigned short x;
+    unsigned short y;
+} Position;
+
+/*
+A form-group could be used for
+- A group with a label and an input
+- A group with a label and a button
+- A group with a label and a checkbox
+- A group with a label and a radio button
+*/
+
+typedef struct FormGroup {
+    struct Position position;
+    unsigned char justifyContent;
+    unsigned char direction;
+    bool enabled;
+    bool visible;
+} FormGroup;
+
+typedef struct Form {
+    struct Position position;
+    struct FormGroup *group;
+    bool enabled;
+    bool visible;
+
+    void (*submit)(void);
+} Form;
+
+typedef struct Label {
+    unsigned short id;
+    char name[TUI_MAX_NAME_SIZE];
+    char *text;
+    bool enabled;
+    bool visible;
+} Label;
+
+
+typedef struct Input {
+    unsigned short id;
+    struct Position position;
+    char *text;
+    char name[TUI_MAX_NAME_SIZE];
+    char *tooltip;
+    char type;
+    bool enabled;
+    bool visible;
+
+    char *strValue;
+    int intValue;
+    float floatValue;
+    unsigned short length;
+    
+    void (*change)(void);
+    
+} Input;
+typedef struct Button {
+    unsigned short id;
+    struct Position position;
+    char keys[4];    // Key combinations
+    char *text;
+    char name[TUI_MAX_NAME_SIZE];
+    char *tooltip;
+    char type;
+    bool enabled;
+    bool visible;
+
+    void (*click)(void);
+} Button;
+
+typedef struct Statusbar {
+    unsigned short id;
+    char name[TUI_MAX_NAME_SIZE];
+    struct Position position;
+    char *text;
+    bool enabled;
+    bool visible;    
+} Statusbar;
+
+
+typedef struct MenuItem {
+    unsigned short id;
+    char name[TUI_MAX_NAME_SIZE];
+    char *text;
+    bool enabled;
+    bool visible;
+} MenuItem;
+
+typedef struct Menu {
+    unsigned short id;
+    char name[TUI_MAX_NAME_SIZE];
+    unsigned char alignment;
+    struct List *items;
+
+    bool enabled;
+    bool visible;
+} Menu;
+
+typedef struct Dialog {
+    char *title;
+    bool closeButton;
+    bool helpButton;
+
+    bool enabled;
+    bool visible;
+
+    struct Form *form;
+    struct Position position;
+    
+    void (*helpFunction)(void);
+} Dialog;
+
+
 /* Global =================================================*/
 
 extern unsigned short *textmemptr;

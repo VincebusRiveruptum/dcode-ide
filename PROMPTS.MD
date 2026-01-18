@@ -89,3 +89,25 @@ Port handling instructions:
     IN
     OUT
     
+
+# 18.01.2026
+
+So, i woke up and started thinking on got the text will be manipulated, i mean, first we open the file, then store it in memory, lets call 
+this space as 'file buffer' . However, we need to do double buffering as where we render the text that will be on the screen, lets call this 'video buffer'. Having two buffers will be helpful for many reasons, for example,  when the user scrolls basically we need to offet what is 
+in the video buffer by one line an so on, upward of downward, then append the new line that is on the file buffer then to the video buffer. 
+
+There is a scenario where the file is too large, so we need to read it by chunks, so when the user scrolls to a region out of the file buffer we need to read the next chunk of the file and append it to the file buffer, then we need to do the same for the video buffer.
+
+-------------
+| Disk File | : File stored in disk.
+-------------
+    |
+-------------
+| File Buffer | : Size of the max chunk of a file to be read
+-------------
+    |
+----------------
+| Video Buffer | : 80x25 memory space
+----------------
+
+We need to define the structs involved. I´ll avoid using linked lists as i want to keep it simple and fast.

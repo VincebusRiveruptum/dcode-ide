@@ -12,21 +12,37 @@
 // THIS REQUIRE THE INPUT DEPS
 #include "..\INPUT\INPUT.H"
 
-#define TUI_MODE_COMMAND 1
-#define TUI_MODE_INSERT 2
+
+#define T_COLOR_BLACK 0x00
+#define T_COLOR_BLUE 0x01
+#define T_COLOR_GREEN 0x02
+#define T_COLOR_CYAN 0x03
+#define T_COLOR_RED 0x04
+#define T_COLOR_MAGENTA 0x05
+#define T_COLOR_BROWN 0x06
+#define T_COLOR_LIGHT_GRAY 0x07
+#define T_COLOR_DARK_GRAY 0x08
+#define T_COLOR_LIGHT_BLUE 0x09
+#define T_COLOR_LIGHT_GREEN 0x0A
+#define T_COLOR_LIGHT_CYAN 0x0B
+#define T_COLOR_LIGHT_RED 0x0C
+#define T_COLOR_LIGHT_MAGENTA 0x0D
+#define T_COLOR_LIGHT_YELLOW 0x0E
+#define T_COLOR_WHITE 0x0F
+
+/* Prototypes ==============================================*/
+
+void init_video();
+void close_video();
+void cls();
+void moveCursor(unsigned char x, unsigned char y);
 
 /* Global =================================================*/
 
-extern unsigned char tuiMode;
+extern unsigned short *textmemptr;
+extern int attrib;
+extern unsigned char TUI_COLS;
+extern unsigned char TUI_ROWS;
 
-/* Asm ====================================================*/
-
-#pragma aux clearScreen = \
-    "int 10h", \
-    "mov ax, 0600h", \
-    "mov bh, 07h", \
-    "mov cx, 0000h", \
-    "mov dx, 184Fh", \
-    "int 10h";
 
 #endif

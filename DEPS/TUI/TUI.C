@@ -9,9 +9,12 @@
 unsigned short *textmemptr;
 int attrib = 0x0F;
 
+unsigned char TUI_COLS = 80;
+unsigned char TUI_ROWS = 25;
+
 void moveCursor(unsigned char x, unsigned char y)
 {
-    unsigned temp;
+    unsigned short temp;
 
     /* The equation for finding the index in a linear
     *  chunk of memory can be represented by:
@@ -49,17 +52,30 @@ void cls(){
     moveCursor(0, 0);
 }
 
+void drawRectangle(unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2, unsigned char background, unsigned char foreground, unsigned char character,  bool blinking){
+    unsigned short screenCharacter;
+    int i, lowerLimit, upperLimit;
+
+    i = (y1 * TUI_COLS) + x1;
+
+    screenCharacter = character | ((background << 4 | foreground) << 8);
+    
+    for(i; i <= (y2 * TUI_COLS) + x2; i++){
+        lowerLimit = i % TUI_COLS >= x1;
+        upperLimit = i % TUI_COLS <= x2;
+    
+        if(lowerLimit && upperLimit) textmemptr[i] = screenCharacter;
+    }
+}
+
 void init_video(){
-    /* In DOS/4GW, the first megabyte of physical memory is automatically
-     * mapped to the linear address space, so we can directly access
-     * the text mode video buffer at 0xB8000 */
     textmemptr = (unsigned short *)0xB8000;
     cls();
 }
 
-#ifdef TUI_STANDALONE
+/* Standalone test =================================================*/
 
-unsigned char tuiMode = TUI_MODE_COMMAND;
+#ifdef TUI_STANDALONE
 
 int main(){
     bool endProgram = false;
@@ -80,7 +96,7 @@ int main(){
     init_video();
     initKeyboard();
 
-    
+    drawRectangle(5, 5, 10, 10, T_COLOR_BLUE, T_COLOR_LIGHT_BLUE, 'L', false);
     while(endProgram == false){
         if(keyboardTable[KEY_ESC] == true) endProgram = true;
 

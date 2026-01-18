@@ -5,19 +5,39 @@
 #include "..\DEPS\DATA\DATA.H"
 
 /* Const. ================================================================*/
+
+#define MAX_FILE_CHUNK_SIZE 4096
+#define MAX_FILE_CHUNKS 16
 /* Types =================================================================*/
 
 typedef struct File {
     char *name;
     char *path;
-    char *content;
-    int size;
+ 
+    struct FileExtension*extension;
+
+    struct FileChunk *chunks[MAX_FILE_CHUNKS];
+    unsigned short chunkLength;
+
+    unsigned short size;
 } File;
 
 typedef struct FileList{
     List *files;
     unsigned short length;
 } FileList;
+
+typedef struct FileChunk {
+    char *content;
+    unsigned short offset;
+    unsigned short size;
+} FileChunk;
+
+typedef struct FileExtension {
+    char *name;
+    char *description;
+    char *icon;
+} Extension;
 
 /* Globals ==============================================================*/
 

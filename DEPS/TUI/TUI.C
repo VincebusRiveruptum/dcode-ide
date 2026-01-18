@@ -12,8 +12,7 @@ int attrib = 0x0F;
 unsigned char TUI_COLS = 80;
 unsigned char TUI_ROWS = 25;
 
-void moveCursor(unsigned char x, unsigned char y)
-{
+void tg_moveCursor(unsigned char x, unsigned char y){
     unsigned short temp;
 
     /* The equation for finding the index in a linear
@@ -34,27 +33,33 @@ void moveCursor(unsigned char x, unsigned char y)
     outPortb(0x3D5, temp);
 }
 
-void cls(){
+void tg_cls(){
     unsigned short blank;
     int i;
 
-    /* Create the blank character: space (0x20) with current attribute.
-     * Format: low byte = character, high byte = attribute */
     blank = CHAR_SPACE | (attrib << 8);
-
-    /* Fill the entire screen (80 columns x 25 rows = 2000 words)
-     * We can't use memset() here because it fills BYTES, not WORDS.
-     * Text mode video memory needs 16-bit values (char + attribute). */
-    for(i = 0; i < 80 * 25; i++)
+    for(i = 0; i < TUI_COLS * TUI_ROWS; i++)
         textmemptr[i] = blank;
 
-    /* Move the hardware cursor to top-left */
-    moveCursor(0, 0);
+    tg_moveCursor(0, 0);
 }
 
-void drawRectangle(unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2, unsigned char background, unsigned char foreground, unsigned char character,  bool blinking){
+void tg_fill(unsigned char background, unsigned char foreground, unsigned char character){
+    unsigned short screenCharacter;
+    int i;
+
+    screenCharacter = character | ((background << 4 | foreground) << 8);
+    
+    for(i = 0; i < TUI_COLS * TUI_ROWS; i++)
+        textmemptr[i] = screenCharacter;
+}
+
+void tg_drawRectangle(unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2, unsigned char background, unsigned char foreground, unsigned char character,  bool blinking){
     unsigned short screenCharacter;
     int i, lowerLimit, upperLimit;
+
+    // Boundary check
+    if(x1 > x2 || y1 > y2) return;
 
     i = (y1 * TUI_COLS) + x1;
 
@@ -68,9 +73,37 @@ void drawRectangle(unsigned short x1, unsigned short y1, unsigned short x2, unsi
     }
 }
 
-void init_video(){
+void tg_init_video(){
+    TUI_ROWS = 25;
+    TUI_COLS = 80;
+
+    tg_set25Lines_asm();
+
     textmemptr = (unsigned short *)0xB8000;
-    cls();
+    tg_cls();
+}
+
+void tg_set43Lines(){
+    TUI_ROWS = 43;
+    TUI_COLS = 80;
+
+    tg_set350Lines_asm();
+    tg_set43Lines_asm();
+}
+
+void tg_set50Lines(){
+    TUI_ROWS = 50;
+    TUI_COLS = 80;
+
+    tg_set400Lines_asm();
+    tg_set43Lines_asm();
+}
+
+void tg_set25Lines(){
+    TUI_ROWS = 25;
+    TUI_COLS = 80;
+    tg_set400Lines_asm();
+    tg_set25Lines_asm();
 }
 
 /* Standalone test =================================================*/
@@ -93,12 +126,17 @@ int main(){
     // 3. After inserting a single character we go back to COMMAND mode
     // 4. And so on...
     
-    init_video();
+    tg_init_video();
     initKeyboard();
 
-    drawRectangle(5, 5, 10, 10, T_COLOR_BLUE, T_COLOR_LIGHT_BLUE, 'L', false);
+    //tg_drawRectangle(0, 0, TUI_COLS - 1, TUI_ROWS - 1, T_COLOR_BLUE, T_COLOR_LIGHT_BLUE, '°', false);
+    tg_fill(T_COLOR_BLUE, T_COLOR_LIGHT_BLUE, '°');
     while(endProgram == false){
         if(keyboardTable[KEY_ESC] == true) endProgram = true;
+
+        if(keyboardTable[KEY_F1] == true) tg_set25Lines();
+        if(keyboardTable[KEY_F2] == true) tg_set50Lines();
+        if(keyboardTable[KEY_F3] == true) tg_set43Lines();
 
         if(kbhit()){
             c = getch();
@@ -107,6 +145,8 @@ int main(){
     }
     
     closeKeyboard();
+    tg_set25Lines();
+    tg_cls();
     printf("\nUser pressed ESC.");
     return 0;
 }

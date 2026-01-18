@@ -1,3 +1,12 @@
+/*
+    TUI Engine by Vincebus Riveruptum
+
+    (C) 2026 Vincebus Riveruptum
+
+    This library is for educational or entertainment purposes only.
+    It is not intended for use in production environments.
+*/
+
 #ifndef TUI_H
 #define TUI_H
 
@@ -102,38 +111,9 @@
 
 
  #define TUI_MAX_NAME_SIZE 16
- // Button Types
-
-#define TUI_BUTTON_TYPE_DEFAULT 0x00
-#define TUI_BUTTON_TYPE_PRIMARY 0x01
-#define TUI_BUTTON_TYPE_DANGER 0x02
-#define TUI_BUTTON_TYPE_WARNING 0x03
-#define TUI_BUTTON_TYPE_SUCCESS 0x04
-
-// Position types
-
-#define TUI_POSITION_TYPE_ABSOLUTE 0x00
-#define TUI_POSITION_TYPE_RELATIVE 0x01
-
-// Justify types
-#define TUI_JUSTIFY_EVENLY 0x00
-#define TUI_JUSTIFY_BETWEEN 0x01
-#define TUI_JUSTIFY_STRETCH 0x02
-
-// Align types
-#define TUI_ALIGN_START 0x00
-#define TUI_ALIGN_CENTER 0x01
-#define TUI_ALIGN_END 0x02
-
-// Direction types
-#define TUI_DIRECTION_ROW 0x00
-#define TUI_DIRECTION_COLUMN 0x01
-
-// Input types
-
-#define TUI_INPUT_TEXT 1
-#define TUI_INPUT_NUMBER 2
-#define TUI_INPUT_PASSWORD 3
+ #define TUI_MAX_TEXT_SIZE 256
+ #define TUI_MAX_TOOLTIP_SIZE 512
+ #define TUI_MAX_STATUSBAR_TEXT_SIZE 80
 
 /* Prototypes ==============================================*/
 
@@ -152,6 +132,53 @@ void tg_set25Lines_asm();
 
 /* Types ===================================================*/
 
+typedef enum ButtonType {
+    TUI_BUTTON_TYPE_DEFAULT,
+    TUI_BUTTON_TYPE_PRIMARY,
+    TUI_BUTTON_TYPE_DANGER,
+    TUI_BUTTON_TYPE_WARNING,
+    TUI_BUTTON_TYPE_SUCCESS
+} ButtonType;
+
+typedef enum InputType {
+    TUI_INPUT_TYPE_TEXT,
+    TUI_INPUT_TYPE_NUMBER,
+    TUI_INPUT_TYPE_PASSWORD
+} InputType;
+
+typedef enum PositionType {
+    TUI_POSITION_TYPE_ABSOLUTE,
+    TUI_POSITION_TYPE_RELATIVE
+} PositionType;
+
+typedef enum JustifyType {
+    TUI_JUSTIFY_EVENLY,
+    TUI_JUSTIFY_BETWEEN,
+    TUI_JUSTIFY_STRETCH
+} JustifyType;
+
+typedef enum AlignType {
+    TUI_ALIGN_START,
+    TUI_ALIGN_CENTER,
+    TUI_ALIGN_END
+} AlignType;
+
+typedef enum DirectionType {
+    TUI_DIRECTION_ROW,
+    TUI_DIRECTION_COLUMN
+} DirectionType;
+
+typedef enum ElementType {
+    TUI_ELEMENT_TYPE_LABEL,
+    TUI_ELEMENT_TYPE_INPUT,
+    TUI_ELEMENT_TYPE_BUTTON,
+    TUI_ELEMENT_TYPE_STATUSBAR,
+    TUI_ELEMENT_TYPE_MENU,
+    TUI_ELEMENT_TYPE_DIALOG,
+    TUI_ELEMENT_TYPE_FORM,
+    TUI_ELEMENT_TYPE_FORM_GROUP
+} ElementType;
+
 typedef struct Position {
     unsigned char type;
     unsigned short x;
@@ -168,8 +195,8 @@ A form-group could be used for
 
 typedef struct FormGroup {
     struct Position position;
-    unsigned char justifyContent;
-    unsigned char direction;
+    JustifyType justifyContent;
+    DirectionType direction;
     bool enabled;
     bool visible;
 } FormGroup;
@@ -186,23 +213,23 @@ typedef struct Form {
 typedef struct Label {
     unsigned short id;
     char name[TUI_MAX_NAME_SIZE];
-    char *text;
+    char text[TUI_MAX_TEXT_SIZE];
     bool enabled;
     bool visible;
 } Label;
 
-
 typedef struct Input {
     unsigned short id;
+    InputType type;
     struct Position position;
-    char *text;
+    char text[TUI_MAX_TEXT_SIZE];
     char name[TUI_MAX_NAME_SIZE];
-    char *tooltip;
-    char type;
+    char tooltip[TUI_MAX_TOOLTIP_SIZE];
     bool enabled;
     bool visible;
 
-    char *strValue;
+    // Value storage
+    char strValue[TUI_MAX_TEXT_SIZE];
     int intValue;
     float floatValue;
     unsigned short length;
@@ -210,14 +237,15 @@ typedef struct Input {
     void (*change)(void);
     
 } Input;
+
 typedef struct Button {
     unsigned short id;
+    ButtonType type;
     struct Position position;
     char keys[4];    // Key combinations
-    char *text;
+    char text[TUI_MAX_TEXT_SIZE];
     char name[TUI_MAX_NAME_SIZE];
-    char *tooltip;
-    char type;
+    char tooltip[TUI_MAX_TOOLTIP_SIZE];
     bool enabled;
     bool visible;
 
@@ -228,11 +256,10 @@ typedef struct Statusbar {
     unsigned short id;
     char name[TUI_MAX_NAME_SIZE];
     struct Position position;
-    char *text;
+    char text[TUI_MAX_STATUSBAR_TEXT_SIZE];
     bool enabled;
     bool visible;    
 } Statusbar;
-
 
 typedef struct MenuItem {
     unsigned short id;
@@ -266,6 +293,18 @@ typedef struct Dialog {
     void (*helpFunction)(void);
 } Dialog;
 
+typedef struct BaseElement {
+    ElementType type;
+    unsigned short id;
+    struct Position position;
+    bool enabled;
+    bool visible;
+} BaseElement;
+
+typedef struct Container {
+    struct BaseElement base;
+    struct List *elements;
+} Container;
 
 /* Global =================================================*/
 

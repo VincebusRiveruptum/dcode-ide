@@ -1,3 +1,7 @@
+# DCode IDE Development Diary
+
+### Vincebus Riveruptum, 2026
+
 # 17.01.2026
 
 I did previously explain that this is a DOS 32-bit custom programming IDE project, why i decided to make one? Its due that the existing DOS editors are completely outdated, are not friendly for modern users that are used to vscode shortcuts, window, identing, formatting, etc. So, i plan to make a small one by myself. This will render everything in text mode and will be able to switch between 25 and 43 lines if the user desires , this will use TUI or Text UI as its enough for old DOS machines over 386. 
@@ -14,8 +18,6 @@ that translates the scancode to the desired character to be displayed on screen.
 Also, i have questions of how to handle the opened text buffer, it will be a struct with metadata and the opened file content, stored as an array of characters. What happens if the text is too large? 
 
 Found that the interrupt handling in 32bit mode is done by DOS4GW where it manaages by translating the IVT to protected mode IVT. 
-
-////////////
 
 I got the question, if i do an ISR implementaiton, i also have to do the codepage and keyboard coutry implementation? This could be  unnecesary. Now in this case maybe using DOS keyboard funtions could be better?
 
@@ -39,7 +41,7 @@ Layer that abstracts hardware to BIOS level, providing ASCII output from keyboar
 This interrupts handle many DOS-level services (File I/O, Memory management, Date/Time, etc), but on this topic we will analyze the keyboard handling.
 
 At this level, int 21H provides codepage translation, STDIN redirection, CTRL + C breaking, line editing, etc.
-
+```
 ┌─────────────────────────────────────┐
 │     INT 21h - DOS Services          │  ← Highest level (application layer)
 │  (Character I/O, Files, Memory)     │
@@ -54,8 +56,7 @@ At this level, int 21H provides codepage translation, STDIN redirection, CTRL + 
 │     INT 09h - Keyboard Hardware IRQ │  ← Lowest level (hardware ISR)
 │  (Scan codes from keyboard port)    │
 └─────────────────────────────────────┘
-
-/////////////
+```
 
 I'm getting tired of not being able to write a single line of assembly, i need to do it soon
 as possible for me there is an ethic decision where a real programmer solves and engineers solutions
@@ -89,15 +90,19 @@ Port handling instructions:
     IN
     OUT
     
+---
 
 # 18.01.2026
+
+
+### File buffering idea
 
 So, i woke up and started thinking on got the text will be manipulated, i mean, first we open the file, then store it in memory, lets call 
 this space as 'file buffer' . However, we need to do double buffering as where we render the text that will be on the screen, lets call this 'video buffer'. Having two buffers will be helpful for many reasons, for example,  when the user scrolls basically we need to offet what is 
 in the video buffer by one line an so on, upward of downward, then append the new line that is on the file buffer then to the video buffer. 
 
 There is a scenario where the file is too large, so we need to read it by chunks, so when the user scrolls to a region out of the file buffer we need to read the next chunk of the file and append it to the file buffer, then we need to do the same for the video buffer.
-
+```
 -------------
 | Disk File | : File stored in disk.
 -------------
@@ -109,10 +114,10 @@ There is a scenario where the file is too large, so we need to read it by chunks
 ----------------
 | Video Buffer | : 80x25 memory space
 ----------------
-
+```
 We need to define the structs involved. I´ll avoid using linked lists as i want to keep it simple and fast.
 
-/////////////////////
+### Next step
 
 Now i'm planning on the next step, we already have:
 
@@ -124,3 +129,36 @@ and keyboard languaje management.
 The next step could be implementing the TUI arquitecture which i already made a draft in @TUI.H , it is very HTML like as has some styling and event handling similutides. This will help programmers with a previous web development mindest. 
 
 So i want to hear your opinion, what do you think about this? Lets discuss.
+
+AI pointed me the following:
+
+```
+    "This is a very ambitious and well-structured draft! Mimicking the web (HTML/CSS-lite) for DOS is a brilliant way to make the framework accessible. It shifts the focus from "pixel-pushing" to "structural composition," which is exactly what a modern TUI should do.
+
+    Here are my thoughts on your architecture and some technical considerations we should address:
+
+    1. The Layout Engine (The "Flexbox" Challenge)
+    You've included justifyContent, direction, and alignment. This implies a Box Model.
+
+    Coordinate Calculation: We'll need a function that traverses the tree (e.g., Dialog -> Form -> FormGroup -> Inputs) to calculate absolute screen coordinates based on relative spacing.
+    Constraint System: In the web, boxes can shrink/grow. In DOS, we are limited by char cells. We should decide if FormGroup has a fixed width or if it calculates it based on children.
+    2. Event Dispatching & Focus
+    Since you have ISR-based keyboard handling, we need a Focus Manager:
+
+    How do we know which Input or Button is currently "active"?
+    We'll need a "Global Focus Index" or a pointer to the active struct.
+    For buttons, we need to map the keys[4] in your struct to the actual ISR keyboardTable to trigger the click callback.
+    3. Memory Management (The char * vs char[] dilemma)
+    DOS apps often struggle with heap fragmentation.
+
+    Your structs use char *text. This is flexible but requires malloc/free.
+    Suggestion: For labels or tooltips, we might want to support both static strings (string literals) and dynamic buffers for inputs.
+    4. Component Hierarchy (Polymorphism in C)
+    Right now, each component is a separate struct. To make a generic "Render System" or "Event Dispatcher," we might want a "Base" header for all UI elements.
+
+    5. Z-Order & Transparency
+    Since you have Dialog and Form, we'll likely have overlapping elements.
+
+    Do we want the background ▒ to be preserved when a dialog closes?
+    We might need a Screen Buffer (an array in memory) to "compose" the scene before sending it to 0xB8000."
+```

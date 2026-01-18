@@ -194,11 +194,9 @@ A form-group could be used for
 */
 
 typedef struct FormGroup {
-    struct Position position;
+    struct BaseElement base;
     JustifyType justifyContent;
     DirectionType direction;
-    bool enabled;
-    bool visible;
 } FormGroup;
 
 typedef struct Form {
@@ -211,22 +209,15 @@ typedef struct Form {
 } Form;
 
 typedef struct Label {
-    unsigned short id;
-    char name[TUI_MAX_NAME_SIZE];
+    struct BaseElement base;
     char text[TUI_MAX_TEXT_SIZE];
-    bool enabled;
-    bool visible;
 } Label;
 
 typedef struct Input {
-    unsigned short id;
-    InputType type;
-    struct Position position;
+    struct BaseElement base;
+    InputType iptType;
     char text[TUI_MAX_TEXT_SIZE];
-    char name[TUI_MAX_NAME_SIZE];
     char tooltip[TUI_MAX_TOOLTIP_SIZE];
-    bool enabled;
-    bool visible;
 
     // Value storage
     char strValue[TUI_MAX_TEXT_SIZE];
@@ -239,53 +230,36 @@ typedef struct Input {
 } Input;
 
 typedef struct Button {
-    unsigned short id;
-    ButtonType type;
-    struct Position position;
+    struct BaseElement base;
+    ButtonType btnType;
     char keys[4];    // Key combinations
     char text[TUI_MAX_TEXT_SIZE];
-    char name[TUI_MAX_NAME_SIZE];
     char tooltip[TUI_MAX_TOOLTIP_SIZE];
-    bool enabled;
-    bool visible;
 
     void (*click)(void);
 } Button;
 
 typedef struct Statusbar {
-    unsigned short id;
-    char name[TUI_MAX_NAME_SIZE];
-    struct Position position;
-    char text[TUI_MAX_STATUSBAR_TEXT_SIZE];
-    bool enabled;
-    bool visible;    
+    struct BaseElement base;
+    char text[TUI_MAX_STATUSBAR_TEXT_SIZE];    
 } Statusbar;
 
 typedef struct MenuItem {
-    unsigned short id;
-    char name[TUI_MAX_NAME_SIZE];
+    struct BaseElement base;
     char *text;
-    bool enabled;
-    bool visible;
 } MenuItem;
 
 typedef struct Menu {
-    unsigned short id;
-    char name[TUI_MAX_NAME_SIZE];
+    struct BaseElement base;
     unsigned char alignment;
     struct List *items;
-
-    bool enabled;
-    bool visible;
 } Menu;
 
 typedef struct Dialog {
+    struct BaseElement base;
     char *title;
     bool closeButton;
     bool helpButton;
-
-    bool enabled;
-    bool visible;
 
     struct Form *form;
     struct Position position;
@@ -297,6 +271,7 @@ typedef struct BaseElement {
     ElementType type;
     unsigned short id;
     struct Position position;
+    char name[TUI_MAX_NAME_SIZE];
     bool enabled;
     bool visible;
 } BaseElement;
@@ -309,6 +284,7 @@ typedef struct Container {
 /* Global =================================================*/
 
 extern unsigned short *textmemptr;
+
 extern int attrib;
 extern unsigned char TUI_COLS;
 extern unsigned char TUI_ROWS;

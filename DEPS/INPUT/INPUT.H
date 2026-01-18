@@ -144,7 +144,14 @@ typedef unsigned char bool;
 #define KEY_INSERT         82
 #define KEY_DELETE         83
 
-
+/** SOME EKIVALENT ASCII VALUES */
+// in 16-bit word
+#define CHAR_BACKSPACE      0x08
+#define CHAR_TAB            0x09
+#define CHAR_ENTER          0x0D
+#define CHAR_SPACE          0x20
+#define CHAR_ESCAPE         0x1B
+#define CHAR_DELETE         0x7F
 /* PROTOTYPES ===========================================================*/
 
 void initKeyboard();

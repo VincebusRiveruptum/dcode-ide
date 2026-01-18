@@ -16,6 +16,8 @@
 #define STATUS_ADDR 0x3da
 #define CHIPSTECH_ADDR 0x3d6
 
+
+#define VIDEO_BUFFER_ADDR 0xB8000
 /* PROTOYPES ===========================================================================*/
 
 void unProtectCRTC(void);

@@ -9,4 +9,11 @@
 // THIS REQUIRE THE INPUT DEPS
 #include "..\INPUT\INPUT.H"
 
+#define TUI_MODE_COMMAND 1
+#define TUI_MODE_INSERT 2
+
+/* =====================================================*/
+
+extern unsigned char tuiMode;
+
 #endif

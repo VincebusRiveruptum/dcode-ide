@@ -149,12 +149,12 @@ typedef unsigned char bool;
 
 void initKeyboard();
 void closeKeyboard();
-void listenKeyboard();
 
 /* VARIABLES ============================================================*/
 
 extern volatile unsigned char keyboardTable[256];
 extern volatile unsigned char prevKeyboardTable[256];
 extern const unsigned char *keyboardMap[256];
+extern unsigned char scanCode;
 
 #endif

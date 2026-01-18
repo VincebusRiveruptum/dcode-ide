@@ -74,3 +74,4 @@ void registerOut(int controller, char index, unsigned char value) {
 
     outPortb(ATTR_ADDR, 0x20);  // Allow screen writes
 }
+

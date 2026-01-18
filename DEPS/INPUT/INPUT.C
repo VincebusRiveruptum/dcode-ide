@@ -108,29 +108,54 @@ const unsigned char *keyboardMap[256] = {
     NULL
 };
 
-
 // Variables managed by ISR
 unsigned char scanCode;
 
-// NOP in ISR mode, kept for reverse compatibility
-
 void ( __interrupt __far *oldKeyISR)();
 
+/*
+HOW DOES THIS WORK?
+
+Basically, is that we are manipulating the BIOS's interrupt vector by replacing my own ISR from 
+the original one, we save the old one then restore after the program ends,
+ but also we chain my ISR so it does its job and then pass the turn to the old one to also do its work 
+ which is used by kbhit and getch... 
+
+ Keyboard → PIC → CPU
+           ↓
+    Triggers INT 09h
+           ↓
+    Jumps to my ISR (keyISR)
+           ↓
+    My code: scanCode = inPortb(0x60);
+               keyboardTable[scanCode] = 1;
+           ↓
+    I call: oldKeyISR();  // Chain to BIOS
+           ↓
+    BIOS ISR runs:
+      - Converts scan code to ASCII
+      - Updates BIOS keyboard buffer
+      - Handles Caps/Num Lock LEDs
+      - Sends EOI to PIC
+           ↓
+    Returns to my ISR → Returns to interrupted program
+    
+*/
 static void __interrupt __far keyISR() {
     unsigned char status;
     
     // Read scan code
     scanCode = inPortb(0x60);
-
     // Update table
     if (scanCode < 128) {
-        keyboardTable[scanCode] = 1;
+        keyboardTable[scanCode] = 1;        
     } else {
         keyboardTable[scanCode - 128] = 0;
     }
 
     // Acknowledge the PIC (Programmable Interrupt Controller)
-    outPortb(0x20, 0x20);
+    //outPortb(0x20, 0x20); // This is not chaining the interrupts
+    oldKeyISR();            // This is chaining the interrupts
 }
 
 void initKeyboard() {
@@ -142,11 +167,6 @@ void initKeyboard() {
 
 void closeKeyboard() {
     _dos_setvect(0x09, oldKeyISR);
-}
-
-void listenKeyboard(){
-    // In ISR mode, this becomes a NOP or can be used for secondary processing
-    // since the table updates in the background.
 }
 
 #ifdef STANDALONE  

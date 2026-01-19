@@ -162,3 +162,24 @@ AI pointed me the following:
     Do we want the background ▒ to be preserved when a dialog closes?
     We might need a Screen Buffer (an array in memory) to "compose" the scene before sending it to 0xB8000."
 ```
+
+### Common-Header Arquitecture 
+
+After creating the arquitecture base, where i defined all the structs involved for the app's main requeriment, the AI suggested some small improvment by giving the Common-Header pattern arquitecture. 
+
+This consists on creating a struct that will be an attribute in all structs, this struct will contain the common attributes of all structs, such as:
+
+```c
+typedef struct BaseElement {
+    ElementType type;
+    unsigned short id;
+    struct Position position;
+    char name[TUI_MAX_NAME_SIZE];
+    bool enabled;
+    bool visible;
+} BaseElement;
+```
+
+This compared to the Composition pattern, this reduces memory fragmentation and improves perfomance. BaseElement will always be on offset 0 of the Element struct.
+
+Now after defining the architecture, we have to start making instances of these elements and implement rendering.

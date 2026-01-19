@@ -20,7 +20,8 @@
 
 // THIS REQUIRE THE INPUT DEPS
 #include "..\INPUT\INPUT.H"
-
+#include "..\SORT\SORT.H"
+#include "..\DATA\DATA.H"
 
 #define T_COLOR_BLACK 0x00
 #define T_COLOR_BLUE 0x01
@@ -115,21 +116,6 @@
  #define TUI_MAX_TOOLTIP_SIZE 512
  #define TUI_MAX_STATUSBAR_TEXT_SIZE 80
 
-/* Prototypes ==============================================*/
-
-void tg_init_video();
-void tg_close_video();
-void tg_cls();
-void tg_moveCursor(unsigned char x, unsigned char y);
-void tg_drawRectangle(unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2, unsigned char background, unsigned char foreground, unsigned char character,  bool blinking);
-
-
-void tg_set43Lines();
-void tg_set25Lines();
-
-void tg_set43Lines_asm();
-void tg_set25Lines_asm();
-
 /* Types ===================================================*/
 
 typedef enum ButtonType {
@@ -176,13 +162,15 @@ typedef enum ElementType {
     TUI_ELEMENT_TYPE_MENU,
     TUI_ELEMENT_TYPE_DIALOG,
     TUI_ELEMENT_TYPE_FORM,
-    TUI_ELEMENT_TYPE_FORM_GROUP
+    TUI_ELEMENT_TYPE_FORM_GROUP,
+    TUI_ELEMENT_TYPE_CONTAINER
 } ElementType;
 
 typedef struct Position {
     unsigned char type;
     unsigned short x;
     unsigned short y;
+    short zIndex;
 } Position;
 
 /*
@@ -192,6 +180,16 @@ A form-group could be used for
 - A group with a label and a checkbox
 - A group with a label and a radio button
 */
+
+typedef struct BaseElement {
+    ElementType type;
+    unsigned short id;
+    struct Position position;
+    char name[TUI_MAX_NAME_SIZE];
+    bool enabled;
+    bool visible;
+} BaseElement;
+
 
 typedef struct FormGroup {
     struct BaseElement base;
@@ -267,15 +265,6 @@ typedef struct Dialog {
     void (*helpFunction)(void);
 } Dialog;
 
-typedef struct BaseElement {
-    ElementType type;
-    unsigned short id;
-    struct Position position;
-    char name[TUI_MAX_NAME_SIZE];
-    bool enabled;
-    bool visible;
-} BaseElement;
-
 typedef struct Container {
     struct BaseElement base;
     struct List *elements;
@@ -285,9 +274,13 @@ typedef struct Container {
 
 extern unsigned short *textmemptr;
 
+
 extern int attrib;
 extern unsigned char TUI_COLS;
 extern unsigned char TUI_ROWS;
+
+// Element Root
+extern struct Container *root;
 
 /* ASM Prototypes */
 
@@ -321,3 +314,30 @@ extern unsigned char TUI_ROWS;
 
 
 #endif
+
+/* Prototypes ==============================================*/
+
+void tg_init_video();
+void tg_close_video();
+void tg_cls();
+void tg_moveCursor(unsigned char x, unsigned char y);
+void tg_drawRectangle(unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2, unsigned char background, unsigned char foreground, unsigned char character,  bool blinking);
+
+
+void tg_set43Lines();
+void tg_set25Lines();
+
+void tg_set43Lines_asm();
+void tg_set25Lines_asm();
+
+// render prototypes
+
+void tg_renderElements();
+void tg_renderContainer(Container *container);
+void tg_renderLabeL(Label *label);
+void tg_renderButton(Button *button);
+void tg_renderInput(Input *input);
+void tg_renderMenu(Menu *menu);
+void tg_renderDialog(Dialog *dialog);
+void tg_renderForm(Form *form);
+void tg_renderFormGroup(FormGroup *formGroup);

@@ -12,11 +12,11 @@ void tg_cls(){
     tg_moveCursor(0, 0);
 }
 
-void tg_fill(unsigned char background, unsigned char foreground, unsigned char character){
+void tg_fill(unsigned char backgroundColor, unsigned char foregroundColor, unsigned char character){
     unsigned short screenCharacter;
     int i;
 
-    screenCharacter = character | ((background << 4 | foreground) << 8);
+    screenCharacter = character | ((backgroundColor << 4 | foregroundColor) << 8);
     
     for(i = 0; i < TUI_COLS * TUI_ROWS; i++)
         textmemptr[i] = screenCharacter;
@@ -75,7 +75,18 @@ char tg_getBorderCharacter(BorderType borderType, RectangleSides side){
     }
 }
 
-void tg_drawRectangle(unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2, unsigned char background, unsigned char foreground, unsigned char fillCharacter,  bool blinking, BorderType borderType){
+void tg_drawRectangle(
+    unsigned short x1, 
+    unsigned short y1, 
+    unsigned short x2,
+    unsigned short y2, 
+    unsigned char backgroundBorderColor, 
+    unsigned char foregroundBorderColor, 
+    unsigned char fillCharacter,  
+    unsigned char foregroundFillColor, 
+    unsigned char backgroundFillColor, 
+    bool blinking, 
+    BorderType borderType){
     unsigned short screenCharacter;
     int i, leftLimit, rightLimit;
 
@@ -85,7 +96,7 @@ void tg_drawRectangle(unsigned short x1, unsigned short y1, unsigned short x2, u
     i = (y1 * TUI_COLS) + x1;
 
     //If i is the first on the index draw top left corner
-    textmemptr[i] = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_TOP_LEFT) | ((background << 4 | foreground) << 8);
+    textmemptr[i] = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_TOP_LEFT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
     
     i++;
 
@@ -97,10 +108,10 @@ void tg_drawRectangle(unsigned short x1, unsigned short y1, unsigned short x2, u
             // If i is the top line draw top line
             if(i < (y1 * TUI_COLS) + x1 + TUI_COLS){
                 if(i % TUI_COLS == x2){
-                    screenCharacter = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_TOP_RIGHT) | ((background << 4 | foreground) << 8);
+                    screenCharacter = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_TOP_RIGHT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                     textmemptr[i] = screenCharacter;
                 }else{
-                    screenCharacter = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_TOP) | ((background << 4 | foreground) << 8);
+                    screenCharacter = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_TOP) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                     textmemptr[i] = screenCharacter;
                 }
             }
@@ -109,10 +120,10 @@ void tg_drawRectangle(unsigned short x1, unsigned short y1, unsigned short x2, u
             else if( i > ((y2 * TUI_COLS) + x2 )- TUI_COLS){
                 // If i is the bottom line draw bottom line
                 if(i % TUI_COLS == x1){
-                    screenCharacter = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_BOTTOM_LEFT) | ((background << 4 | foreground) << 8);
+                    screenCharacter = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_BOTTOM_LEFT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                     textmemptr[i] = screenCharacter;
                 }else{
-                    screenCharacter = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_BOTTOM) | ((background << 4 | foreground) << 8);
+                    screenCharacter = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_BOTTOM) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                     textmemptr[i] = screenCharacter;
                 }
 
@@ -120,20 +131,20 @@ void tg_drawRectangle(unsigned short x1, unsigned short y1, unsigned short x2, u
             
             // If i is the left line draw left line
             else if(i % TUI_COLS <= x1){
-                screenCharacter = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_LEFT) | ((background << 4 | foreground) << 8);
+                screenCharacter = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_LEFT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                 textmemptr[i] = screenCharacter;
             }
             // If i is the right line draw right line
             else if(i % TUI_COLS >= x2){
-                screenCharacter = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_RIGHT) | ((background << 4 | foreground) << 8);
+                screenCharacter = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_RIGHT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                 textmemptr[i] = screenCharacter;
             }else{
-                screenCharacter = fillCharacter | ((background << 4 | foreground) << 8);
+                screenCharacter = fillCharacter | ((backgroundFillColor << 4 | foregroundFillColor) << 8);
                 textmemptr[i] = screenCharacter;
             }                          
         }
     }
     
-    textmemptr[i] = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_BOTTOM_RIGHT) | ((background << 4 | foreground) << 8);
+    textmemptr[i] = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_BOTTOM_RIGHT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
 }
 

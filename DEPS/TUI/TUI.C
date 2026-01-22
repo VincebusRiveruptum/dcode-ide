@@ -96,12 +96,8 @@ int main(){
     
     tg_init_video();
     initKeyboard();
-
     tg_t_initTests();
 
-    //tg_drawRectangle(0, 0, TUI_COLS - 1, TUI_ROWS - 1, T_COLOR_BLUE, T_COLOR_LIGHT_BLUE, '°', false);
-    tg_fill(T_COLOR_BLUE, T_COLOR_LIGHT_BLUE, '°');
-    tg_drawRectangle(3, 3, 20, 10, T_COLOR_BLUE, T_COLOR_LIGHT_BLUE, 'x', false, TUI_DRAW_BORDER_SIMPLE);
     while(endProgram == false){
         if(keyboardTable[KEY_ESC] == true) endProgram = true;
 

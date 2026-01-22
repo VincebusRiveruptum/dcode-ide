@@ -88,7 +88,7 @@ void tg_drawRectangle(
     bool blinking, 
     BorderType borderType){
     unsigned short screenCharacter;
-    int i, leftLimit, rightLimit;
+    unsigned short i, leftLimit, rightLimit;
 
     // Boundary check
     if(x1 > x2 || y1 > y2) return;
@@ -148,3 +148,28 @@ void tg_drawRectangle(
     textmemptr[i] = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_BOTTOM_RIGHT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
 }
 
+// This functions copies content from a buffer to textmemptr then displays it on screen
+void tg_writeBuffer(char *buffer, unsigned char x1, unsigned char y1, unsigned char x2, unsigned char y2, unsigned char foregroundColor, unsigned char backgroundColor){
+    unsigned short screenCharacter;
+    unsigned char x, y;
+    unsigned short buffpos = 0;
+    unsigned short buffLength = strlen(buffer);
+    unsigned short screenPos;
+
+    // Boundary check
+    if(x1 > x2 || y1 > y2) return;
+
+    for(y = y1; y <= y2; y++){
+        for(x = x1; x <= x2; x++){
+            screenPos = (y * TUI_COLS) + x;
+            
+            if(buffpos < buffLength){
+                textmemptr[screenPos] = buffer[buffpos] | ((backgroundColor << 4 | foregroundColor) << 8);
+                buffpos++;
+            } else {
+                // Fill remaining area with spaces if buffer ends
+                textmemptr[screenPos] = ' ' | ((backgroundColor << 4 | foregroundColor) << 8);
+            }
+        }
+    }
+}

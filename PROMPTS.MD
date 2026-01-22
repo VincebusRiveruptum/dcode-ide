@@ -183,3 +183,9 @@ typedef struct BaseElement {
 This compared to the Composition pattern, this reduces memory fragmentation and improves perfomance. BaseElement will always be on offset 0 of the Element struct.
 
 Now after defining the architecture, we have to start making instances of these elements and implement rendering.
+
+# 22.01.2026
+
+Today i did some progress, the rectangle drawing was pending and now at 12:08 PM i finished it, they work
+great, not the prettiest code but it does the job.
+

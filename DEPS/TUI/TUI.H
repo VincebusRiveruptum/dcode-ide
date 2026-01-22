@@ -16,6 +16,7 @@
 #include "..\INPUT\INPUT.H"
 #include "..\SORT\SORT.H"
 #include "..\DATA\DATA.H"
+#include "..\LOG\LOG.H"
 
 // 
 #include "DRAW.H"

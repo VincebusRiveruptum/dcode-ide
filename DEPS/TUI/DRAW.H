@@ -25,5 +25,6 @@ typedef enum {
 void tg_cls();
 void tg_fill(unsigned char backgroundColor, unsigned char foregroundColor, unsigned char character);
 void tg_drawRectangle(unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2, unsigned char backgroundBorderColor, unsigned char foregroundBorderColor, unsigned char fillCharacter,  unsigned char foregroundFillColor, unsigned char backgroundFillColor, bool blinking, BorderType borderType);
+void tg_writeBuffer(char *buffer, unsigned char x1, unsigned char y1, unsigned char x2, unsigned char y2, unsigned char foregroundColor, unsigned char backgroundColor);
   
 #endif

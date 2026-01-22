@@ -2,6 +2,10 @@
     This is a basic TUI library, right now just for testing purposes
     By Vincebus Riveruptum
     2026
+
+    Credits osdever.net
+
+    http://www.osdever.net/bkerndev/Docs/printing.htm
 */
 
 #include "TUI.H"
@@ -35,45 +39,7 @@ void tg_moveCursor(unsigned char x, unsigned char y){
     outPortb(0x3D5, temp);
 }
 
-void tg_cls(){
-    unsigned short blank;
-    int i;
 
-    blank = CHAR_SPACE | (attrib << 8);
-    for(i = 0; i < TUI_COLS * TUI_ROWS; i++)
-        textmemptr[i] = blank;
-
-    tg_moveCursor(0, 0);
-}
-
-void tg_fill(unsigned char background, unsigned char foreground, unsigned char character){
-    unsigned short screenCharacter;
-    int i;
-
-    screenCharacter = character | ((background << 4 | foreground) << 8);
-    
-    for(i = 0; i < TUI_COLS * TUI_ROWS; i++)
-        textmemptr[i] = screenCharacter;
-}
-
-void tg_drawRectangle(unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2, unsigned char background, unsigned char foreground, unsigned char character,  bool blinking){
-    unsigned short screenCharacter;
-    int i, lowerLimit, upperLimit;
-
-    // Boundary check
-    if(x1 > x2 || y1 > y2) return;
-
-    i = (y1 * TUI_COLS) + x1;
-
-    screenCharacter = character | ((background << 4 | foreground) << 8);
-    
-    for(i; i <= (y2 * TUI_COLS) + x2; i++){
-        lowerLimit = i % TUI_COLS >= x1;
-        upperLimit = i % TUI_COLS <= x2;
-    
-        if(lowerLimit && upperLimit) textmemptr[i] = screenCharacter;
-    }
-}
 
 void tg_init_video(){
     TUI_ROWS = 25;
@@ -108,89 +74,6 @@ void tg_set25Lines(){
     tg_set25Lines_asm();
 }
 
-/* ELEMENT STUFF ===================================================*/
-
-void tg_rootZOrder(){
-    /*
-        This method orders elements in the root list by z-order
-    */
-    S_SORT_LIST(root->elements, BaseElement, position.zIndex, SORT_TYPE_INT, true);
-}
-
-void tg_renderContainer(Container *container){
-    return;
-}
-void tg_renderLabeL(Label *label){
-    return;
-}
-void tg_renderButton(Button *button){
-    return;
-}
-void tg_renderInput(Input *input){
-    return;
-}
-void tg_renderStatusbar(Statusbar *menu){
-    return;
-}
-void tg_renderMenu(Menu *menu){
-    return;
-}
-void tg_renderDialog(Dialog *dialog){
-    return;
-}
-void tg_renderForm(Form *form){
-    return;
-}
-void tg_renderFormGroup(FormGroup *formGroup){
-    return;
-}
-void tg_renderElements(){
-    int i=0;
-    BaseElement *element;
-    Node *node;
-    if(!root || !root->elements) return;
-
-    for(i=0; i < root->elements->length; i++){
-        node = getNodeByIndex(root->elements, i);
-        element = (BaseElement*)node->data;
-
-        if(!element) continue;
-
-        switch(element->type){
-            case TUI_ELEMENT_TYPE_CONTAINER:
-                tg_renderContainer((Container*)element);
-                break;
-            case TUI_ELEMENT_TYPE_LABEL:
-                tg_renderLabel((Label*)element);
-                break;
-            case TUI_ELEMENT_TYPE_BUTTON:
-                tg_renderButton((Button*)element);
-                break;
-            case TUI_ELEMENT_TYPE_INPUT:
-                tg_renderInput((Input*)element);
-                break;
-            case TUI_ELEMENT_TYPE_STATUSBAR:
-                tg_renderStatusbar((Statusbar*)element);
-                break;
-            case TUI_ELEMENT_TYPE_MENU:
-                tg_renderMenu((Menu*)element);
-                break;
-            case TUI_ELEMENT_TYPE_DIALOG:
-                tg_renderDialog((Dialog*)element);
-                break;
-            case TUI_ELEMENT_TYPE_FORM:
-                tg_renderForm((Form*)element);
-                break;
-            case TUI_ELEMENT_TYPE_FORM_GROUP:
-                tg_renderFormGroup((FormGroup*)element);
-                break;
-            default:
-                break;
-        }
-    }
-}   
-
-
 /* Standalone test =================================================*/
 
 #ifdef TUI_STANDALONE
@@ -214,8 +97,11 @@ int main(){
     tg_init_video();
     initKeyboard();
 
+    tg_t_initTests();
+
     //tg_drawRectangle(0, 0, TUI_COLS - 1, TUI_ROWS - 1, T_COLOR_BLUE, T_COLOR_LIGHT_BLUE, '°', false);
     tg_fill(T_COLOR_BLUE, T_COLOR_LIGHT_BLUE, '°');
+    tg_drawRectangle(3, 3, 20, 10, T_COLOR_BLUE, T_COLOR_LIGHT_BLUE, 'x', false, TUI_DRAW_BORDER_SIMPLE);
     while(endProgram == false){
         if(keyboardTable[KEY_ESC] == true) endProgram = true;
 
@@ -227,6 +113,7 @@ int main(){
             c = getch();
             putch(c);
         }
+        //tg_renderElements();
     }
     
     closeKeyboard();

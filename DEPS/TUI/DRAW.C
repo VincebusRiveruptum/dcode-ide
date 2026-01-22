@@ -1,0 +1,139 @@
+
+#include "DRAW.H"
+
+void tg_cls(){
+    unsigned short blank;
+    int i;
+
+    blank = CHAR_SPACE | (attrib << 8);
+    for(i = 0; i < TUI_COLS * TUI_ROWS; i++)
+        textmemptr[i] = blank;
+
+    tg_moveCursor(0, 0);
+}
+
+void tg_fill(unsigned char background, unsigned char foreground, unsigned char character){
+    unsigned short screenCharacter;
+    int i;
+
+    screenCharacter = character | ((background << 4 | foreground) << 8);
+    
+    for(i = 0; i < TUI_COLS * TUI_ROWS; i++)
+        textmemptr[i] = screenCharacter;
+}
+
+char tg_getBorderCharacter(BorderType borderType, RectangleSides side){
+    switch(borderType){
+        case TUI_DRAW_BORDER_SIMPLE:
+            switch(side){
+                case TUI_DRAW_SIDE_TOP_LEFT:
+                    return 218;
+                case TUI_DRAW_SIDE_TOP_RIGHT:
+                    return 191;
+                case TUI_DRAW_SIDE_BOTTOM_LEFT:
+                    return 192;
+                case TUI_DRAW_SIDE_BOTTOM_RIGHT:
+                    return 217;
+                case TUI_DRAW_SIDE_TOP:
+                    return 196;
+                case TUI_DRAW_SIDE_BOTTOM:
+                    return 196;
+                case TUI_DRAW_SIDE_LEFT:
+                    return 179;
+                case TUI_DRAW_SIDE_RIGHT:
+                    return 179;
+                case TUI_DRAW_SIDE_ALL:
+                    return '°';
+                default:
+                    return '°';
+            }
+        case TUI_DRAW_BORDER_DOUBLE:
+            switch(side){
+                case TUI_DRAW_SIDE_TOP_LEFT:
+                    return 'É';
+                case TUI_DRAW_SIDE_TOP_RIGHT:
+                    return '»';
+                case TUI_DRAW_SIDE_BOTTOM_LEFT:
+                    return 'È';
+                case TUI_DRAW_SIDE_BOTTOM_RIGHT:
+                    return '¼';
+                case TUI_DRAW_SIDE_TOP:
+                    return 'Í';
+                case TUI_DRAW_SIDE_BOTTOM:
+                    return 'Í';
+                case TUI_DRAW_SIDE_LEFT:
+                    return 'º';
+                case TUI_DRAW_SIDE_RIGHT:
+                    return 'º';
+                case TUI_DRAW_SIDE_ALL:
+                    return '°';
+                default:
+                    return '°';
+            }
+        default:
+            return '°';
+    }
+}
+
+void tg_drawRectangle(unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2, unsigned char background, unsigned char foreground, unsigned char fillCharacter,  bool blinking, BorderType borderType){
+    unsigned short screenCharacter;
+    int i, leftLimit, rightLimit;
+
+    // Boundary check
+    if(x1 > x2 || y1 > y2) return;
+
+    i = (y1 * TUI_COLS) + x1;
+
+    //If i is the first on the index draw top left corner
+    textmemptr[i] = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_TOP_LEFT) | ((background << 4 | foreground) << 8);
+    
+    i++;
+
+    for(i; i < (y2 * TUI_COLS) + x2; i++){
+        leftLimit = i % TUI_COLS >= x1;
+        rightLimit = i % TUI_COLS <= x2;
+        
+        if(rightLimit && leftLimit){
+            // If i is the top line draw top line
+            if(i < (y1 * TUI_COLS) + x1 + TUI_COLS){
+                if(i % TUI_COLS == x2){
+                    screenCharacter = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_TOP_RIGHT) | ((background << 4 | foreground) << 8);
+                    textmemptr[i] = screenCharacter;
+                }else{
+                    screenCharacter = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_TOP) | ((background << 4 | foreground) << 8);
+                    textmemptr[i] = screenCharacter;
+                }
+            }
+
+            // Bottom side
+            else if( i > ((y2 * TUI_COLS) + x2 )- TUI_COLS){
+                // If i is the bottom line draw bottom line
+                if(i % TUI_COLS == x1){
+                    screenCharacter = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_BOTTOM_LEFT) | ((background << 4 | foreground) << 8);
+                    textmemptr[i] = screenCharacter;
+                }else{
+                    screenCharacter = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_BOTTOM) | ((background << 4 | foreground) << 8);
+                    textmemptr[i] = screenCharacter;
+                }
+
+            }
+            
+            // If i is the left line draw left line
+            else if(i % TUI_COLS <= x1){
+                screenCharacter = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_LEFT) | ((background << 4 | foreground) << 8);
+                textmemptr[i] = screenCharacter;
+            }
+            // If i is the right line draw right line
+            else if(i % TUI_COLS >= x2){
+                screenCharacter = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_RIGHT) | ((background << 4 | foreground) << 8);
+                textmemptr[i] = screenCharacter;
+            }else{
+                screenCharacter = fillCharacter | ((background << 4 | foreground) << 8);
+                textmemptr[i] = screenCharacter;
+            }                          
+        }
+    }
+    
+    textmemptr[i] = tg_getBorderCharacter(borderType, TUI_DRAW_SIDE_BOTTOM_RIGHT) | ((background << 4 | foreground) << 8);
+}
+

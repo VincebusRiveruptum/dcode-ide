@@ -3,6 +3,9 @@
 
 #define BUFFER_SIZE 2048
 
+unsigned char currentCursorX = 0;
+unsigned char currentCursorY = 0;
+
 void tg_cls(){
     unsigned short blank;
     int i;
@@ -161,7 +164,7 @@ void tg_writeBuffer(const char *format, unsigned char x1, unsigned char y1, unsi
     unsigned short screenPos;
     
     memset(buffer, 0, BUFFER_SIZE);
-    
+
     va_start(args, backgroundColor);
     vsprintf(buffer, format, args); 
     va_end(args);
@@ -183,3 +186,12 @@ void tg_writeBuffer(const char *format, unsigned char x1, unsigned char y1, unsi
         }
     }
 }
+
+void tg_putChar(char c){
+    unsigned short screenPos;
+    
+    screenPos = (currentCursorY * TUI_COLS) + currentCursorX;
+    textmemptr[screenPos] = c | (textmemptr[screenPos] & 0xFF00);
+    currentCursorX++;
+}
+    

@@ -18,8 +18,9 @@ struct Container *root;
 unsigned char TUI_COLS = 80;
 unsigned char TUI_ROWS = 25;
 
-unsigned char currentCursorX = 0;
-unsigned char currentCursorY = 0;
+void tg_updateCursor(){
+    tg_putCursor(currentCursorX, currentCursorY);
+}
 
 void tg_putCursor(unsigned char x, unsigned char y){
     unsigned short temp;
@@ -120,30 +121,51 @@ int main(){
     tg_t_initTests();
 
     while(endProgram == false){
+        // ACTION KEYS HANDLING
+        // This is uses ISR approach, not getch()
         if(keyboardTable[KEY_ESC] == true) endProgram = true;
 
         if(keyboardTable[KEY_F1] == true) tg_set25Lines();
         if(keyboardTable[KEY_F2] == true) tg_set50Lines();
         if(keyboardTable[KEY_F3] == true) tg_set43Lines();
         
+        // Getch approach, why? Because getch() reads and uses DOS routines for handling the keyboard
+        // so it translates the input scancode to the correct codepage value.
         if(kbhit()){
             c = getch();
             
             if(c == 0 || (unsigned char)c == 0xE0){
-                c = getch(); /* Consume extended byte */
+                // CURSOR ARROW HANDLING
+                c = getch(); /* Consume extended byte and arrows */
                 if(c == KEY_UP) tg_moveCursor(0, -1);
                 if(c == KEY_DOWN) tg_moveCursor(0, 1);
                 if(c == KEY_LEFT) tg_moveCursor(-1, 0);
                 if(c == KEY_RIGHT) tg_moveCursor(1, 0);
             } else {
                 /* Ignore action keys based on ASCII values */
+                // TYPING
+
+                if(c == CHAR_BACKSPACE){
+                    tg_moveCursor(-1, 0);
+                    tg_putChar(' ');
+                    tg_moveCursor(-1, 0);
+                }
+
+                if(c == CHAR_ENTER){
+                    currentCursorX = 0;
+                    if(currentCursorY < TUI_ROWS - 1){
+                        currentCursorY++;
+                        tg_putCursor(currentCursorX, currentCursorY);
+                    }
+                }
+
                 if(!(c == CHAR_ESCAPE ||
                     c == CHAR_BACKSPACE ||
                     c == CHAR_TAB ||
                     c == CHAR_ENTER ||
                     c == CHAR_DELETE)){
                         
-                        putch(c);
+                        tg_putChar(c);
                         //tg_renderElements();
                         // Tick counting by user activity, not globally
                         tg_writeBuffer("Hello World %d", 5, 6, 20, 10, T_COLOR_WHITE, T_COLOR_BLACK, ticks);
@@ -152,7 +174,9 @@ int main(){
                     }
                 }
             }
+        // Cursor coordinates for testing
         tg_writeBuffer("X: %d Y: %d", 0, 0, 10, 0, T_COLOR_WHITE, T_COLOR_BLACK, currentCursorX, currentCursorY);
+        tg_updateCursor();
     }
     
     closeKeyboard();

@@ -189,3 +189,24 @@ Now after defining the architecture, we have to start making instances of these 
 Today i did some progress, the rectangle drawing was pending and now at 12:08 PM i finished it, they work
 great, not the prettiest code but it does the job.
 
+Ok, i'm back but at 21:46 PM, i did the following:
+
+- Box container with borders: It works fine, altrough not the cleanest code, fully done by myself
+- Text container: This one the AI had to help me, barebone textbox where a text buffer is copied to the screen
+at certain position and boundaries, such as a rectangle, where it crops if the text is out of bounds.
+- Cursor movement with arrow keys: The cursor now can be controlled with the arrow keys, discussing with the AI
+i learned that special keys such as arrows are sent in pairs, first the scancode 0xE0 and then the arrow key scancode, so i had to do two getch() calls to get the arrow key scancode.
+
+The cursor movement works but the input does not match the cursor position, i mean, the cursor moves but if i want
+to type something, the text shows up in the wrong place.
+
+I got the idea of making a function for dumping the text buffer to a file. This maaybe could be equivalent
+to a screen capture. Also this could be useful for dumping a text buffer instead of the screen buffer so i can
+save an edited file.
+
+Ok, i fixed the cursor position issue, i had to replace the getch() with my own function where just writes the
+character directly in the memory at the cursor position, nothing else, super simple.
+
+# 23.01.2026
+
+    

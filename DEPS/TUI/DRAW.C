@@ -1,6 +1,8 @@
 
 #include "DRAW.H"
 
+#define BUFFER_SIZE 2048
+
 void tg_cls(){
     unsigned short blank;
     int i;
@@ -149,12 +151,20 @@ void tg_drawRectangle(
 }
 
 // This functions copies content from a buffer to textmemptr then displays it on screen
-void tg_writeBuffer(char *buffer, unsigned char x1, unsigned char y1, unsigned char x2, unsigned char y2, unsigned char foregroundColor, unsigned char backgroundColor){
+void tg_writeBuffer(const char *format, unsigned char x1, unsigned char y1, unsigned char x2, unsigned char y2, unsigned char foregroundColor, unsigned char backgroundColor, ...){
+
+    va_list args;
     unsigned short screenCharacter;
+    char buffer[BUFFER_SIZE];
     unsigned char x, y;
     unsigned short buffpos = 0;
-    unsigned short buffLength = strlen(buffer);
     unsigned short screenPos;
+    
+    memset(buffer, 0, BUFFER_SIZE);
+    
+    va_start(args, backgroundColor);
+    vsprintf(buffer, format, args); 
+    va_end(args);
 
     // Boundary check
     if(x1 > x2 || y1 > y2) return;
@@ -163,7 +173,7 @@ void tg_writeBuffer(char *buffer, unsigned char x1, unsigned char y1, unsigned c
         for(x = x1; x <= x2; x++){
             screenPos = (y * TUI_COLS) + x;
             
-            if(buffpos < buffLength){
+            if(buffpos < BUFFER_SIZE){
                 textmemptr[screenPos] = buffer[buffpos] | ((backgroundColor << 4 | foregroundColor) << 8);
                 buffpos++;
             } else {

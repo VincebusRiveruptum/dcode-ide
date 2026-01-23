@@ -18,13 +18,18 @@ struct Container *root;
 unsigned char TUI_COLS = 80;
 unsigned char TUI_ROWS = 25;
 
-void tg_moveCursor(unsigned char x, unsigned char y){
+unsigned char currentCursorX = 0;
+unsigned char currentCursorY = 0;
+
+void tg_putCursor(unsigned char x, unsigned char y){
     unsigned short temp;
 
+    currentCursorX = x;
+    currentCursorY = y;
     /* The equation for finding the index in a linear
     *  chunk of memory can be represented by:
     *  Index = [(y * width) + x] */
-    temp = y * 80 + x;
+    temp = currentCursorY * TUI_COLS + currentCursorX;
 
     /* This sends a command to indicies 14 and 15 in the
     *  CRT Control Register of the VGA controller. These
@@ -37,6 +42,21 @@ void tg_moveCursor(unsigned char x, unsigned char y){
     outPortb(0x3D5, temp >> 8);
     outPortb(0x3D4, 15);
     outPortb(0x3D5, temp);
+}
+
+void tg_moveCursor(short x, short y){
+    if(currentCursorX + x >= TUI_COLS || currentCursorY + y >= TUI_ROWS){
+        return;
+    }
+
+    if(currentCursorX + x < 0 || currentCursorY + y < 0){
+        return;
+    }
+
+    currentCursorX += x;
+    currentCursorY += y;
+
+    tg_putCursor(currentCursorX, currentCursorY);
 }
 
 
@@ -81,6 +101,7 @@ void tg_set25Lines(){
 int main(){
     bool endProgram = false;
     char c;
+    int ticks = 0;
     printf("\nTUI Standalone Test.\nVersion 0.1 - Vincebus Riveruptum, 2026");
     
     // So, the steps are:
@@ -104,12 +125,34 @@ int main(){
         if(keyboardTable[KEY_F1] == true) tg_set25Lines();
         if(keyboardTable[KEY_F2] == true) tg_set50Lines();
         if(keyboardTable[KEY_F3] == true) tg_set43Lines();
-
+        
         if(kbhit()){
             c = getch();
-            putch(c);
-        }
-        //tg_renderElements();
+            
+            if(c == 0 || (unsigned char)c == 0xE0){
+                c = getch(); /* Consume extended byte */
+                if(c == KEY_UP) tg_moveCursor(0, -1);
+                if(c == KEY_DOWN) tg_moveCursor(0, 1);
+                if(c == KEY_LEFT) tg_moveCursor(-1, 0);
+                if(c == KEY_RIGHT) tg_moveCursor(1, 0);
+            } else {
+                /* Ignore action keys based on ASCII values */
+                if(!(c == CHAR_ESCAPE ||
+                    c == CHAR_BACKSPACE ||
+                    c == CHAR_TAB ||
+                    c == CHAR_ENTER ||
+                    c == CHAR_DELETE)){
+                        
+                        putch(c);
+                        //tg_renderElements();
+                        // Tick counting by user activity, not globally
+                        tg_writeBuffer("Hello World %d", 5, 6, 20, 10, T_COLOR_WHITE, T_COLOR_BLACK, ticks);
+                        
+                        ticks++;
+                    }
+                }
+            }
+        tg_writeBuffer("X: %d Y: %d", 0, 0, 10, 0, T_COLOR_WHITE, T_COLOR_BLACK, currentCursorX, currentCursorY);
     }
     
     closeKeyboard();

@@ -1,82 +1,92 @@
 # Compile with Watcom 10.6 or OpenWatcom
-
 CC = wcc386
-APPNAME = DCODE
-CFLAGS = -iAPP -iENG -iDEPS\LOG -iDEPS\DATA -iDEPS\INPUT -iDEPS\MEM -iDEPS\TUI /4r /s /otexan
-OBJDIR = BIN
+APPNAME = TUI
+OBJDIR = .\BIN
+LNK = $(OBJDIR)\$(APPNAME).LNK
+CFLAGS_LNK = $(OBJDIR)\CFLAGS.LNK
 
-# Object files in BIN
-OBJS = $(OBJDIR)\MAIN.OBJ $(OBJDIR)\FILES.OBJ $(OBJDIR)\MEM.OBJ $(OBJDIR)\STATUSB.OBJ $(OBJDIR)\TOOLBAR.OBJ $(OBJDIR)\WIN.OBJ $(OBJDIR)\TESTS.OBJ
-
-# Linker directive file
-LNK = $(OBJDIR)\$(APPNAME).lnk
+# Split OBJS to avoid long expansion strings in some wmake versions
+OBJS_1 = $(OBJDIR)\INPUT.OBJ $(OBJDIR)\VGAREGS.OBJ $(OBJDIR)\DATA.OBJ $(OBJDIR)\SORT.OBJ $(OBJDIR)\DRAW.OBJ
+OBJS_2 = $(OBJDIR)\EL.OBJ $(OBJDIR)\TEST.OBJ $(OBJDIR)\ENV.OBJ $(OBJDIR)\MEM.OBJ $(OBJDIR)\LOG.OBJ
+OBJS_3 = $(OBJDIR)\EDITOR.OBJ $(OBJDIR)\FILES.OBJ $(OBJDIR)\VIDEO.OBJ $(OBJDIR)\MAIN.OBJ
+OBJS = $(OBJS_1) $(OBJS_2) $(OBJS_3)
 
 # Final executable
 $(APPNAME).EXE: $(OBJS)
+    @if not exist $(OBJDIR) mkdir $(OBJDIR)
     @%create $(LNK)
     @%append $(LNK) system dos4g
-    @%append $(LNK) name $(APPNAME)
-    @for %i in ($(OBJS)) do @%append $(LNK) file %i
+    @%append $(LNK) name $(APPNAME).EXE
+    @%append $(LNK) library clib3r.lib
+    # Appending files individually to avoid "argument list too big" shell errors
+    @for %i in ($(OBJS_1)) do @%append $(LNK) file %i
+    @for %i in ($(OBJS_2)) do @%append $(LNK) file %i
+    @for %i in ($(OBJS_3)) do @%append $(LNK) file %i
     wlink @$(LNK)
 
-# Compile rules for each .c -> .obj in BIN
-# External DEPS
-$(OBJDIR)\DATA.OBJ: DEPS\DATA\DATA.C
-    if not exist $(OBJDIR) mkdir $(OBJDIR)
-    $(CC) $(CFLAGS) -fo=$@ $<
+# Compiler response file - putting all flags and includes here
+$(CFLAGS_LNK): .ALWAYS
+    @if not exist $(OBJDIR) mkdir $(OBJDIR)
+    @%create $@
+    @%append $@ /4r /s /otexan
+    @%append $@ -i=DEPS\INPUT -i=DEPS\VGA -i=DEPS\DATA -i=DEPS\SORT
+    @%append $@ -i=DEPS\ENV -i=DEPS\MEM -i=DEPS\LOG -i=ENG
 
-$(OBJDIR)\ENV.OBJ: DEPS\ENV\ENV.C
-    if not exist $(OBJDIR) mkdir $(OBJDIR)
-    $(CC) $(CFLAGS) -fo=$@ $<
+# Compile rules
+$(OBJDIR)\INPUT.OBJ: .\DEPS\INPUT\INPUT.C $(CFLAGS_LNK)
+    $(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\INPUT\INPUT.C
 
-$(OBJDIR)\INPUT.OBJ: DEPS\INPUT\INPUT.C
-    if not exist $(OBJDIR) mkdir $(OBJDIR)
-    $(CC) $(CFLAGS) -fo=$@ $<
+$(OBJDIR)\VGAREGS.OBJ: .\DEPS\VGA\VGAREGS.C $(CFLAGS_LNK)
+    $(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\VGA\VGAREGS.C
 
-$(OBJDIR)\LOG.OBJ: DEPS\LOG\LOG.C
-    if not exist $(OBJDIR) mkdir $(OBJDIR)
-    $(CC) $(CFLAGS) -fo=$@ $<
+$(OBJDIR)\DATA.OBJ: .\DEPS\DATA\DATA.C $(CFLAGS_LNK)
+    $(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\DATA\DATA.C
 
-$(OBJDIR)\FILES.OBJ: ENG\FILES.C
-    if not exist $(OBJDIR) mkdir $(OBJDIR)
-    $(CC) $(CFLAGS) -fo=$@ $<
+$(OBJDIR)\SORT.OBJ: .\DEPS\SORT\SORT.C $(CFLAGS_LNK)
+    $(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\SORT\SORT.C
 
-$(OBJDIR)\MEM.OBJ: DEPS\MEM\ARENA.C
-    if not exist $(OBJDIR) mkdir $(OBJDIR)
-    $(CC) $(CFLAGS) -fo=$@ $<
+$(OBJDIR)\ENV.OBJ: .\DEPS\ENV\ENV.C $(CFLAGS_LNK)
+    $(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\ENV\ENV.C
 
-# ENG
-$(OBJDIR)\STATUSB.OBJ: ENG\STATUSB.C
-    if not exist $(OBJDIR) mkdir $(OBJDIR)
-    $(CC) $(CFLAGS) -fo=$@ $<
+$(OBJDIR)\MEM.OBJ: .\DEPS\MEM\MEM.C $(CFLAGS_LNK)
+    $(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\MEM\MEM.C
 
-$(OBJDIR)\TESTS.OBJ: ENG\TESTS.C
-    if not exist $(OBJDIR) mkdir $(OBJDIR)
-    $(CC) $(CFLAGS) -fo=$@ $<
+$(OBJDIR)\LOG.OBJ: .\DEPS\LOG\LOG.C $(CFLAGS_LNK)
+    $(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\LOG\LOG.C
 
-$(OBJDIR)\TOOLBAR.OBJ: ENG\TOOLBAR.C
-    if not exist $(OBJDIR) mkdir $(OBJDIR)
-    $(CC) $(CFLAGS) -fo=$@ $<
+$(OBJDIR)\TEST.OBJ: .\ENG\TEST.C $(CFLAGS_LNK)
+    $(CC) @$(CFLAGS_LNK) -fo=$@ .\ENG\TEST.C
 
-$(OBJDIR)\WIN.OBJ: ENG\WIN.C
-    if not exist $(OBJDIR) mkdir $(OBJDIR)
-    $(CC) $(CFLAGS) -fo=$@ $<
+$(OBJDIR)\FILES.OBJ: .\ENG\FILES.C $(CFLAGS_LNK)
+    $(CC) @$(CFLAGS_LNK) -fo=$@ .\ENG\FILES.C
 
-# Main
-$(OBJDIR)\MAIN.OBJ: APP\MAIN.C
-    if not exist $(OBJDIR) mkdir $(OBJDIR)
-    $(CC) $(CFLAGS) -fo=$@ $<
+$(OBJDIR)\EDITOR.OBJ: .\ENG\EDITOR.C $(CFLAGS_LNK)
+    $(CC) @$(CFLAGS_LNK) -fo=$@ .\ENG\EDITOR.C
+
+$(OBJDIR)\DRAW.OBJ: .\ENG\DRAW.C $(CFLAGS_LNK)
+    $(CC) @$(CFLAGS_LNK) -fo=$@ .\ENG\DRAW.C
+
+$(OBJDIR)\EL.OBJ: .\ENG\EL.C $(CFLAGS_LNK)
+    $(CC) @$(CFLAGS_LNK) -fo=$@ .\ENG\EL.C
+
+$(OBJDIR)\VIDEO.OBJ: .\ENG\VIDEO.C $(CFLAGS_LNK)
+    $(CC) @$(CFLAGS_LNK) -fo=$@ .\ENG\VIDEO.C
+
+$(OBJDIR)\MAIN.OBJ: .\APP\MAIN.C $(CFLAGS_LNK)
+    $(CC) @$(CFLAGS_LNK) -fo=$@ .\APP\MAIN.C
 
 preclean: .SYMBOLIC
-    del .\BIN\*.exe
-    del .\BIN\*.err
-    del .\BIN\*.lnk
-    del .\BIN\*.obj
+    @if exist $(OBJDIR)\*.OBJ %erase $(OBJDIR)\*.OBJ
+    @if exist $(OBJDIR)\*.LNK %erase $(OBJDIR)\*.LNK
+    @if exist *.OBJ %erase *.OBJ
+    @if exist *.EXE %erase *.EXE
+    @if exist *.ERR %erase *.ERR
+    @if exist *.LNK %erase *.LNK
 
 postclean: .SYMBOLIC
-    copy *.exe .\BIN
-    del .\BIN\*.err
-    del .\BIN\*.lnk
-    del .\BIN\*.obj
+    @if exist *.OBJ %erase *.OBJ
+    @if exist *.LNK %erase *.LNK
+    @if exist $(APPNAME).EXE %copy $(APPNAME).EXE $(OBJDIR)\$(APPNAME).EXE
 
 build: preclean $(APPNAME).EXE postclean
+

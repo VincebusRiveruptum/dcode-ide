@@ -1,9 +1,22 @@
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef APP_MAIN_H
+#define APP_MAIN_H
 
-#include "FILES.H"
-#include "STATUSB.H"
-#include "WIN.H"
-#include "TOOLBAR.H"
+// DEPS
+#include "../DEPS/DATA/DATA.H"
+#include "../DEPS/ENV/ENV.H"
+#include "../DEPS/INPUT/INPUT.H"
+#include "../DEPS/LOG/LOGS.H"
+#include "../DEPS/MEM/MEM.H"
+#include "../DEPS/SORT/SORT.H"
+#include "../DEPS/VGA/VGAREGS.H"
+
+// ENGINE
+#include "../ENG/DRAW.H"
+#include "../ENG/EDITOR.H"
+#include "../ENG/EL.H"
+#include "../ENG/FILES.H"
+#include "../ENG/STD.H"
+#include "../ENG/TEST.H"
+#include "../ENG/VIDEO.H"
 
 #endif

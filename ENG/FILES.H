@@ -45,8 +45,6 @@ extern FileList *fileTree;
 
 /* Protypes =============================================================*/
 
-bool openFolder(char *path);
-bool openFile(char *fileName);
-bool saveFile();
+void f_dumpToFile(char *buffer, char *filename)
 
 #endif

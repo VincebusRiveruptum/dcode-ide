@@ -2,6 +2,10 @@
     This is a basic TUI library, right now just for testing purposes
     By Vincebus Riveruptum
     2026
+
+    Credits osdever.net
+
+    http://www.osdever.net/bkerndev/Docs/printing.htm
 */
 
 #include "TUI.H"
@@ -9,16 +13,24 @@
 unsigned short *textmemptr;
 int attrib = 0x0F;
 
+struct Container *root;
+
 unsigned char TUI_COLS = 80;
 unsigned char TUI_ROWS = 25;
 
-void tg_moveCursor(unsigned char x, unsigned char y){
+void tg_updateCursor(){
+    tg_putCursor(currentCursorX, currentCursorY);
+}
+
+void tg_putCursor(unsigned char x, unsigned char y){
     unsigned short temp;
 
+    currentCursorX = x;
+    currentCursorY = y;
     /* The equation for finding the index in a linear
     *  chunk of memory can be represented by:
     *  Index = [(y * width) + x] */
-    temp = y * 80 + x;
+    temp = currentCursorY * TUI_COLS + currentCursorX;
 
     /* This sends a command to indicies 14 and 15 in the
     *  CRT Control Register of the VGA controller. These
@@ -33,45 +45,22 @@ void tg_moveCursor(unsigned char x, unsigned char y){
     outPortb(0x3D5, temp);
 }
 
-void tg_cls(){
-    unsigned short blank;
-    int i;
-
-    blank = CHAR_SPACE | (attrib << 8);
-    for(i = 0; i < TUI_COLS * TUI_ROWS; i++)
-        textmemptr[i] = blank;
-
-    tg_moveCursor(0, 0);
-}
-
-void tg_fill(unsigned char background, unsigned char foreground, unsigned char character){
-    unsigned short screenCharacter;
-    int i;
-
-    screenCharacter = character | ((background << 4 | foreground) << 8);
-    
-    for(i = 0; i < TUI_COLS * TUI_ROWS; i++)
-        textmemptr[i] = screenCharacter;
-}
-
-void tg_drawRectangle(unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2, unsigned char background, unsigned char foreground, unsigned char character,  bool blinking){
-    unsigned short screenCharacter;
-    int i, lowerLimit, upperLimit;
-
-    // Boundary check
-    if(x1 > x2 || y1 > y2) return;
-
-    i = (y1 * TUI_COLS) + x1;
-
-    screenCharacter = character | ((background << 4 | foreground) << 8);
-    
-    for(i; i <= (y2 * TUI_COLS) + x2; i++){
-        lowerLimit = i % TUI_COLS >= x1;
-        upperLimit = i % TUI_COLS <= x2;
-    
-        if(lowerLimit && upperLimit) textmemptr[i] = screenCharacter;
+void tg_moveCursor(short x, short y){
+    if(currentCursorX + x >= TUI_COLS || currentCursorY + y >= TUI_ROWS){
+        return;
     }
+
+    if(currentCursorX + x < 0 || currentCursorY + y < 0){
+        return;
+    }
+
+    currentCursorX += x;
+    currentCursorY += y;
+
+    tg_putCursor(currentCursorX, currentCursorY);
 }
+
+
 
 void tg_init_video(){
     TUI_ROWS = 25;
@@ -113,6 +102,7 @@ void tg_set25Lines(){
 int main(){
     bool endProgram = false;
     char c;
+    int ticks = 0;
     printf("\nTUI Standalone Test.\nVersion 0.1 - Vincebus Riveruptum, 2026");
     
     // So, the steps are:
@@ -128,20 +118,65 @@ int main(){
     
     tg_init_video();
     initKeyboard();
+    tg_t_initTests();
 
-    //tg_drawRectangle(0, 0, TUI_COLS - 1, TUI_ROWS - 1, T_COLOR_BLUE, T_COLOR_LIGHT_BLUE, '°', false);
-    tg_fill(T_COLOR_BLUE, T_COLOR_LIGHT_BLUE, '°');
     while(endProgram == false){
+        // ACTION KEYS HANDLING
+        // This is uses ISR approach, not getch()
         if(keyboardTable[KEY_ESC] == true) endProgram = true;
 
         if(keyboardTable[KEY_F1] == true) tg_set25Lines();
         if(keyboardTable[KEY_F2] == true) tg_set50Lines();
         if(keyboardTable[KEY_F3] == true) tg_set43Lines();
-
+        
+        // Getch approach, why? Because getch() reads and uses DOS routines for handling the keyboard
+        // so it translates the input scancode to the correct codepage value.
         if(kbhit()){
             c = getch();
-            putch(c);
-        }
+            
+            if(c == 0 || (unsigned char)c == 0xE0){
+                // CURSOR ARROW HANDLING
+                c = getch(); /* Consume extended byte and arrows */
+                if(c == KEY_UP) tg_moveCursor(0, -1);
+                if(c == KEY_DOWN) tg_moveCursor(0, 1);
+                if(c == KEY_LEFT) tg_moveCursor(-1, 0);
+                if(c == KEY_RIGHT) tg_moveCursor(1, 0);
+            } else {
+                /* Ignore action keys based on ASCII values */
+                // TYPING
+
+                if(c == CHAR_BACKSPACE){
+                    tg_moveCursor(-1, 0);
+                    tg_putChar(' ');
+                    tg_moveCursor(-1, 0);
+                }
+
+                if(c == CHAR_ENTER){
+                    currentCursorX = 0;
+                    if(currentCursorY < TUI_ROWS - 1){
+                        currentCursorY++;
+                        tg_putCursor(currentCursorX, currentCursorY);
+                    }
+                }
+
+                if(!(c == CHAR_ESCAPE ||
+                    c == CHAR_BACKSPACE ||
+                    c == CHAR_TAB ||
+                    c == CHAR_ENTER ||
+                    c == CHAR_DELETE)){
+                        
+                        tg_putChar(c);
+                        //tg_renderElements();
+                        // Tick counting by user activity, not globally
+                        tg_writeBuffer("Hello World %d", 5, 6, 20, 10, T_COLOR_WHITE, T_COLOR_BLACK, ticks);
+                        
+                        ticks++;
+                    }
+                }
+            }
+        // Cursor coordinates for testing
+        tg_writeBuffer("X: %d Y: %d", 0, 0, 10, 0, T_COLOR_WHITE, T_COLOR_BLACK, currentCursorX, currentCursorY);
+        tg_updateCursor();
     }
     
     closeKeyboard();

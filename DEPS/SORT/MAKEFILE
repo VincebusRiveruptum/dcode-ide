@@ -1,0 +1,46 @@
+# Compile with Watcom 10.6 or OpenWatcom
+CC = wcc386
+APPNAME = SORT
+
+CFLAGS = -dSORT_STANDALONE -i..\DATA  /4r /s /otexan
+OBJDIR = .
+
+# Object files in BIN
+OBJS = $(OBJDIR)\$(APPNAME).OBJ $(OBJDIR)\DATA.OBJ
+
+# Linker directive file
+LNK = $(OBJDIR)\$(APPNAME).lnk
+
+# Final executable
+$(APPNAME).EXE: $(OBJS)
+        @%create $(LNK) 
+        @%append $(LNK) system dos4g
+        @%append $(LNK) name $(APPNAME).EXE
+        @for %i in ($(OBJS)) do @%append $(LNK) file %i
+
+        #IF USES 32 BIT DOS INCLUDES
+        @%append $(LNK) library clib3r.lib
+        wlink @$(LNK)
+# Compile rules for each .c -> .obj in BIN
+# External DEPS
+$(OBJDIR)\DATA.OBJ: ..\DATA\DATA.C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+
+# Main
+$(OBJDIR)\$(APPNAME).OBJ: $(APPNAME).C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+
+
+preclean: .SYMBOLIC
+    del *.obj
+    del *.exe
+    del *.err
+    del *.lnk
+
+postclean: .SYMBOLIC
+    del *.obj
+    del *.lnk
+
+build: preclean $(APPNAME).EXE postclean

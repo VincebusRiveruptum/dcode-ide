@@ -6,8 +6,7 @@ CFLAGS = -dTUI_STANDALONE -i..\INPUT /4r /s /otexan
 OBJDIR = .
 
 # Object files in BIN
-OBJS = $(OBJDIR)\$(APPNAME).OBJ $(OBJDIR)\INPUT.OBJ $(OBJDIR)\VGAREGS.OBJ
-
+OBJS = $(OBJDIR)\$(APPNAME).OBJ $(OBJDIR)\INPUT.OBJ $(OBJDIR)\VGAREGS.OBJ $(OBJDIR)\DATA.OBJ $(OBJDIR)\SORT.OBJ $(OBJDIR)\DRAW.OBJ $(OBJDIR)\EL.OBJ $(OBJDIR)\TEST.OBJ
 # Linker directive file
 LNK = $(OBJDIR)\$(APPNAME).lnk
     # Final executable
@@ -30,7 +29,26 @@ $(OBJDIR)\VGAREGS.OBJ: ..\VGA\VGAREGS.C
     if not exist $(OBJDIR) mkdir $(OBJDIR)
     $(CC) $(CFLAGS) -fo=$@ $<
 
+$(OBJDIR)\DATA.OBJ: ..\DATA\DATA.C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+
+$(OBJDIR)\SORT.OBJ: ..\SORT\SORT.C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+
 # Main
+$(OBJDIR)\TEST.OBJ: TEST.C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+$(OBJDIR)\DRAW.OBJ: DRAW.C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+
+$(OBJDIR)\EL.OBJ: EL.C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+
 $(OBJDIR)\$(APPNAME).OBJ: $(APPNAME).C
     if not exist $(OBJDIR) mkdir $(OBJDIR)
     $(CC) $(CFLAGS) -fo=$@ $<

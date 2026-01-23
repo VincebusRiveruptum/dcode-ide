@@ -14,12 +14,17 @@ that translates the scancode to the desired character to be displayed on screen.
 Also, i have questions of how to handle the opened text buffer, it will be a struct with metadata and the opened file content, stored as an array of characters. What happens if the text is too large?
 
 Found that the interrupt handling in 32bit mode is done by DOS4GW where it manaages by translating the IVT to protected mode IVT.
+<<<<<<< Updated upstream
 
 <<<<<<< Updated upstream
 ////////////
 
 I got the question, if i do an ISR implementaiton, i also have to do the codepage and keyboard coutry implementation? This could be  unnecesary. Now in this case maybe using DOS keyboard funtions could be better?
 =======
+I got the question, if i do an ISR implementaiton, i also have to do the codepage and keyboard coutry implementation? This could be unnecesary. Now in this case maybe using DOS keyboard funtions could be better?
+>>>>>>> Stashed changes
+=======
+
 I got the question, if i do an ISR implementaiton, i also have to do the codepage and keyboard coutry implementation? This could be unnecesary. Now in this case maybe using DOS keyboard funtions could be better?
 >>>>>>> Stashed changes
 
@@ -46,7 +51,10 @@ This interrupts handle many DOS-level services (File I/O, Memory management, Dat
 At this level, int 21H provides codepage translation, STDIN redirection, CTRL + C breaking, line editing, etc.
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
 ```
 >>>>>>> Stashed changes
 ┌─────────────────────────────────────┐
@@ -96,6 +104,7 @@ INT
 
 Port handling instructions:
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     IN
     OUT
     
@@ -124,6 +133,23 @@ in the video buffer by one line an so on, upward of downward, then append the ne
 
 There is a scenario where the file is too large, so we need to read it by chunks, so when the user scrolls to a region out of the file buffer we need to read the next chunk of the file and append it to the file buffer, then we need to do the same for the video buffer.
 
+=======
+IN
+OUT
+
+---
+
+# 18.01.2026
+
+### File buffering idea
+
+So, i woke up and started thinking on got the text will be manipulated, i mean, first we open the file, then store it in memory, lets call
+this space as 'file buffer' . However, we need to do double buffering as where we render the text that will be on the screen, lets call this 'video buffer'. Having two buffers will be helpful for many reasons, for example, when the user scrolls basically we need to offet what is
+in the video buffer by one line an so on, upward of downward, then append the new line that is on the file buffer then to the video buffer.
+
+There is a scenario where the file is too large, so we need to read it by chunks, so when the user scrolls to a region out of the file buffer we need to read the next chunk of the file and append it to the file buffer, then we need to do the same for the video buffer.
+
+>>>>>>> Stashed changes
 ```
 >>>>>>> Stashed changes
 -------------
@@ -236,4 +262,7 @@ Ok, i fixed the cursor position issue, i had to replace the getch() with my own 
 character directly in the memory at the cursor position, nothing else, super simple.
 
 # 23.01.2026
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes

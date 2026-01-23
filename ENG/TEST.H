@@ -1,7 +1,8 @@
 #ifndef ENG_TEST_H
 #define ENG_TEST_H
 
-#include "TUI.H"
+#include "STD.H"
+#include "..\APP\MAIN.H"
 
 void t_initTests();
 

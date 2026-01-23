@@ -3,7 +3,8 @@
 
 #include <stdarg.h>
 #include "STD.H"
-#include "ENV.H"
+#include "..\ENV\ENV.H"
+#include <time.h>
 
 extern FILE *logFp;
 

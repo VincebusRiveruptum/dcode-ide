@@ -16,24 +16,6 @@
 #include "EL.H"
 #include "TEST.H"
 
-#define ED_COLOR_BLACK 0x00
-#define ED_COLOR_BLUE 0x01
-#define ED_COLOR_GREEN 0x02
-#define ED_COLOR_CYAN 0x03
-#define ED_COLOR_RED 0x04
-#define ED_COLOR_MAGENTA 0x05
-#define ED_COLOR_BROWN 0x06
-#define ED_COLOR_LIGHT_GRAY 0x07
-#define ED_COLOR_DARK_GRAY 0x08
-#define ED_COLOR_LIGHT_BLUE 0x09
-#define ED_COLOR_LIGHT_GREEN 0x0A
-#define ED_COLOR_LIGHT_CYAN 0x0B
-#define ED_COLOR_LIGHT_RED 0x0C
-#define ED_COLOR_LIGHT_MAGENTA 0x0D
-#define ED_COLOR_LIGHT_YELLOW 0x0E
-#define ED_COLOR_WHITE 0x0F
-
-
 /*
  * IBM PC / DOS Code Page 437
  * Line Drawing & Special Characters
@@ -59,6 +41,7 @@
  *   ┬ -> Â -> (194 / 0xC2) - Top T-junction
  *   ┴ -> Á -> (193 / 0xC1) - Bottom T-junction
  *   ┼ -> Å -> (197 / 0xC5) - Cross / intersection
+*/
 
 /* =========================================================
  * DOUBLE LINE BORDERS
@@ -74,6 +57,7 @@
  *   ╦ -> Ë -> (203 / 0xCB) - Top T-junction
  *   ╩ -> Ê -> (202 / 0xCA) - Bottom T-junction
  *   ╬ -> Î -> (206 / 0xCE) - Cross / intersection
+*/
 
 /* =========================================================
  * MIXED SINGLE / DOUBLE BORDERS
@@ -96,6 +80,7 @@
  *   ╨ -> Ð -> (208 / 0xD0) - Bottom T (single horiz, double vert)
  *   ╪ -> × -> (215 / 0xD7) - Cross (double horiz, single vert)
  *   ╫ -> Ø -> (216 / 0xD8) - Cross (single horiz, double vert)
+*/
 
 /* =========================================================
  * BLOCK ELEMENTS (Shading / Blocks)
@@ -108,6 +93,7 @@
  *   ▀ -> ß -> (223 / 0xDF) - Upper half block
  *   ▌ -> Ý -> (221 / 0xDD) - Left half block
  *   ▐ -> Þ -> (222 / 0xDE) - Right half block
+*/
 
 /* =========================================================
  * SPECIAL CHARACTERS (CP437)
@@ -135,3 +121,5 @@ void ed_updateCursor();
 void ed_putCursor(unsigned char x, unsigned char y);
 void ed_moveCursor(short x, short y);
 void ed_triggerSave();
+
+#endif

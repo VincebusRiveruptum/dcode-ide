@@ -1,5 +1,7 @@
 #include "VIDEO.H"
 
+unsigned short *textmemptr;
+
 void v_init_video(){
     VIDEO_ROWS = 25;
     VIDEO_COLS = 80;

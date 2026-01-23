@@ -5,12 +5,6 @@
 
 /* Global =================================================*/
 
-extern unsigned short *textmemptr;
-extern unsigned char VIDEO_COLS;
-extern unsigned char VIDEO_ROWS;
-extern unsigned char currentCursorX;
-extern unsigned char currentCursorY;
-
 /* Prototypes =============================================*/
 
 /* ASM Prototypes */
@@ -48,6 +42,14 @@ void v_close_video();
 
 void v_set43Lines();
 void v_set25Lines();
+
+
+extern unsigned short *textmemptr;
+extern unsigned char VIDEO_COLS;
+extern unsigned char VIDEO_ROWS;
+extern unsigned char currentCursorX;
+extern unsigned char currentCursorY;
+
 
 #endif
 

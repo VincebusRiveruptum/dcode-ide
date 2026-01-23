@@ -27,7 +27,7 @@ int main(){
     
     v_init_video();
     initKeyboard();
-    //t_initTests();
+    t_initTests();
 
     while(endProgram == false){
         // ACTION KEYS HANDLING
@@ -78,14 +78,14 @@ int main(){
                         dw_char(c);
                         //tg_renderElements();
                         // Tick counting by user activity, not globally
-                        dw_writeBuffer("Hello World %d", 5, 6, 20, 10, ED_COLOR_WHITE, ED_COLOR_BLACK, ticks);
+                        dw_writeBuffer("Hello World %d", 5, 6, 20, 10, COLOR_WHITE, COLOR_BLACK, ticks);
                         
                         ticks++;
                     }
                 }
             }
         // Cursor coordinates for testing
-        dw_writeBuffer("X: %d Y: %d", 0, 0, 10, 0, ED_COLOR_WHITE, ED_COLOR_BLACK, currentCursorX, currentCursorY);
+        dw_writeBuffer("X: %d Y: %d", 0, 0, 10, 0, COLOR_WHITE, COLOR_BLACK, currentCursorX, currentCursorY);
         ed_updateCursor();
     }
     

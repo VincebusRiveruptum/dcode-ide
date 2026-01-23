@@ -46,31 +46,31 @@ void tg_renderElements(){
         if(!element) continue;
 
         switch(element->type){
-            case TUI_ELEMENT_TYPE_CONTAINER:
+            case EL_TYPE_CONTAINER:
                 tg_renderContainer((Container*)element);
                 break;
-            case TUI_ELEMENT_TYPE_LABEL:
+            case EL_TYPE_LABEL:
                 tg_renderLabel((Label*)element);
                 break;
-            case TUI_ELEMENT_TYPE_BUTTON:
+            case EL_TYPE_BUTTON:
                 tg_renderButton((Button*)element);
                 break;
-            case TUI_ELEMENT_TYPE_INPUT:
+            case EL_TYPE_INPUT:
                 tg_renderInput((Input*)element);
                 break;
-            case TUI_ELEMENT_TYPE_STATUSBAR:
+            case EL_TYPE_STATUSBAR:
                 tg_renderStatusbar((Statusbar*)element);
                 break;
-            case TUI_ELEMENT_TYPE_MENU:
+            case EL_TYPE_MENU:
                 tg_renderMenu((Menu*)element);
                 break;
-            case TUI_ELEMENT_TYPE_DIALOG:
+            case EL_TYPE_DIALOG:
                 tg_renderDialog((Dialog*)element);
                 break;
-            case TUI_ELEMENT_TYPE_FORM:
+            case EL_TYPE_FORM:
                 tg_renderForm((Form*)element);
                 break;
-            case TUI_ELEMENT_TYPE_FORM_GROUP:
+            case EL_TYPE_FORM_GROUP:
                 tg_renderFormGroup((FormGroup*)element);
                 break;
             default:

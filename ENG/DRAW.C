@@ -7,46 +7,46 @@ char _getBorderCharacter(BorderType borderType, RectangleSides side){
     switch(borderType){
         case DRAW_BORDER_SIMPLE:
             switch(side){
-                case DRAW_SIDE_TOP_LEFT:
+                case DW_SIDE_TOP_LEFT:
                     return 218;
-                case DRAW_SIDE_TOP_RIGHT:
+                case DW_SIDE_TOP_RIGHT:
                     return 191;
-                case DRAW_SIDE_BOTTOM_LEFT:
+                case DW_SIDE_BOTTOM_LEFT:
                     return 192;
-                case DRAW_SIDE_BOTTOM_RIGHT:
+                case DW_SIDE_BOTTOM_RIGHT:
                     return 217;
-                case DRAW_SIDE_TOP:
+                case DW_SIDE_TOP:
                     return 196;
-                case DRAW_SIDE_BOTTOM:
+                case DW_SIDE_BOTTOM:
                     return 196;
-                case DRAW_SIDE_LEFT:
+                case DW_SIDE_LEFT:
                     return 179;
-                case DRAW_SIDE_RIGHT:
+                case DW_SIDE_RIGHT:
                     return 179;
-                case DRAW_SIDE_ALL:
+                case DW_SIDE_ALL:
                     return '°';
                 default:
                     return '°';
             }
         case DRAW_BORDER_DOUBLE:
             switch(side){
-                case DRAW_SIDE_TOP_LEFT:
+                case DW_SIDE_TOP_LEFT:
                     return 'É';
-                case DRAW_SIDE_TOP_RIGHT:
+                case DW_SIDE_TOP_RIGHT:
                     return '»';
-                case DRAW_SIDE_BOTTOM_LEFT:
+                case DW_SIDE_BOTTOM_LEFT:
                     return 'È';
-                case DRAW_SIDE_BOTTOM_RIGHT:
+                case DW_SIDE_BOTTOM_RIGHT:
                     return '¼';
-                case DRAW_SIDE_TOP:
+                case DW_SIDE_TOP:
                     return 'Í';
-                case DRAW_SIDE_BOTTOM:
+                case DW_SIDE_BOTTOM:
                     return 'Í';
-                case DRAW_SIDE_LEFT:
+                case DW_SIDE_LEFT:
                     return 'º';
-                case DRAW_SIDE_RIGHT:
+                case DW_SIDE_RIGHT:
                     return 'º';
-                case DRAW_SIDE_ALL:
+                case DW_SIDE_ALL:
                     return '°';
                 default:
                     return '°';
@@ -60,7 +60,7 @@ void dw_cls(){
     unsigned short blank;
     int i;
 
-    blank = CHAR_SPACE | (attrib << 8);
+    blank = CHAR_SPACE | (COLOR_BLACK << 4 | COLOR_LIGHT_GRAY) << 8;
     for(i = 0; i < VIDEO_COLS * VIDEO_ROWS; i++)
         textmemptr[i] = blank;
 
@@ -99,7 +99,7 @@ void dw_rectangle(
     i = (y1 * VIDEO_COLS) + x1;
 
     //If i is the first on the index draw top left corner
-    textmemptr[i] = _getBorderCharacter(borderType, DRAW_SIDE_TOP_LEFT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
+    textmemptr[i] = _getBorderCharacter(borderType, DW_SIDE_TOP_LEFT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
     
     i++;
 
@@ -111,10 +111,10 @@ void dw_rectangle(
             // If i is the top line draw top line
             if(i < (y1 * VIDEO_COLS) + x1 + VIDEO_COLS){
                 if(i % VIDEO_COLS == x2){
-                    screenCharacter = _getBorderCharacter(borderType, DRAW_SIDE_TOP_RIGHT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
+                    screenCharacter = _getBorderCharacter(borderType, DW_SIDE_TOP_RIGHT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                     textmemptr[i] = screenCharacter;
                 }else{
-                    screenCharacter = _getBorderCharacter(borderType, DRAW_SIDE_TOP) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
+                    screenCharacter = _getBorderCharacter(borderType, DW_SIDE_TOP) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                     textmemptr[i] = screenCharacter;
                 }
             }
@@ -123,10 +123,10 @@ void dw_rectangle(
             else if( i > ((y2 * VIDEO_COLS) + x2 )- VIDEO_COLS){
                 // If i is the bottom line draw bottom line
                 if(i % VIDEO_COLS == x1){
-                    screenCharacter = _getBorderCharacter(borderType, DRAW_SIDE_BOTTOM_LEFT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
+                    screenCharacter = _getBorderCharacter(borderType, DW_SIDE_BOTTOM_LEFT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                     textmemptr[i] = screenCharacter;
                 }else{
-                    screenCharacter = _getBorderCharacter(borderType, DRAW_SIDE_BOTTOM) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
+                    screenCharacter = _getBorderCharacter(borderType, DW_SIDE_BOTTOM) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                     textmemptr[i] = screenCharacter;
                 }
 
@@ -134,12 +134,12 @@ void dw_rectangle(
             
             // If i is the left line draw left line
             else if(i % VIDEO_COLS <= x1){
-                screenCharacter = _getBorderCharacter(borderType, DRAW_SIDE_LEFT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
+                screenCharacter = _getBorderCharacter(borderType, DW_SIDE_LEFT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                 textmemptr[i] = screenCharacter;
             }
             // If i is the right line draw right line
             else if(i % VIDEO_COLS >= x2){
-                screenCharacter = _getBorderCharacter(borderType, DRAW_SIDE_RIGHT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
+                screenCharacter = _getBorderCharacter(borderType, DW_SIDE_RIGHT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                 textmemptr[i] = screenCharacter;
             }else{
                 screenCharacter = fillCharacter | ((backgroundFillColor << 4 | foregroundFillColor) << 8);
@@ -148,7 +148,7 @@ void dw_rectangle(
         }
     }
     
-    textmemptr[i] = _getBorderCharacter(borderType, DRAW_SIDE_BOTTOM_RIGHT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
+    textmemptr[i] = _getBorderCharacter(borderType, DW_SIDE_BOTTOM_RIGHT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
 }
 
 // This functions copies content from a buffer to textmemptr then displays it on screen

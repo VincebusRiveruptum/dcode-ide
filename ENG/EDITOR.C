@@ -10,8 +10,8 @@
 
 #include "EDITOR.H"
 
-unsigned short *textmemptr;
-unsigned char attrib = 0x07; // Default attribute: White on Black
+
+//unsigned char attrib = 0x07; // Default attribute: White on Black
 struct Container *root;
 
 unsigned char VIDEO_COLS = 80;
@@ -63,7 +63,7 @@ void ed_moveCursor(short x, short y){
 }
 
 void ed_triggerSave(){
-    dw_writeBuffer("Saved!", 0, 0, 10, 0, ED_COLOR_WHITE, ED_COLOR_BLACK);   
+    dw_writeBuffer("Saved!", 0, 0, 10, 0, COLOR_WHITE, COLOR_BLACK);   
 
     f_dumpToFile(textmemptr, "test.txt");
 }

@@ -2,21 +2,21 @@
 #define APP_MAIN_H
 
 // DEPS
-#include "../DEPS/DATA/DATA.H"
-#include "../DEPS/ENV/ENV.H"
-#include "../DEPS/INPUT/INPUT.H"
-#include "../DEPS/LOG/LOGS.H"
-#include "../DEPS/MEM/MEM.H"
-#include "../DEPS/SORT/SORT.H"
-#include "../DEPS/VGA/VGAREGS.H"
+#include "..\DEPS\DATA\DATA.H"
+#include "..\DEPS\ENV\ENV.H"
+#include "..\DEPS\INPUT\INPUT.H"
+#include "..\DEPS\LOG\LOG.H"
+#include "..\DEPS\MEM\MEM.H"
+#include "..\DEPS\SORT\SORT.H"
+#include "..\DEPS\VGA\VGAREGS.H"
 
 // ENGINE
-#include "../ENG/DRAW.H"
-#include "../ENG/EDITOR.H"
-#include "../ENG/EL.H"
-#include "../ENG/FILES.H"
-#include "../ENG/STD.H"
-#include "../ENG/TEST.H"
-#include "../ENG/VIDEO.H"
+#include "..\ENG\DRAW.H"
+#include "..\ENG\EDITOR.H"
+#include "..\ENG\EL.H"
+#include "..\ENG\FILES.H"
+#include "..\ENG\STD.H"
+#include "..\ENG\TEST.H"
+#include "..\ENG\VIDEO.H"
 
 #endif

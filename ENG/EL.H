@@ -2,7 +2,7 @@
 #define ENG_EL_H
 
 #include "STD.H"
-#include "TUI.H"
+#include "..\APP\MAIN.H"
 
 /* Consts  ========================================================*/
 
@@ -48,15 +48,15 @@ typedef enum DirectionType {
 } DirectionType;
 
 typedef enum ElementType {
-    EL_ELEMENT_TYPE_LABEL,
-    EL_ELEMENT_TYPE_INPUT,
-    EL_ELEMENT_TYPE_BUTTON,
-    EL_ELEMENT_TYPE_STATUSBAR,
-    EL_ELEMENT_TYPE_MENU,
-    EL_ELEMENT_TYPE_DIALOG,
-    EL_ELEMENT_TYPE_FORM,
-    EL_ELEMENT_TYPE_FORM_GROUP,
-    EL_ELEMENT_TYPE_CONTAINER
+    EL_TYPE_LABEL,
+    EL_TYPE_INPUT,
+    EL_TYPE_BUTTON,
+    EL_TYPE_STATUSBAR,
+    EL_TYPE_MENU,
+    EL_TYPE_DIALOG,
+    EL_TYPE_FORM,
+    EL_TYPE_FORM_GROUP,
+    EL_TYPE_CONTAINER
 } ElementType;
 
 /* Render types ========================================================*/

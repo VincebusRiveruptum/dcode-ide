@@ -1,11 +1,5 @@
 #include "MEM.H"
 
-#ifdef STANDALONE
-// Stub to satisfy LOG.C dependencies in standalone mode
-bool eng_checkConfig() {
-    return false; // Default to standard logging
-}
-#endif
 
 // Global pointers
 MemoryArena *editorArena = NULL;

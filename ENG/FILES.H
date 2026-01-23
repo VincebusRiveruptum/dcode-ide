@@ -2,7 +2,7 @@
 #define APP_FILES_H
 
 #include "STD.H"
-#include "..\DEPS\DATA\DATA.H"
+#include "..\APP\MAIN.H"
 
 /* Const. ================================================================*/
 
@@ -45,8 +45,6 @@ extern FileList *fileTree;
 
 /* Protypes =============================================================*/
 
-bool openFolder(char *path);
-bool openFile(char *fileName);
-bool saveFile();
+void f_dumpToFile(char *buffer, char *filename);
 
 #endif

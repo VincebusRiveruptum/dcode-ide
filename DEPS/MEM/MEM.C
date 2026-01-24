@@ -25,7 +25,7 @@ void mem_shutdown() {
 
     for(i=0; i<MAX_ARENAS; i++){
         if(memoryArenas[i].name != NULL){
-            mem_arena_free(&memoryArenas[i]);
+            mem_arena_free(memoryArenas[i].name);
         }
     }
 }
@@ -50,7 +50,7 @@ void mem_arena_init(MemoryArena *arena, char *name, unsigned char type, size_t s
 void *mem_create_arena(char *name, unsigned char type, size_t size){
     int i=0;
     for(i=0; i<MAX_ARENAS; i++){
-        if(memoryArenas[i].name == NULL){
+        if(memoryArenas[i].name[0] == '\0'){
             mem_arena_init(&memoryArenas[i], name, type, size);
             return &memoryArenas[i];
         }
@@ -58,15 +58,29 @@ void *mem_create_arena(char *name, unsigned char type, size_t size){
     return NULL;
 }
 
-void *mem_arena_alloc(char *name, size_t size){
+// Not the best approach, but if someon wants to directly asign to an already
+// avaliable arena object in the scope, they just pass the pointer to 
+// the first parameter, 
+// If is not in the same scope, you pass the name of the arena and the function itself
+// will search for it
+void *mem_arena_alloc(MemoryArena *arenaPtr, char *name, size_t size){
     int i=0;
     void *ptr = NULL;
     MemoryArena *arena = NULL;
 
-    arena = mem_get_arena(name);
+    arena = arenaPtr;
 
+    if(!arena && !name){
+        logger("\n[mem_arena_alloc]: Error: Arena pointer and name are null!");
+        return NULL;
+    }
+
+    if(!arena && name){
+        arena = mem_get_arena(name);
+    }
+    
     if(!arena){
-        logger("\n[mem_arena_alloc]: Error: Arena pointer is NULL");
+        logger("\n[mem_arena_alloc]: Error: Arena %s not found", name);
         return NULL;
     }
 
@@ -118,7 +132,6 @@ void mem_arena_free(char *name){
         arena->base = NULL;
         arena->offset = 0;
         arena->size = 0;
-        free(arena);
     }
     _null_arena(name);
 }
@@ -134,4 +147,16 @@ void _null_arena(char *name){
             memset(memoryArenas[i].name, 0, 32);
         }
     }    
+}
+
+/* Helper functions */
+
+int get_arena_count(){
+    int i=0;
+    for(i=0; i<MAX_ARENAS; i++){
+        if(memoryArenas[i].name[0] != '\0'){
+            i++;
+        }
+    }
+    return i;
 }

@@ -8,9 +8,9 @@ void el_renderFiles_test(){
     /* For now we will use this way of list travel
         altrough we know its O(N) we will use it for now
     */
-    logger("\n[el_renderFiles_test]: Rendering %d files", fileList->length);
+    logger("\n[el_renderFiles_test]: Rendering %d files", MAX_ARENAS);
 
-    for(i; i < fileList->length; i++){
+    for(i; i < MAX_ARENAS; i++){
         fileNode = getNodeByIndex(&fileList, i);
         file = (File*)fileNode->data;
 

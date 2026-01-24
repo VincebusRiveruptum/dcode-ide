@@ -2,13 +2,11 @@
 
 Node *createNode(void *data, char *arenaName){
     Node *newNode;
-    MemoryArena *arena = NULL;
 
     if(arenaName == NULL){
         newNode = (Node*)malloc(sizeof(Node));
     }else{
-        arena = mem_get_arena(arenaName);
-        newNode = (Node*)mem_arena_alloc(arena, sizeof(Node));
+        newNode = (Node*)mem_arena_alloc(NULL, arenaName, sizeof(Node));
     }
     
     newNode->data = data;
@@ -20,14 +18,11 @@ Node *createNode(void *data, char *arenaName){
 
 void addToList(List **list, Node *newNode, char *arenaName){
     Node *rec = NULL;
-    MemoryArena *arena = NULL;
-
     if((*list) == NULL){
         if(arenaName == NULL){
             (*list) = (List*)malloc(sizeof(List));
         }else{
-            arena = mem_get_arena(arenaName);
-            (*list) = (List*)mem_arena_alloc(arena, sizeof(List));
+            (*list) = (List*)mem_arena_alloc(NULL, arenaName, sizeof(List));
         }
 
         (*list)->firstNode = NULL;
@@ -223,14 +218,12 @@ bool includes(float val, float *arr, size_t n) {
 
 // GENERIC
 void addGenericNode(List **list, void *data, char *arenaName){
-    MemoryArena *arena = NULL;
 	Node *newNode = NULL;
 
     if(arenaName == NULL){
         newNode = (Node*)malloc(sizeof(Node));
     }else{
-        arena = mem_get_arena(arenaName);
-        newNode = (Node*)mem_arena_alloc(arena, sizeof(Node));
+        newNode = (Node*)mem_arena_alloc(NULL, arenaName, sizeof(Node));
     }
 
 	newNode->data = data;

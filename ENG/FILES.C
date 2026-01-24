@@ -2,6 +2,7 @@
 #include "FILES.H"
 
 List *fileList = NULL;
+MemoryArena *tmpPtrArena = NULL;
 
 void f_dumpToFile(char *filename){
     FILE *fp = fopen(filename, "w");
@@ -40,7 +41,7 @@ void f_bufferDumpToFile(char *buffer, size_t bufferLength, char *filename){
 char *_getFileName(char *filename){
     unsigned short length=0;
     unsigned short slashPos=0;
-    char * file = (char *)mem_arena_alloc(filename, 9);
+    char * file = (char *)mem_arena_alloc(NULL, filename, 9);
     if(!file) return NULL;
     
     memset(file, 0, 9);
@@ -58,7 +59,7 @@ char *_getFileName(char *filename){
 }
 char *_getFileExtension(char *filename){
     unsigned short i=0;
-    char *extension = (char *)mem_arena_alloc(filename, 8);
+    char *extension = (char *)mem_arena_alloc(NULL, filename, 8);
     if(!extension) return NULL;
 
     memset(extension, 0, 8);
@@ -75,7 +76,7 @@ char *_getFileExtension(char *filename){
 char *_getPath(char *filename){
     unsigned short length=0;
     unsigned short slashPos=0;
-    char *path = (char *)mem_arena_alloc(filename, 260);
+    char *path = (char *)mem_arena_alloc(NULL, filename, 260);
     if(!path) return NULL;
     
     memset(path, 0, 260);
@@ -98,10 +99,12 @@ void f_openFile(char *filename){
     unsigned short i=0;
     char lineBuffer[MAX_FILE_LINE_LENGTH];
     unsigned short bufferOffset=0;
+    MemoryArena *arena = NULL;
     
     // We are creating an arena per file
-    mem_create_arena(filename, MEM_ARENA_FILE, MEM_ARENA_16K);
-    openedFile = (File *)mem_arena_alloc(filename,sizeof(File));
+    arena = mem_create_arena(filename, MEM_ARENA_FILE, MEM_ARENA_16K);
+    
+    openedFile = (File *)mem_arena_alloc(arena, NULL ,sizeof(File));
 
     memset(lineBuffer, 0 , MAX_FILE_LINE_LENGTH);
 
@@ -137,7 +140,7 @@ void f_openFile(char *filename){
     
     rewind(fp);
     
-    openedFile->buffer = (char *)mem_arena_alloc(filename, openedFile->bufferLength + 200);
+    openedFile->buffer = (char *)mem_arena_alloc(arena, NULL, openedFile->bufferLength + 200);
     
     if(!openedFile->buffer){
         logger("\n[f_openFile]: Error: Could not allocate memory for file buffer");
@@ -149,12 +152,6 @@ void f_openFile(char *filename){
     
     fclose(fp);
     
+    // Just for test purposes
     f_bufferDumpToFile(openedFile->buffer, openedFile->bufferLength, "btest.txt");
-
-    // We insert it to the file list
-    if(fileList == NULL){
-        fileList = (List *)mem_arena_alloc(filename,sizeof(List));
-    }
-
-    addGenericNode(&fileList, openedFile, MEM_ARENA_FILE);
 }

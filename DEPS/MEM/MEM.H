@@ -48,7 +48,7 @@ void mem_shutdown();
 
 void mem_arena_init(MemoryArena *arena, char *name, unsigned char type, size_t size);
 void *mem_create_arena(char *name, unsigned char type, size_t size);
-void *mem_arena_alloc(char *name, size_t size);
+void *mem_arena_alloc(MemoryArena *arenaPtr, char *name, size_t size);
 MemoryArena *mem_get_arena(char *name);
 void mem_arena_reset(char *name);
 void mem_arena_free(char *name);

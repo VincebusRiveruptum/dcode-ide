@@ -40,6 +40,7 @@ int main(){
         if(keyboardTable[KEY_F2] == true) v_set50Lines();
         if(keyboardTable[KEY_F3] == true) v_set43Lines();
         if(keyboardTable[KEY_LCTRL] == true && keyboardTable[KEY_LSHIFT] == true && keyboardTable[KEY_S] == true) ed_triggerSave(); 
+        if(keyboardTable[KEY_SPACE] == true) ed_renderEvent = true;
         
         // Getch approach, why? Because getch() reads and uses DOS routines for handling the keyboard
         // so it translates the input scancode to the correct codepage value.

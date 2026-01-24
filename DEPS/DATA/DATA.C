@@ -1,19 +1,35 @@
 #include "data.h"
 
-Node *createNode(void *data){
+Node *createNode(void *data, char *arenaName){
     Node *newNode;
-    newNode = (Node*)malloc(sizeof(Node));
+    MemoryArena *arena = NULL;
+
+    if(arenaName == NULL){
+        newNode = (Node*)malloc(sizeof(Node));
+    }else{
+        arena = mem_get_arena(arenaName);
+        newNode = (Node*)mem_arena_alloc(arena, sizeof(Node));
+    }
+    
     newNode->data = data;
+    newNode->isDeleted = false;
     newNode->prev = NULL;
     newNode->next = NULL;
     return newNode;
 }
 
-void addToList(List **list, Node *newNode){
+void addToList(List **list, Node *newNode, char *arenaName){
     Node *rec = NULL;
+    MemoryArena *arena = NULL;
 
     if((*list) == NULL){
-        (*list) = (List*)malloc(sizeof(List));
+        if(arenaName == NULL){
+            (*list) = (List*)malloc(sizeof(List));
+        }else{
+            arena = mem_get_arena(arenaName);
+            (*list) = (List*)mem_arena_alloc(arena, sizeof(List));
+        }
+
         (*list)->firstNode = NULL;
         (*list)->lastNode = NULL;
         (*list)->length = 0;
@@ -34,6 +50,7 @@ void addToList(List **list, Node *newNode){
     (*list)->length++;
 }
 
+// DO NOT USE IF YOU ARE USING ARENAS
 void deleteNodeByIndex(List **list, int index){
     int i=0;
     Node *rec = (*list)->firstNode;
@@ -43,6 +60,7 @@ void deleteNodeByIndex(List **list, int index){
         if((*list)->firstNode != NULL){
             (*list)->firstNode->prev = NULL;
         }
+
         free((*list)->firstNode->data);
         free((*list)->firstNode);
         return;
@@ -56,8 +74,38 @@ void deleteNodeByIndex(List **list, int index){
                 rec->next->prev = rec->prev;
             }
             i++;
+           
             free(rec->data);
             free(rec);
+            return;
+        }
+    }
+    return;
+}
+
+// USE THIS IF YOU ARE USING ARENAS
+void softDeleteByIndex(List **list, int index){
+    int i=0;
+    Node *rec = (*list)->firstNode;
+
+    if(rec != NULL && (index - 1 ) == 0){
+        (*list)->firstNode = rec->next;
+        if((*list)->firstNode != NULL){
+            (*list)->firstNode->prev = NULL;
+        }
+        rec->isDeleted = true;
+        return;
+    }else{
+        while(rec != NULL){
+            if(rec->prev != NULL && i == (index - 1)){
+                rec->prev->next = rec->next;
+            }
+
+            if(rec->next != NULL && i == (index - 1)){
+                rec->next->prev = rec->prev;
+            }
+            i++;
+            rec->isDeleted = true;
             return;
         }
     }
@@ -67,6 +115,7 @@ void deleteNodeByIndex(List **list, int index){
 // TODO : TEST THIS FUNCTION
 Node *insertByIndex(List **list, Node *newNode, unsigned int index){
     Node *temp = NULL;
+
     if((*list) != NULL && ((index - 1) < (*list)->length)){        
         temp = getNodeByIndex(list, index);
 
@@ -148,6 +197,7 @@ Node *getNodeByIndex(List **list, int index){
     return NULL;
 }
 
+// DONT USE THIS FUNCTION IF YOU ARE USING ARENAS
 void freeList(List **list){
     Node *current = (*list)->firstNode;
     Node *temp;
@@ -171,26 +221,22 @@ bool includes(float val, float *arr, size_t n) {
     return false;
 }
 
-bool checkId(unsigned long id, unsigned long *array){
-	return includes(id, array, 65536);
-}
-/*
-unsigned long addId(unsigned long id, unsigned long *array){
-	if(checkId(id, array)){
-		return id;
-	}
-	array[index] = id;
-	index++;
-	return id;
-}
-*/
-
 // GENERIC
-void addGenericNode(List **list, void *data){
-	Node *newNode = (Node *)malloc(sizeof(Node));
+void addGenericNode(List **list, void *data, char *arenaName){
+    MemoryArena *arena = NULL;
+	Node *newNode = NULL;
+
+    if(arenaName == NULL){
+        newNode = (Node*)malloc(sizeof(Node));
+    }else{
+        arena = mem_get_arena(arenaName);
+        newNode = (Node*)mem_arena_alloc(arena, sizeof(Node));
+    }
+
 	newNode->data = data;
 	newNode->next = NULL;
 	newNode->prev = NULL;
+    newNode->isDeleted = false;
 
-	addToList(list, newNode);
+	addToList(list, newNode, arenaName);
 }

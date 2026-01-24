@@ -8,8 +8,10 @@ void el_renderFiles_test(){
     /* For now we will use this way of list travel
         altrough we know its O(N) we will use it for now
     */
+    logger("\n[el_renderFiles_test]: Rendering %d files", fileList->length);
+
     for(i; i < fileList->length; i++){
-        fileNode = getNodeByIndex(fileList, i);
+        fileNode = getNodeByIndex(&fileList, i);
         file = (File*)fileNode->data;
 
         if(!file) continue;

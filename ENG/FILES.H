@@ -7,6 +7,7 @@
 /* Const. ================================================================*/
 
 #define MAX_FILE_LINE_LENGTH 256
+
 /* Types =================================================================*/
 
 typedef struct File {
@@ -22,18 +23,14 @@ typedef struct File {
 
 } File;
 
-typedef struct FileList{
-    List *files;
-    unsigned short length;
-} FileList;
-
 
 /* Globals ==============================================================*/
 
-extern FileList *fileList;
+extern List *fileList;
 
 /* Protypes =============================================================*/
 
-void f_dumpToFile(char *buffer, char *filename);
+void f_dumpToFile(char *filename);
+void f_bufferDumpToFile(char *buffer, size_t bufferLength, char *filename);
 
 #endif

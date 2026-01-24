@@ -1,9 +1,9 @@
 
 #include "FILES.H"
 
-FileList *fileList = NULL;
+List *fileList = NULL;
 
-void f_dumpToFile(char *buffer, char *filename){
+void f_dumpToFile(char *filename){
     FILE *fp = fopen(filename, "w");
     int i=0;
     int j=0;
@@ -14,9 +14,24 @@ void f_dumpToFile(char *buffer, char *filename){
     
     for(i=0; i < VIDEO_ROWS; i++){
         for(j=0; j < VIDEO_COLS; j++){
-            fputc(buffer[i * VIDEO_COLS + j], fp);
+            fputc(textmemptr[i * VIDEO_COLS + j], fp);
         }
         fputc('\n', fp);
+    }
+    
+    fclose(fp);   
+}
+
+void f_bufferDumpToFile(char *buffer, size_t bufferLength, char *filename){
+    FILE *fp = fopen(filename, "w");
+    int i=0;
+    if(fp == NULL){
+        printf("Error opening file\n");
+        return;
+    }
+    
+    for(i=0; i < bufferLength; i++){
+        fputc(buffer[i], fp);
     }
     
     fclose(fp);   
@@ -25,7 +40,7 @@ void f_dumpToFile(char *buffer, char *filename){
 char *_getFileName(char *filename){
     unsigned short length=0;
     unsigned short slashPos=0;
-    char * file = (char *)mem_arena_alloc(fileArena, 9);
+    char * file = (char *)mem_arena_alloc(filename, 9);
     if(!file) return NULL;
     
     memset(file, 0, 9);
@@ -43,7 +58,7 @@ char *_getFileName(char *filename){
 }
 char *_getFileExtension(char *filename){
     unsigned short i=0;
-    char *extension = (char *)mem_arena_alloc(fileArena, 8);
+    char *extension = (char *)mem_arena_alloc(filename, 8);
     if(!extension) return NULL;
 
     memset(extension, 0, 8);
@@ -60,7 +75,7 @@ char *_getFileExtension(char *filename){
 char *_getPath(char *filename){
     unsigned short length=0;
     unsigned short slashPos=0;
-    char *path = (char *)mem_arena_alloc(fileArena, 260);
+    char *path = (char *)mem_arena_alloc(filename, 260);
     if(!path) return NULL;
     
     memset(path, 0, 260);
@@ -79,10 +94,17 @@ char *_getPath(char *filename){
 
 void f_openFile(char *filename){
     FILE *fp = fopen(filename, "r");
-    File *openedFile = (File *)mem_arena_alloc(fileArena,sizeof(File));
-    Node *fileNode = NULL;
+    File *openedFile;
     unsigned short i=0;
+    char lineBuffer[MAX_FILE_LINE_LENGTH];
+    unsigned short bufferOffset=0;
     
+    // We are creating an arena per file
+    mem_create_arena(filename, MEM_ARENA_FILE, MEM_ARENA_16K);
+    openedFile = (File *)mem_arena_alloc(filename,sizeof(File));
+
+    memset(lineBuffer, 0 , MAX_FILE_LINE_LENGTH);
+
     if(!openedFile){
         logger("\n[f_openFile]: Error: Could not allocate memory for file struct");
         fclose(fp);
@@ -111,42 +133,28 @@ void f_openFile(char *filename){
     
     openedFile->bufferLength = ftell(fp);
     
+    logger("\n[f_openFile]: File %s opened successfully, %d bytes", filename, openedFile->bufferLength);
+    
     rewind(fp);
     
-    openedFile->buffer = (char *)mem_arena_alloc(fileArena, openedFile->bufferLength + 1);
+    openedFile->buffer = (char *)mem_arena_alloc(filename, openedFile->bufferLength + 200);
     
     if(!openedFile->buffer){
-         logger("\n[f_openFile]: Error: Could not allocate memory for file buffer");
-         fclose(fp);
-         return;
-    }
-    
-    while(!feof(fp)){
-        openedFile->buffer[i] = fgetc(fp);
-        i++;
-    }
-
-    openedFile->buffer[i] = '\0';
-    
-    fclose(fp);
-
-    // We insert it to the file list
-    fileNode = (Node *)mem_arena_alloc(fileArena,sizeof(Node));
-
-    if(fileNode == NULL){
-        logger("\n[f_openFile]: Error: Could not allocate memory for file node");
+        logger("\n[f_openFile]: Error: Could not allocate memory for file buffer");
+        fclose(fp);
         return;
     }
+    
+    fread(openedFile->buffer, sizeof(char), openedFile->bufferLength, fp);
+    
+    fclose(fp);
+    
+    f_bufferDumpToFile(openedFile->buffer, openedFile->bufferLength, "btest.txt");
 
-    fileNode->next = NULL;
-    fileNode->prev = NULL;
-    fileNode->data = (void *)openedFile;
-
+    // We insert it to the file list
     if(fileList == NULL){
-        fileList = (FileList *)mem_arena_alloc(fileArena,sizeof(FileList));
-        fileList->files = NULL;
-        fileList->length = 0;
+        fileList = (List *)mem_arena_alloc(filename,sizeof(List));
     }
 
-    addToList(fileList, fileNode);
+    addGenericNode(&fileList, openedFile, MEM_ARENA_FILE);
 }

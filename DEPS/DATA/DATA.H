@@ -6,17 +6,20 @@
 #include <stdlib.h>
 #include <stddef.h>
 
+#include "..\MEM\MEM.H"
+
 #include "TYPES.H"
 
-void addToList(List **list, Node *newNode);
-Node *createNode(void *data);
+void addToList(List **list, Node *newNode, char *arenaName);
+Node *createNode(void *data, char *arenaName);
 Node *getNodeByIndex(List **list, int index);
 void deleteNodeByIndex(List **list, int index);
+void softDeleteByIndex(List **list, int index);
 
 Node *insertByIndex(List **list, Node *newNode, unsigned int index);
 Node *pop(List **list);
 List *invertList(List **list);
-void addGenericNode(List **list, void *data);
+void addGenericNode(List **list, void *data, char *arenaName);
 void freeList(List **list);
 
 #endif

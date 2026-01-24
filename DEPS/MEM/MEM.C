@@ -51,8 +51,13 @@ void mem_arena_init(MemoryArena *arena, char *name, unsigned char type, size_t s
 void *mem_arena_alloc(MemoryArena *arena, size_t size){
     void *ptr = NULL;
 
-    if(!arena || !arena->base){
-        logger("\n[mem_arena_alloc]: Error: Arena is not initialized");
+    if(!arena){
+        logger("\n[mem_arena_alloc]: Error: Arena pointer is NULL");
+        return NULL;
+    }
+
+    if(!arena->base){
+        logger("\n[mem_arena_alloc]: Error: Arena %s base is not allocated", arena->name);
         return NULL;
     }
 

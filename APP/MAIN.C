@@ -24,11 +24,13 @@ int main(){
     // 2. If all strokes are not ESC, then we go to INSERT mode
     // 3. After inserting a single character we go back to COMMAND mode
     // 4. And so on...
-    
+    log_init();
+    mem_init();
     v_init_video();
     initKeyboard();
     t_initTests();
 
+    
     while(endProgram == false){
         // ACTION KEYS HANDLING
         // This is uses ISR approach, not getch()
@@ -76,7 +78,7 @@ int main(){
                     c == CHAR_DELETE)){
                         
                         dw_char(c);
-                        //tg_renderElements();
+                        //el_renderElements();
                         // Tick counting by user activity, not globally
                         dw_writeBuffer("Hello World %d", 5, 6, 20, 10, COLOR_WHITE, COLOR_BLACK, ticks);
                         
@@ -87,11 +89,18 @@ int main(){
         // Cursor coordinates for testing
         dw_writeBuffer("X: %d Y: %d", 0, 0, 10, 0, COLOR_WHITE, COLOR_BLACK, currentCursorX, currentCursorY);
         ed_updateCursor();
+
+        if(ed_renderEvent == true){
+            ed_renderElements();
+            ed_renderEvent = false;
+        }
     }
     
     closeKeyboard();
     v_set25Lines();
     dw_cls();
-    printf("\nUser pressed ESC.");
+    mem_shutdown();
+    log_shutdown();
+    printf("96 Tears...\n");
     return 0;
 }

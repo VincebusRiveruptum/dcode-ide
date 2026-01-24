@@ -1,5 +1,6 @@
 #include "VIDEO.H"
 
+
 unsigned short *textmemptr;
 
 void v_init_video(){

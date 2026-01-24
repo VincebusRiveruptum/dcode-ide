@@ -114,6 +114,7 @@
 
 
 extern struct Container *root;
+extern bool ed_renderEvent;
 
 /* Prototypes ==============================================*/
 

@@ -11,6 +11,10 @@ void _colorRectangles(){
     dw_writeBuffer("John D. Carmack II[1] (born August 21,[a] 1970)[1] is an American computer programmer and video game developer. He co-founded the video game company id Software and was the lead programmer of its 1990s games Commander Keen, Wolfenstein 3D, Doom, Quake, and their sequels. Carmack made innovations in 3D computer graphics, such as his Carmack's Reverse algorithm for shadow volumes.", 32, 12, 50, 18, COLOR_WHITE, COLOR_BLACK);
 }
 
+void _filesTest(){
+    f_openFile("..\\DEPS\\DATA\\DATA.C");  
+}
+
 /* ===================================================================*/
 
 void t_initTests(){
@@ -19,6 +23,8 @@ void t_initTests(){
     dw_fill(COLOR_BLUE, COLOR_LIGHT_BLUE, '°');
     
     _colorRectangles();
+
+    _filesTest();
     
 }
 

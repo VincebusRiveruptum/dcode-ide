@@ -20,6 +20,8 @@ unsigned char VIDEO_ROWS = 25;
 unsigned char currentCursorX = 0;
 unsigned char currentCursorY = 0;
 
+bool ed_renderEvent = false;
+
 void ed_updateCursor(){
     ed_putCursor(currentCursorX, currentCursorY);
 }
@@ -66,4 +68,8 @@ void ed_triggerSave(){
     dw_writeBuffer("Saved!", 0, 0, 10, 0, COLOR_WHITE, COLOR_BLACK);   
 
     f_dumpToFile(textmemptr, "test.txt");
+}
+
+void ed_renderElements(){
+    el_renderFiles_test();
 }

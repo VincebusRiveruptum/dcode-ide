@@ -167,14 +167,14 @@ typedef struct Container {
 
 /* Render prototypes ========================================================*/
 
-void tg_renderElements();
-void tg_renderContainer(Container *container);
-void tg_renderLabeL(Label *label);
-void tg_renderButton(Button *button);
-void tg_renderInput(Input *input);
-void tg_renderMenu(Menu *menu);
-void tg_renderDialog(Dialog *dialog);
-void tg_renderForm(Form *form);
-void tg_renderFormGroup(FormGroup *formGroup);
+void el_renderElements();
+void el_renderContainer(Container *container);
+void el_renderLabeL(Label *label);
+void el_renderButton(Button *button);
+void el_renderInput(Input *input);
+void el_renderMenu(Menu *menu);
+void el_renderDialog(Dialog *dialog);
+void el_renderForm(Form *form);
+void el_renderFormGroup(FormGroup *formGroup);
 
 #endif

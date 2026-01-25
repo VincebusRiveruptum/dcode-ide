@@ -23,7 +23,7 @@ void el_renderFiles_test(){
         */
         //logger("\n[el_renderFiles_test]: Rendering %s", file->buffer);
 
-        dw_writeBuffer(&editormemptr, "%s", 0, 2, VIDEO_COLS, VIDEO_ROWS - 2, 0, COLOR_LIGHT_GRAY, COLOR_BLUE, file->buffer);
+        dw_writeBuffer(editormemptr, "%s", 0, 2, VIDEO_COLS - 1, VIDEO_ROWS - 2, COLOR_LIGHT_GRAY, COLOR_BLUE, file->buffer);
     }
 
     // COPY FROM EDITOR --> VIDEO

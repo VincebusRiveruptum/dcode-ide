@@ -3,7 +3,7 @@
 
 unsigned short *textmemptr;
 unsigned short editormemptr[VIDEO_BUFFER_SIZE];
-unsigned short tempBuffer[VIDEO_BUFFER_SIZE];
+unsigned char tempBuffer[VIDEO_BUFFER_SIZE];
 
 void v_init_video(){
     VIDEO_ROWS = 25;
@@ -42,7 +42,7 @@ unsigned short v_getVideoBufferSize(){
     return VIDEO_COLS * VIDEO_ROWS;
 }
 
-unsigned short v_clearBuffer(unsigned short *buffer){
+void v_clearBuffer(unsigned short *buffer){
     int i=0;
     while(i < v_getVideoBufferSize()){
         buffer[i] = ' ';

@@ -40,8 +40,8 @@
 
    
 extern unsigned short *textmemptr;      // VIDEO BUFFER
-extern unsigned short editormemptr[VIDEO_BUFFER_SIZE];    // EDITOR BUFFER
-extern unsigned short tempBuffer[VIDEO_BUFFER_SIZE];    // TEMP BUFFER
+extern unsigned short editormemptr[VIDEO_BUFFER_SIZE];    // EDITOR BUFFER, i think this could be the half of VIDEO_BUFFER_SIZE extern unsigned char tempBuffer[VIDEO_BUFFER_SIZE];   
+extern unsigned char tempBuffer[VIDEO_BUFFER_SIZE];
 
 extern unsigned char VIDEO_COLS;
 extern unsigned char VIDEO_ROWS;
@@ -54,7 +54,7 @@ void v_close_video();
 void v_set43Lines();
 void v_set25Lines();
 unsigned short v_getVideoBufferSize();
-unsigned short v_clearBuffer(unsigned short *buffer);
+void v_clearBuffer(unsigned short *buffer);
 
 #endif
 

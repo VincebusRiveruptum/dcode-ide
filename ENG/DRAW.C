@@ -162,11 +162,12 @@ void dw_writeBuffer(unsigned short *buffer, const char *format, unsigned char x1
     unsigned short buffpos = 0;
     unsigned short screenPos;
  
+    memset(tempBuffer, 0, VIDEO_BUFFER_SIZE);
+
     va_start(args, backgroundColor);
     vsprintf(tempBuffer, format, args);
     va_end(args);
     
-    v_clearBuffer(tempBuffer);
     // Boundary check
     if(x1 > x2 || y1 > y2) return;
 
@@ -183,7 +184,6 @@ void dw_writeBuffer(unsigned short *buffer, const char *format, unsigned char x1
             }
         }
     }
-
 }
 
 void dw_char(unsigned short *buffer, char c){

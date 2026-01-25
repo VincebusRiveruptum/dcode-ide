@@ -2,7 +2,7 @@
 
 void el_renderFiles_test(){
     short i = 0;
-    Node *fileNode = NULL;
+    FileArena *fileArena = NULL;
     File *file = NULL;
 
     /* For now we will use this way of list travel
@@ -11,19 +11,32 @@ void el_renderFiles_test(){
     logger("\n[el_renderFiles_test]: Rendering %d files", MAX_ARENAS);
 
     for(i; i < MAX_ARENAS; i++){
-        fileNode = getNodeByIndex(&fileList, i);
-        file = (File*)fileNode->data;
+        fileArena = &fileList[i];    
 
-        if(!file) continue;
+        if(!fileArena || !fileArena->file || !fileArena->arena) continue;
 
-        dw_writeBuffer("%s", 0, 2, VIDEO_COLS, VIDEO_ROWS - 2, 0, COLOR_LIGHT_GRAY, COLOR_BLUE, file->buffer);
+        file = fileArena->file;
+        /*
+            In this place, instead of drawing directly the buffer on screen, 
+            there should be a layer between that a window element handles that buffer
+            somehow.
+        */
+        //logger("\n[el_renderFiles_test]: Rendering %s", file->buffer);
+
+        dw_writeBuffer(&editormemptr, "%s", 0, 2, VIDEO_COLS, VIDEO_ROWS - 2, 0, COLOR_LIGHT_GRAY, COLOR_BLUE, file->buffer);
+    }
+
+    // COPY FROM EDITOR --> VIDEO
+    for(i=0; i < VIDEO_BUFFER_SIZE; i++){
+        if(editormemptr[i] != 0 && editormemptr[i] != CHAR_SPACE)
+            textmemptr[i] = editormemptr[i];
     }
 }
 
 void el_renderContainer(Container *container){
     return;
 }
-void el_renderLabeL(Label *label){
+void el_renderLabel(Label *label){
     // Put the cursor on labels coordinates
     // Print the text with the color attributes
 

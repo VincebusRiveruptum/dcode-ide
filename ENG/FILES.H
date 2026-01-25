@@ -20,17 +20,29 @@ typedef struct File {
 
     bool isModified;
     bool isActive;
-
 } File;
+
+typedef struct FileArena {
+    struct File *file;
+    MemoryArena *arena;
+} FileArena;
 
 
 /* Globals ==============================================================*/
 
-extern List *fileList;
+extern FileArena fileList[MAX_ARENAS];
 
 /* Protypes =============================================================*/
 
 void f_dumpToFile(char *filename);
 void f_bufferDumpToFile(char *buffer, size_t bufferLength, char *filename);
+
+void _initFileArenas();
+FileArena *_getFileArena(char *filename);
+FileArena *_addFileArena(FileArena *fileArena);
+void _closeFile(FileArena *fileArena);
+char *_getFileName(char *filename);
+char *_getFileExtension(char *filename);
+char *_getPath(char *filename);
 
 #endif

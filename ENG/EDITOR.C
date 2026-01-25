@@ -65,7 +65,7 @@ void ed_moveCursor(short x, short y){
 }
 
 void ed_triggerSave(){
-    dw_writeBuffer("Saved!", 0, 0, 10, 0, COLOR_WHITE, COLOR_BLACK);   
+    dw_writeBuffer(textmemptr, "Saved!", 0, 0, 10, 0, COLOR_WHITE, COLOR_BLACK);   
 
     f_dumpToFile("test.txt");
 }

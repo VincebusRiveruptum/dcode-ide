@@ -39,10 +39,10 @@ typedef enum {
     DW_SIDE_ALL
 } RectangleSides;
 
-void dw_cls();
-void dw_fill(unsigned char backgroundColor, unsigned char foregroundColor, unsigned char character);
-void dw_rectangle(unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2, unsigned char backgroundBorderColor, unsigned char foregroundBorderColor, unsigned char fillCharacter,  unsigned char foregroundFillColor, unsigned char backgroundFillColor, bool blinking, BorderType borderType);
-void dw_writeBuffer(const char *format, unsigned char x1, unsigned char y1, unsigned char x2, unsigned char y2, unsigned char foregroundColor, unsigned char backgroundColor, ...);
+void dw_cls(unsigned short *buffer);
+void dw_fill(unsigned short *buffer, unsigned char backgroundColor, unsigned char foregroundColor, unsigned char character);
+void dw_rectangle(unsigned short *buffer, unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2, unsigned char backgroundBorderColor, unsigned char foregroundBorderColor, unsigned char fillCharacter,  unsigned char foregroundFillColor, unsigned char backgroundFillColor, bool blinking, BorderType borderType);
+void dw_writeBuffer(unsigned short *buffer, const char *format, unsigned char x1, unsigned char y1, unsigned char x2, unsigned char y2, unsigned char foregroundColor, unsigned char backgroundColor, ...);
 
 extern unsigned char currentCursorX;
 extern unsigned char currentCursorY;

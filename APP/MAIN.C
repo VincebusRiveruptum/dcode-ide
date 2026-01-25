@@ -60,7 +60,7 @@ int main(){
 
                 if(c == CHAR_BACKSPACE){
                     ed_moveCursor(-1, 0);
-                    dw_char(' ');
+                    dw_char(textmemptr, ' ');
                     ed_moveCursor(-1, 0);
                 }
 
@@ -78,17 +78,17 @@ int main(){
                     c == CHAR_ENTER ||
                     c == CHAR_DELETE)){
                         
-                        dw_char(c);
+                        dw_char(textmemptr, c);
                         //el_renderElements();
                         // Tick counting by user activity, not globally
-                        dw_writeBuffer("Hello World %d", 5, 6, 20, 10, COLOR_WHITE, COLOR_BLACK, ticks);
+                        dw_writeBuffer(textmemptr, "Hello World %d", 5, 6, 20, 10, COLOR_WHITE, COLOR_BLACK, ticks);
                         
                         ticks++;
                     }
                 }
             }
         // Cursor coordinates for testing
-        dw_writeBuffer("X: %d Y: %d", 0, 0, 10, 0, COLOR_WHITE, COLOR_BLACK, currentCursorX, currentCursorY);
+        dw_writeBuffer(textmemptr, "X: %d Y: %d", 0, 0, 10, 0, COLOR_WHITE, COLOR_BLACK, currentCursorX, currentCursorY);
         ed_updateCursor();
 
         if(ed_renderEvent == true){
@@ -99,7 +99,7 @@ int main(){
     
     closeKeyboard();
     v_set25Lines();
-    dw_cls();
+    dw_cls(textmemptr);
     mem_shutdown();
     log_shutdown();
     printf("96 Tears...\n");

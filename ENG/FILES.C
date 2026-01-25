@@ -1,8 +1,11 @@
 
 #include "FILES.H"
 
-List *fileList = NULL;
+FileArena fileList[MAX_ARENAS];
 MemoryArena *tmpPtrArena = NULL;
+
+
+
 
 void f_dumpToFile(char *filename){
     FILE *fp = fopen(filename, "w");
@@ -41,7 +44,7 @@ void f_bufferDumpToFile(char *buffer, size_t bufferLength, char *filename){
 char *_getFileName(char *filename){
     unsigned short length=0;
     unsigned short slashPos=0;
-    char * file = (char *)mem_arena_alloc(NULL, filename, 9);
+    char * file = (char *)mem_arena_alloc(NULL, filename, 10);
     if(!file) return NULL;
     
     memset(file, 0, 9);
@@ -95,63 +98,119 @@ char *_getPath(char *filename){
 
 void f_openFile(char *filename){
     FILE *fp = fopen(filename, "r");
-    File *openedFile;
-    unsigned short i=0;
-    char lineBuffer[MAX_FILE_LINE_LENGTH];
-    unsigned short bufferOffset=0;
+    File *file = NULL;
     MemoryArena *arena = NULL;
+    FileArena *fileArena = NULL;
     
     // We are creating an arena per file
-    arena = mem_create_arena(filename, MEM_ARENA_FILE, MEM_ARENA_16K);
-    
-    openedFile = (File *)mem_arena_alloc(arena, NULL ,sizeof(File));
-
-    memset(lineBuffer, 0 , MAX_FILE_LINE_LENGTH);
-
-    if(!openedFile){
-        logger("\n[f_openFile]: Error: Could not allocate memory for file struct");
-        fclose(fp);
-        return;
-    }
- 
-    
     if(fp == NULL){
         logger("\n[f_openFile]: Error: Could not open file %s", filename);
         return;
     }
 
-    openedFile->name = _getFileName(filename);
-    openedFile->path = _getPath(filename);
-    openedFile->extension = _getFileExtension(filename);
+    // We prepare the File arena
+    arena = mem_create_arena(filename, MEM_ARENA_FILE, MEM_ARENA_16K);
 
-    if(!openedFile->name || !openedFile->path || !openedFile->extension){
+    fileArena = (FileArena *)mem_arena_alloc(arena, NULL ,sizeof(FileArena));
+    fileArena->arena = arena;
+    // We don't have the File struct yet, so we can't assign it to fileArena->file
+    // fileArena->file = ...; 
+
+    _addFileArena(fileArena);
+    
+    // We prepare the File struct 
+    file = (File *)mem_arena_alloc(arena, NULL ,sizeof(File));
+
+    file->name = _getFileName(filename);
+    file->path = _getPath(filename);
+    file->extension = _getFileExtension(filename);
+
+    if(!file->name || !file->path || !file->extension){
         logger("\n[f_openFile]: Error: Could not allocate memory for file details");
+        _closeFile(fileArena);
         fclose(fp);
         return;
     }
 
+    // Assign the file struct to the file arena
+    fileArena->file = file;
+
+    // Length of the file
     while(!feof(fp)){
         fgetc(fp);
     }
     
-    openedFile->bufferLength = ftell(fp);
+    file->bufferLength = ftell(fp);
     
-    logger("\n[f_openFile]: File %s opened successfully, %d bytes", filename, openedFile->bufferLength);
+    logger("\n[f_openFile]: File %s opened successfully, %d bytes", filename, file->bufferLength);
     
     rewind(fp);
     
-    openedFile->buffer = (char *)mem_arena_alloc(arena, NULL, openedFile->bufferLength + 200);
-    
-    if(!openedFile->buffer){
+    file->buffer = (char *)mem_arena_alloc(arena, NULL, sizeof(char) * (file->bufferLength + 1));
+
+    logger("\n[f_openFile]: File buffer size %d", file->bufferLength);
+
+    if(!file->buffer){
         logger("\n[f_openFile]: Error: Could not allocate memory for file buffer");
+        _closeFile(fileArena);
+        fclose(fp);
+        return;
+    }
+    // Actually reading the file
+    fread(file->buffer, sizeof(char), file->bufferLength, fp);
+    file->buffer[file->bufferLength] = '\0';
+    
+    if(!file->buffer){
+        logger("\n[f_openFile]: Error: Could not allocate memory for file buffer");
+        
         fclose(fp);
         return;
     }
     
-    fread(openedFile->buffer, sizeof(char), openedFile->bufferLength, fp);
-    
     fclose(fp);
     
     // Just for test purposes
-    f_bufferDumpToFile(openedFile->buffer, openedFile->bufferLength, "btest.txt");
+    //f_bufferDumpToFile(file->buffer, file->bufferLength, "btest.txt");
+    // logger("\n[f_openFile]: %s", file->buffer);
+}
+
+
+/* File list handling (File arena arrays) ===============================================*/
+
+void _initFileArenas(){
+    int i=0;
+    for(i; i < MAX_ARENAS; i++){
+        fileList[i].file = NULL;
+        fileList[i].arena = NULL;
+    }
+}
+
+FileArena *_getFileArena(char *filename){
+    unsigned short i=0;
+    
+    for(i; i < MAX_ARENAS; i++){
+        if(fileList[i].file && !strcmp(fileList[i].file->name, filename)) return &fileList[i];
+    }   
+    return NULL;
+}
+FileArena *_addFileArena(FileArena *fileArena){
+    unsigned short i=0;
+    
+    for(i; i < MAX_ARENAS; i++){
+        if(fileList[i].file == NULL && fileList[i].arena == NULL){
+            fileList[i] = *fileArena;
+            return &fileList[i];
+        }
+    }
+    return NULL;
+}
+
+void _closeFile(FileArena *fileArena){
+    mem_arena_free(fileArena->arena);
+    fileArena->file = NULL;
+    fileArena->arena = NULL;
+}
+
+void f_init(){
+    _initFileArenas();
 }

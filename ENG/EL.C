@@ -4,7 +4,7 @@ void el_renderFiles_test(){
     short i = 0;
     FileArena *fileArena = NULL;
     File *file = NULL;
-
+    int j=0;
     /* For now we will use this way of list travel
         altrough we know its O(N) we will use it for now
     */
@@ -23,7 +23,8 @@ void el_renderFiles_test(){
         */
         //logger("\n[el_renderFiles_test]: Rendering %s", file->buffer);
 
-        dw_writeBuffer(editormemptr, "%s", 0, 2, VIDEO_COLS - 1, VIDEO_ROWS - 2, COLOR_LIGHT_GRAY, COLOR_BLUE, file->buffer);
+        dw_writeBuffer(&editormemptr, "%s", 0, 0, VIDEO_COLS - 1, VIDEO_ROWS - 1, COLOR_LIGHT_GRAY, COLOR_BLUE, file->buffer);
+
     }
 
     // COPY FROM EDITOR --> VIDEO

@@ -41,7 +41,7 @@
    
 extern unsigned short *textmemptr;      // VIDEO BUFFER
 extern unsigned short editormemptr[VIDEO_BUFFER_SIZE];    // EDITOR BUFFER, i think this could be the half of VIDEO_BUFFER_SIZE extern unsigned char tempBuffer[VIDEO_BUFFER_SIZE];   
-extern unsigned char tempBuffer[VIDEO_BUFFER_SIZE];
+extern char tempBuffer[VIDEO_BUFFER_SIZE];
 
 extern unsigned char VIDEO_COLS;
 extern unsigned char VIDEO_ROWS;

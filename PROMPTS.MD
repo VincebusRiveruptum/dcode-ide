@@ -239,5 +239,21 @@ What would be considered an "activity" or "history"? Storing the entire affected
 activity could be a dumb idea as it could literally multiply the file size in memory per activity. A 
 better approach could be storing a path of changes, with activity metadata, such as the cursor position, special key pressed, cursor movement, etc. 
 
+---
 
+# 25.01.2026
 
+Ok, yesterday during the morning i had to do a huge refactoring of the code by making the arenas dynamic and took the decision of every file opened, is an arena of its own as files have their own lifecycle. This came from the problem that in a editor files could be opened and closed everytime, and with the current arena implementaiton, this could not have been posible as i didn't consider that i was allocating files in a single arena. 
+
+Yesterday afternoon i wasn't home as i hanged out with a friend at his home, but today in the afternoon i came back and took back the pending work. I finished the arena refactor and also defined that there must be three buffers
+
+- VIDEO BUFFER (textmemptr): All the visible stuff, the screen buffer.
+- EDITOR BUFFER (editormemptr): Prior to rendering everything on screen with Video Buffer, all the TUI and file contents will be rendered here first, then copied to video buffer.
+- FILE BUFFER (own arena): This is actually the file content whnere the user is editing, it will
+be updated by the user actions.
+- TEMP BUFFER (tempBuffer): A general purpose used for coping between buffers, used in DRAW.C/dw_writeBuffer()
+
+I was kinda tired so the AI helped me in the most miserable and small bugs, at the end we got the buffering working. 
+
+The next challenge is to format the buffered text because tabs, line breaks are visible as weird
+characters.

@@ -136,15 +136,13 @@ void f_openFile(char *filename){
     fileArena->file = file;
 
     // Length of the file
-    while(!feof(fp)){
-        fgetc(fp);
-    }
+    fseek(fp, 0, SEEK_END);
     
     file->bufferLength = ftell(fp);
     
     logger("\n[f_openFile]: File %s opened successfully, %d bytes", filename, file->bufferLength);
     
-    rewind(fp);
+    rewind(fp); // or fseek(fp, 0, SEEK_SET);
     
     file->buffer = (char *)mem_arena_alloc(arena, NULL, sizeof(char) * (file->bufferLength + 1));
 

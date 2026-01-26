@@ -3,7 +3,8 @@
 
 unsigned short *textmemptr;
 unsigned short editormemptr[VIDEO_BUFFER_SIZE];
-unsigned char tempBuffer[VIDEO_BUFFER_SIZE];
+
+char tempBuffer[VIDEO_BUFFER_SIZE];
 
 void v_init_video(){
     VIDEO_ROWS = 25;

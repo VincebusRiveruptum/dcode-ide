@@ -153,8 +153,7 @@ void dw_rectangle(
     buffer[i] = _getBorderCharacter(borderType, DW_SIDE_BOTTOM_RIGHT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
 }
 
-
-void dw_writeBuffer(unsigned short *buffer, const char *format, unsigned char x1, unsigned char y1, unsigned char x2, unsigned char y2, unsigned char foregroundColor, unsigned char backgroundColor, ...){
+void dw_writeBuffer(unsigned short *buffer, const char *format, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, ...){
 
     va_list args;
     unsigned short screenCharacter;
@@ -165,9 +164,10 @@ void dw_writeBuffer(unsigned short *buffer, const char *format, unsigned char x1
     memset(tempBuffer, 0, VIDEO_BUFFER_SIZE);
 
     va_start(args, backgroundColor);
-    vsprintf(tempBuffer, format, args);
+    vsnprintf(tempBuffer, VIDEO_BUFFER_SIZE, format, args);
     va_end(args);
-    
+
+    // f_bufferDumpToFile(&tempBuffer, VIDEO_BUFFER_SIZE, "temp1.txt");
     // Boundary check
     if(x1 > x2 || y1 > y2) return;
 

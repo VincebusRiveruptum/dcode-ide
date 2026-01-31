@@ -360,7 +360,6 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
     int spaceBetween = 0;
     int lineCounterWidth = 6;
     int lineCount = 0;
-    int lineIndex = 0;
     char lineCounterBufferTemp[8] = {0};
     
     // special word detection stuff
@@ -386,11 +385,30 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
         return;
     }
 
-    /* Get the starting node for scrollY */
-    if(file->scrollY < file->lines->length) {
-        currentNode = getNodeByIndex(&file->lines, file->scrollY);
-        lineCount = file->scrollY;
+    /*
+
+    OK, AI had to help me with this part, but it's still WIP
+    Pre-scan multiline comments and find current node
+    
+    */
+    currentNode = file->lines->firstNode;
+    lineCount = 0;
+    while(lineCount < file->scrollY && currentNode) {
+        line = (Line *)currentNode->data;
+        for(j = 0; j < (int)line->length; j++) {
+            if(!isMultilineComment && line->buffer[j] == '/' && line->buffer[j+1] == '*') {
+                isMultilineComment = true;
+                j++;
+            } else if(isMultilineComment && line->buffer[j] == '*' && line->buffer[j+1] == '/') {
+                isMultilineComment = false;
+                j++;
+            }
+        }
+        currentNode = currentNode->next;
+        lineCount++;
     }
+
+    /* End pre-scan */
     
     for(y = y1; y <= y2; y++){
         if(currentNode){
@@ -401,7 +419,7 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
             csWordStart = 0;
             csWordEnd = 0;
             isSingleLineComment = false;
-            lineIndex++;
+            
             while(screenX <= x2){
                 //
                 // ============ LINE COUNTER COLUMN ===============================================

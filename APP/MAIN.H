@@ -9,6 +9,7 @@
 #include "..\DEPS\MEM\MEM.H"
 #include "..\DEPS\SORT\SORT.H"
 #include "..\DEPS\VGA\VGAREGS.H"
+#include "..\DEPS\EXT\VSNPRNTF.H"
 
 // ENGINE
 #include "..\ENG\DRAW.H"

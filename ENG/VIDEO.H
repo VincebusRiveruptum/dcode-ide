@@ -5,6 +5,7 @@
 
 /* Global =================================================*/
 
+#define VIDEO_BUFFER_SIZE 4160   /* WE'LL USE 80 * 50  + 2 lines ( 80 x 2 ) as universal buffer size*/
 /* Prototypes =============================================*/
 
 /* ASM Prototypes */
@@ -37,19 +38,23 @@
     "mov bl, 0x00" \
     "int 0x10" \
 
+   
+extern unsigned short *textmemptr;      // VIDEO BUFFER
+extern unsigned short editormemptr[VIDEO_BUFFER_SIZE];    // EDITOR BUFFER, i think this could be the half of VIDEO_BUFFER_SIZE extern unsigned char tempBuffer[VIDEO_BUFFER_SIZE];   
+extern char tempBuffer[VIDEO_BUFFER_SIZE];
+
+extern unsigned char VIDEO_COLS;
+extern unsigned char VIDEO_ROWS;
+extern unsigned char currentCursorX;
+extern unsigned char currentCursorY;
+    
 void v_init_video();
 void v_close_video();
 
 void v_set43Lines();
 void v_set25Lines();
-
-
-extern unsigned short *textmemptr;
-extern unsigned char VIDEO_COLS;
-extern unsigned char VIDEO_ROWS;
-extern unsigned char currentCursorX;
-extern unsigned char currentCursorY;
-
+unsigned short v_getVideoBufferSize();
+void v_clearBuffer(unsigned short *buffer);
 
 #endif
 

@@ -6,16 +6,7 @@
 #include "STD.H"
 
 // THIS REQUIRE THE INPUT DEPS
-#include "..\INPUT\INPUT.H"
-#include "..\SORT\SORT.H"
-#include "..\DATA\DATA.H"
-#include "..\LOG\LOG.H"
-
-// 
-#include "DRAW.H"
-#include "EL.H"
-#include "TEST.H"
-
+#include "..\APP\MAIN.H"
 /*
  * IBM PC / DOS Code Page 437
  * Line Drawing & Special Characters
@@ -114,6 +105,7 @@
 
 
 extern struct Container *root;
+extern bool ed_renderEvent;
 
 /* Prototypes ==============================================*/
 

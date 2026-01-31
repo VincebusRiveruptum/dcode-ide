@@ -1,39 +1,76 @@
 #include "EL.H"
 
-void tg_renderContainer(Container *container){
+void el_renderFiles_test(){
+    short i = 0;
+    FileArena *fileArena = NULL;
+    File *file = NULL;
+    int j=0;
+    /* For now we will use this way of list travel
+        altrough we know its O(N) we will use it for now
+    */
+    logger("\n[el_renderFiles_test]: Rendering %d files", MAX_ARENAS);
+
+    for(i; i < MAX_ARENAS; i++){
+        fileArena = &fileList[i];    
+
+        if(!fileArena || !fileArena->file || !fileArena->arena) continue;
+
+        file = fileArena->file;
+        /*
+            In this place, instead of drawing directly the buffer on screen, 
+            there should be a layer between that a window element handles that buffer
+            somehow.
+        */
+        //logger("\n[el_renderFiles_test]: Rendering %s", file->buffer);
+
+        dw_writeBufferEditorFormatted(&editormemptr, 0, 0, VIDEO_COLS - 1, VIDEO_ROWS - 1, COLOR_LIGHT_GRAY, COLOR_BLUE, file) ;
+     
+    }
+
+    // COPY FROM EDITOR --> VIDEO
+
+    // This will trasnate line jumps and tabs, becaues in memeory these are special chars and by copying directly to memory these are not translated 
+    // and will look wrong
+
+    for(i=0; i < VIDEO_BUFFER_SIZE; i++){
+        textmemptr[i] = editormemptr[i];
+    }
+}
+
+void el_renderContainer(Container *container){
     return;
 }
-void tg_renderLabeL(Label *label){
+void el_renderLabel(Label *label){
     // Put the cursor on labels coordinates
     // Print the text with the color attributes
 
     return;
 }
-void tg_renderButton(Button *button){
+void el_renderButton(Button *button){
     // Put the cursor on the button coordinates
     // Draw a rectangle with the color attributes at the position
     // Print the text with the color attributes
     return;
 }
-void tg_renderInput(Input *input){
+void el_renderInput(Input *input){
     return;
 }
-void tg_renderStatusbar(Statusbar *menu){
+void el_renderStatusbar(Statusbar *menu){
     return;
 }
-void tg_renderMenu(Menu *menu){
+void el_renderMenu(Menu *menu){
     return;
 }
-void tg_renderDialog(Dialog *dialog){
+void el_renderDialog(Dialog *dialog){
     return;
 }
-void tg_renderForm(Form *form){
+void el_renderForm(Form *form){
     return;
 }
-void tg_renderFormGroup(FormGroup *formGroup){
+void el_renderFormGroup(FormGroup *formGroup){
     return;
 }
-void tg_renderElements(){
+void el_renderElements(){
     int i=0;
     BaseElement *element;
     Node *node;
@@ -47,31 +84,31 @@ void tg_renderElements(){
 
         switch(element->type){
             case EL_TYPE_CONTAINER:
-                tg_renderContainer((Container*)element);
+                el_renderContainer((Container*)element);
                 break;
             case EL_TYPE_LABEL:
-                tg_renderLabel((Label*)element);
+                el_renderLabel((Label*)element);
                 break;
             case EL_TYPE_BUTTON:
-                tg_renderButton((Button*)element);
+                el_renderButton((Button*)element);
                 break;
             case EL_TYPE_INPUT:
-                tg_renderInput((Input*)element);
+                el_renderInput((Input*)element);
                 break;
             case EL_TYPE_STATUSBAR:
-                tg_renderStatusbar((Statusbar*)element);
+                el_renderStatusbar((Statusbar*)element);
                 break;
             case EL_TYPE_MENU:
-                tg_renderMenu((Menu*)element);
+                el_renderMenu((Menu*)element);
                 break;
             case EL_TYPE_DIALOG:
-                tg_renderDialog((Dialog*)element);
+                el_renderDialog((Dialog*)element);
                 break;
             case EL_TYPE_FORM:
-                tg_renderForm((Form*)element);
+                el_renderForm((Form*)element);
                 break;
             case EL_TYPE_FORM_GROUP:
-                tg_renderFormGroup((FormGroup*)element);
+                el_renderFormGroup((FormGroup*)element);
                 break;
             default:
                 break;
@@ -79,7 +116,7 @@ void tg_renderElements(){
     }
 }   
 
-void tg_rootZOrder(){
+void el_rootZOrder(){
     /*
         This method orders elements in the root list by z-order
     */

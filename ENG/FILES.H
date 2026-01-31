@@ -27,6 +27,10 @@ typedef struct File {
     
     /* New line-based fields */
     List *lines;
+    
+    // This will be used for the editor to know if the previous line to the first visible was a comment
+    // So the comment formmating will still function when scrolling down
+    
     unsigned short scrollY;
     unsigned short scrollX;
 
@@ -61,5 +65,6 @@ void _closeFile(FileArena *fileArena);
 char *_getFileName(MemoryArena *arena, char *filename);
 char *_getFileExtension(MemoryArena *arena, char *filename);
 char *_getPath(MemoryArena *arena, char *filename);
+bool f_openFile(char *filename);
 
 #endif

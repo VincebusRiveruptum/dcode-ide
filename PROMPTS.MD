@@ -299,3 +299,15 @@ fixed.
 The scroll kinda works but half-assed due that the scroll logic is not counting the 'artifical line jumps' where visually are line jumps but not in the file buffer. 
 
 A solution could be instead of scrolling by changing the file offset (which is the start point of where the file buffer is being copied to the editor buffer), could be scrolling the editor buffer which already has the file content formatted, and this way we could consider the line jumps as real line jumps.
+
+Ok. my approach was no good and not scalable, i had to talk with the AI and suggested handling the lines in a LIST, and  it was 
+much more easier to handle.
+
+Now i have to do the following:
+
+- Open file with command line arguments OK
+- Special keywords coloring
+- Update lines on input
+- Create/Remove lines when user does a line break or backspace
+- Save file by reading all lines and parsing into the file buffer.
+- Create file windows

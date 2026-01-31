@@ -141,7 +141,7 @@ char *_getPath(MemoryArena *arena, char *filename){
     return path;
 }
 
-void f_openFile(char *filename){
+bool f_openFile(char *filename){
     FILE *fp = fopen(filename, "r");
     File *file = NULL;
     MemoryArena *arena = NULL;
@@ -150,7 +150,7 @@ void f_openFile(char *filename){
     // We are creating an arena per file
     if(fp == NULL){
         logger("\n[f_openFile]: Error: Could not open file %s", filename);
-        return;
+        return false;
     }
 
     /* We prepare the File arena */
@@ -179,7 +179,7 @@ void f_openFile(char *filename){
         logger("\n[f_openFile]: Error: Could not allocate memory for file details");
         _closeFile(fileArena);
         fclose(fp);
-        return;
+        return false;
     }
     
     // Assign the file struct to the file arena
@@ -202,7 +202,7 @@ void f_openFile(char *filename){
         logger("\n[f_openFile]: Error: Could not allocate memory for file buffer");
         _closeFile(fileArena);
         fclose(fp);
-        return;
+        return false;
     }
     // Actually reading the file
     fread(file->buffer, sizeof(char), file->bufferLength, fp);
@@ -212,7 +212,7 @@ void f_openFile(char *filename){
         logger("\n[f_openFile]: Error: Could not allocate memory for file buffer");
         
         fclose(fp);
-        return;
+        return false; 
     }
     
     _addFileArena(fileArena);
@@ -230,6 +230,7 @@ void f_openFile(char *filename){
     // Just for test purposes
     //f_bufferDumpToFile(file->buffer, file->bufferLength, "btest.txt");
     // logger("\n[f_openFile]: %s", file->buffer);
+    return true;
 }
 
 

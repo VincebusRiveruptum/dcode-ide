@@ -9,7 +9,7 @@
 
 #include "MAIN.H"
 
-int main(){
+int main(int argc, char *argv[]){
     bool endProgram = false;
     char c;
     int ticks = 0;
@@ -30,6 +30,7 @@ int main(){
     initKeyboard();
     t_initTests();
 
+    handleArguments(argc, argv);
     
     while(endProgram == false){
         // ACTION KEYS HANDLING
@@ -81,14 +82,14 @@ int main(){
                         dw_char(textmemptr, c);
                         //el_renderElements();
                         // Tick counting by user activity, not globally
-                        dw_writeBuffer(textmemptr, "Hello World %d", 5, 6, 20, 10, COLOR_WHITE, COLOR_BLACK, ticks);
+                        //dw_writeBuffer(textmemptr, "Hello World %d", 5, 6, 20, 10, COLOR_WHITE, COLOR_BLACK, ticks);
                         
                         ticks++;
                     }
                 }
             }
         // Cursor coordinates for testing
-        dw_writeBuffer(textmemptr, "X: %d Y: %d", 0, 0, 10, 0, COLOR_WHITE, COLOR_BLACK, currentCursorX, currentCursorY);
+        //dw_writeBuffer(textmemptr, "X: %d Y: %d", 0, 0, 10, 0, COLOR_WHITE, COLOR_BLACK, currentCursorX, currentCursorY);
         ed_updateCursor();
 
         if(ed_renderEvent == true){

@@ -94,3 +94,12 @@ void ed_triggerSave(){
 void ed_renderElements(){
     el_renderFiles_test();
 }
+
+void handleArguments(int argc, char *argv[]){
+    // File opening
+    if(argc > 1){
+        if(!f_openFile(argv[1])){
+            dw_writeBuffer(textmemptr, "File not found!", 0, 0, 16, 0, COLOR_WHITE, COLOR_BLACK);   
+        }
+    }
+}

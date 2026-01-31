@@ -22,9 +22,9 @@ void t_initTests(){
 
     dw_fill(textmemptr, COLOR_BLUE, COLOR_LIGHT_BLUE, '°');
     
-    _colorRectangles();
+    //_colorRectangles();
 
-    _filesTest();
+    //_filesTest();
     
 }
 

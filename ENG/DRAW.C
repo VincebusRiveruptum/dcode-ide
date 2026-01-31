@@ -1,6 +1,154 @@
 
 #include "DRAW.H"
+// Private functions
+
+
+// tHIS WILL DETECT THE COMMENT ENDS IN THE SINGLE LINE
+
+// Three posible scenarios
+
+bool _isWordEnd(char *csWordEnd, char *previousWord){
+
+    if (
+        *csWordEnd != ' ' &&
+        *csWordEnd != '\0' &&
+        *csWordEnd != '\n' &&
+        *csWordEnd != '\r' &&
+        *csWordEnd != ',' &&
+        *csWordEnd != '.' &&
+        *csWordEnd != ';' &&
+        *csWordEnd != ':' &&
+        *csWordEnd != '(' &&
+        *csWordEnd != ')' &&
+        *csWordEnd != '[' &&
+        *csWordEnd != ']' &&
+        *csWordEnd != '{' &&
+        *csWordEnd != '}'
+    )    return true;
+
+    return false;
+}
+
+unsigned char _keywordMap(char *word, char *previousWord){
+    int ivalue;
+    float fvalue;
+    short hvalue;
+    long lvalue;
+    char *endptr = word;
     
+    if(!word) return 0;
+
+    while(*endptr != '\0'){
+        endptr++;
+    }
+    
+    if(strcmp(previousWord, "#include") == 0){
+        return COLOR_LIGHT_GREEN;
+    }
+
+    // Then we check if it's a keyword
+    
+    // System keywords
+    if (strcmp(word, "int") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "float") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "char") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "void") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "bool") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "if") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "else") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "while") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "do") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "for") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "return") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "break") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "switch") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "case") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "default") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "goto") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "continue") == 0) return COLOR_LIGHT_RED;
+    
+        // Preprocessor directives
+    if (strcmp(word, "#include") == 0) return COLOR_LIGHT_GREEN;
+    if (strcmp(word, "#define") == 0) return COLOR_LIGHT_GREEN;
+    if (strcmp(word, "#ifdef") == 0) return COLOR_LIGHT_GREEN;
+    if (strcmp(word, "#ifndef") == 0) return COLOR_LIGHT_GREEN;
+    if (strcmp(word, "#if") == 0) return COLOR_LIGHT_GREEN;
+    if (strcmp(word, "#endif") == 0) return COLOR_LIGHT_GREEN;
+    if (strcmp(word, "#else") == 0) return COLOR_LIGHT_GREEN;
+    if (strcmp(word, "#elif") == 0) return COLOR_LIGHT_GREEN;
+    if (strcmp(word, "#undef") == 0) return COLOR_LIGHT_GREEN;
+    if (strcmp(word, "#error") == 0) return COLOR_LIGHT_GREEN;
+    if (strcmp(word, "#line") == 0) return COLOR_LIGHT_GREEN;
+    if (strcmp(word, "#pragma") == 0) return COLOR_LIGHT_GREEN;
+    if (strcmp(word, "#warning") == 0) return COLOR_LIGHT_YELLOW;
+    if (strcmp(word, "#include_next") == 0) return COLOR_LIGHT_GREEN;
+    
+    // Expressions
+    if (strcmp(word, "==") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "!=") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, ">=") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "<=") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, ">") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "<") == 0) return COLOR_LIGHT_RED;
+    
+    // Operators
+    if (strcmp(word, "+") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "-") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "*") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "/") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "%") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "=") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, ">>") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "<<") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "|") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "&") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "^") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "!") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "~") == 0) return COLOR_LIGHT_RED;
+    
+    // Logical operators
+    if (strcmp(word, "&&") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "||") == 0) return COLOR_LIGHT_RED;
+    
+    // Assignment operators
+    if (strcmp(word, "=") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "+=") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "-=") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "*=") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "/=") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "%=") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "&=") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "|=") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "^=") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "<<=") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, ">>") == 0) return COLOR_LIGHT_RED;
+    
+    // Boolean values
+    if (strcmp(word, "true") == 0) return COLOR_LIGHT_BLUE;
+    if (strcmp(word, "false") == 0) return COLOR_LIGHT_BLUE;
+    
+    // Null
+    if (strcmp(word, "NULL") == 0) return COLOR_LIGHT_BLUE;
+    if (strcmp(word, "0") == 0) return COLOR_LIGHT_BLUE;
+    
+    // Comments
+    if (strcmp(word, "//") == 0) return COLOR_DARK_GRAY;
+    if (strcmp(word, "/*") == 0) return COLOR_DARK_GRAY;
+    if (strcmp(word, "*/") == 0) return COLOR_DARK_GRAY;
+
+
+
+    // We first check if it's a value
+    ivalue = (int)strtod(word, &endptr);
+    
+    /* 
+    if(endptr != word && errno != ERANGE) {
+        return COLOR_LIGHT_BLUE;
+    }
+    */
+    return 0;
+}
+
 char _getBorderCharacter(BorderType borderType, RectangleSides side){
     switch(borderType){
         case DRAW_BORDER_SIMPLE:
@@ -205,13 +353,26 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
     int screenX;
     int screenPos;
     char c;
+    
+    
     int t;
     int j;
     int spaceBetween = 0;
     int lineCounterWidth = 6;
     int lineCount = 0;
+    int lineIndex = 0;
     char lineCounterBufferTemp[8] = {0};
     
+    // special word detection stuff
+    char *csWordStart;
+    char *csWordEnd;        // current character special word
+    char detectedWord[32] = {0};
+    char previousWord[32] = {0};
+    unsigned char specialWordColor = 0;
+
+    bool isMultilineComment = false;
+    bool isSingleLineComment = false;   
+
     /* Boundary check */
     if(x1 > x2 || y1 > y2) return;
 
@@ -237,8 +398,15 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
             linePos = 0;
             screenX = x1;
             spaceBetween = 0;
-
+            csWordStart = 0;
+            csWordEnd = 0;
+            isSingleLineComment = false;
+            lineIndex++;
             while(screenX <= x2){
+                //
+                // ============ LINE COUNTER COLUMN ===============================================
+                //
+                
                 screenPos = (y * VIDEO_COLS) + screenX;
                 
                 /* If is line counter column */
@@ -250,7 +418,6 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
 
                     sprintf(lineCounterBufferTemp, "%d", lineCount + 1);
                     
-
                     if (lineCount >= 9) spaceBetween = 1;
                     if (lineCount >= 99) spaceBetween = 2;
                     if (lineCount >= 999) spaceBetween = 3;
@@ -263,9 +430,64 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                     
                     screenX += lineCounterWidth;
                 }else{
+                //
+                // ============ LINE CONTENT ========================================================
+                //
                     /* After line counter column, we draw the rest of the line content */
                     if(linePos < line->length){
                         c = line->buffer[linePos];
+
+                        // =========== SPECIAL KEYWORD COLORING=======================================
+                        if(&line->buffer[linePos] > csWordEnd){
+                            memcpy(previousWord, detectedWord, strlen(detectedWord));
+                            previousWord[strlen(detectedWord)] = '\0';
+
+                            memset(detectedWord, 0, 32);
+                            
+                            csWordStart = &line->buffer[linePos];
+                            csWordEnd = csWordStart;
+
+                            if(isMultilineComment == false){
+                                if(*csWordStart == '/' && *(csWordStart + 1) == '*') isMultilineComment = true;
+
+                                // If it is the first line, we set the isFirstLineComment flag
+                               
+                            }
+
+                            if(line->buffer[linePos] == '*' && line->buffer[linePos + 1] == '/'){
+                                isMultilineComment = false;
+                            }
+                            
+                            if(line->buffer[linePos] == '/' && line->buffer[linePos + 1] == '/'){
+                                isSingleLineComment = true;
+                            }
+                            
+                            // There is no comment in the current line
+                            if(isMultilineComment == false && isSingleLineComment == false){
+                                while( _isWordEnd(csWordEnd, previousWord) == true){
+                                    if(csWordEnd - csWordStart >= 32){
+                                        break;
+                                    }
+                                    csWordEnd++;
+                                }
+                                memcpy(detectedWord, csWordStart, csWordEnd - csWordStart);
+                                
+                                detectedWord[csWordEnd - csWordStart] = '\0';
+                                
+                                specialWordColor = _keywordMap(detectedWord, previousWord);
+                            }
+                            
+                            if(isMultilineComment || isSingleLineComment){
+                                specialWordColor = COLOR_DARK_GRAY;
+                            }
+                        }
+
+                        // We loop internally until we reach the end of the word
+
+                        // If the word is actually  mapped and has its own color, we use that
+                        
+                        // If not, we just print the character with the default color
+                                                
                         
                         if(c == '\t'){
                             for(t=0; t < 4 && screenX <= x2; t++){
@@ -281,7 +503,8 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                             linePos++;
                             continue;
                         } else {
-                            destBuffer[screenPos] = c | ((backgroundColor << 4 | foregroundColor) << 8);
+
+                            destBuffer[screenPos] = c | ((backgroundColor << 4 | (specialWordColor ? specialWordColor : foregroundColor)) << 8);
                             screenX++;
                             linePos++;
                         }
@@ -302,3 +525,4 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
         }
     }
 }
+

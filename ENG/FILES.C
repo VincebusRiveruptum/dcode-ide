@@ -3,9 +3,54 @@
 
 FileArena fileList[MAX_ARENAS];
 MemoryArena *tmpPtrArena = NULL;
+FileArena *currentFileArena = NULL;
 
+void f_splitIntoLines(File *file, MemoryArena *arena) {
+    char *start;
+    char *end;
+    char *p;
+    size_t lineLen;
+    Line *line;
 
+    start = file->buffer;
+    end = file->buffer + file->bufferLength;
+    p = start;
 
+    file->lines = (List *)mem_arena_alloc(arena, NULL, sizeof(List));
+    memset(file->lines, 0, sizeof(List));
+
+    while (p < end) {
+        if (*p == '\n') {
+            lineLen = p - start;
+            /* Strip trailing \r if present */
+            if (lineLen > 0 && *(p - 1) == '\r') {
+                lineLen--;
+            }
+            line = (Line *)mem_arena_alloc(arena, NULL, sizeof(Line));
+            line->buffer = (char *)mem_arena_alloc(arena, NULL, lineLen + 1);
+            memcpy(line->buffer, start, lineLen);
+            line->buffer[lineLen] = '\0';
+            line->length = lineLen;
+
+            addGenericNode(&file->lines, line, arena->name);
+            start = p + 1;
+        }
+        p++;
+    }
+
+    /* Handle last line or file without trailing \n */
+    if (start <= end) {
+        lineLen = end - start;
+        if (lineLen > 0 && start[lineLen-1] == '\r') lineLen--;
+
+        line = (Line *)mem_arena_alloc(arena, NULL, sizeof(Line));
+        line->buffer = (char *)mem_arena_alloc(arena, NULL, lineLen + 1);
+        memcpy(line->buffer, start, lineLen);
+        line->buffer[lineLen] = '\0';
+        line->length = lineLen;
+        addGenericNode(&file->lines, line, arena->name);
+    }
+}
 
 void f_dumpToFile(char *filename){
     FILE *fp = fopen(filename, "w");
@@ -41,10 +86,10 @@ void f_bufferDumpToFile(char *buffer, size_t bufferLength, char *filename){
     fclose(fp);   
 }
 
-char *_getFileName(char *filename){
+char *_getFileName(MemoryArena *arena, char *filename){
     unsigned short length=0;
     unsigned short slashPos=0;
-    char * file = (char *)mem_arena_alloc(NULL, filename, 10);
+    char * file = (char *)mem_arena_alloc(arena, filename, 10);
     if(!file) return NULL;
     
     memset(file, 0, 9);
@@ -60,9 +105,9 @@ char *_getFileName(char *filename){
     file[9] = '\0';
     return file;
 }
-char *_getFileExtension(char *filename){
+char *_getFileExtension(MemoryArena *arena, char *filename){
     unsigned short i=0;
-    char *extension = (char *)mem_arena_alloc(NULL, filename, 8);
+    char *extension = (char *)mem_arena_alloc(arena, filename, 8);
     if(!extension) return NULL;
 
     memset(extension, 0, 8);
@@ -76,10 +121,10 @@ char *_getFileExtension(char *filename){
     return extension;
 }
 
-char *_getPath(char *filename){
+char *_getPath(MemoryArena *arena, char *filename){
     unsigned short length=0;
     unsigned short slashPos=0;
-    char *path = (char *)mem_arena_alloc(NULL, filename, 260);
+    char *path = (char *)mem_arena_alloc(arena, filename, 260);
     if(!path) return NULL;
     
     memset(path, 0, 260);
@@ -108,33 +153,38 @@ void f_openFile(char *filename){
         return;
     }
 
-    // We prepare the File arena
-    arena = mem_create_arena(filename, MEM_ARENA_FILE, MEM_ARENA_16K);
+    /* We prepare the File arena */
+    arena = mem_create_arena(filename, MEM_ARENA_FILE, MEM_ARENA_256K);
 
     fileArena = (FileArena *)mem_arena_alloc(arena, NULL ,sizeof(FileArena));
     fileArena->arena = arena;
     // We don't have the File struct yet, so we can't assign it to fileArena->file
     // fileArena->file = ...; 
 
-    _addFileArena(fileArena);
     
     // We prepare the File struct 
     file = (File *)mem_arena_alloc(arena, NULL ,sizeof(File));
-
-    file->name = _getFileName(filename);
-    file->path = _getPath(filename);
-    file->extension = _getFileExtension(filename);
-
+    
+    file->name = _getFileName(arena, filename);
+    file->path = _getPath(arena, filename);
+    file->extension = _getFileExtension(arena, filename);
+    
+    file->lines = NULL;
+    file->scrollY = 0;
+    file->scrollX = 0;
+    file->cursorLine = 0;
+    file->cursorCol = 0;
+    
     if(!file->name || !file->path || !file->extension){
         logger("\n[f_openFile]: Error: Could not allocate memory for file details");
         _closeFile(fileArena);
         fclose(fp);
         return;
     }
-
+    
     // Assign the file struct to the file arena
     fileArena->file = file;
-
+    
     // Length of the file
     fseek(fp, 0, SEEK_END);
     
@@ -145,9 +195,9 @@ void f_openFile(char *filename){
     rewind(fp); // or fseek(fp, 0, SEEK_SET);
     
     file->buffer = (char *)mem_arena_alloc(arena, NULL, sizeof(char) * (file->bufferLength + 1));
-
+    
     logger("\n[f_openFile]: File buffer size %d", file->bufferLength);
-
+    
     if(!file->buffer){
         logger("\n[f_openFile]: Error: Could not allocate memory for file buffer");
         _closeFile(fileArena);
@@ -164,6 +214,16 @@ void f_openFile(char *filename){
         fclose(fp);
         return;
     }
+    
+    _addFileArena(fileArena);
+
+    f_splitIntoLines(file, arena);
+
+    // So the after opening hte file, it becomes the current file active
+    currentFileArena = fileArena;
+
+    // Here is done correctly
+    //f_bufferDumpToFile(file->buffer, file->bufferLength, "temp3.txt");
     
     fclose(fp);
     

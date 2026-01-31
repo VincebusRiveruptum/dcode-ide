@@ -5,7 +5,7 @@
 
 /* Global =================================================*/
 
-#define VIDEO_BUFFER_SIZE 4000    /* WE'LL USE 80 * 50 as universal buffer size*/
+#define VIDEO_BUFFER_SIZE 4160   /* WE'LL USE 80 * 50  + 2 lines ( 80 x 2 ) as universal buffer size*/
 /* Prototypes =============================================*/
 
 /* ASM Prototypes */

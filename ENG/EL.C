@@ -23,14 +23,17 @@ void el_renderFiles_test(){
         */
         //logger("\n[el_renderFiles_test]: Rendering %s", file->buffer);
 
-        dw_writeBuffer(&editormemptr, "%s", 0, 0, VIDEO_COLS - 1, VIDEO_ROWS - 1, COLOR_LIGHT_GRAY, COLOR_BLUE, file->buffer);
-
+        dw_writeBufferEditorFormatted(&editormemptr, 0, 0, VIDEO_COLS - 1, VIDEO_ROWS - 1, COLOR_LIGHT_GRAY, COLOR_BLUE, file) ;
+     
     }
 
     // COPY FROM EDITOR --> VIDEO
+
+    // This will trasnate line jumps and tabs, becaues in memeory these are special chars and by copying directly to memory these are not translated 
+    // and will look wrong
+
     for(i=0; i < VIDEO_BUFFER_SIZE; i++){
-        if(editormemptr[i] != 0 && editormemptr[i] != CHAR_SPACE)
-            textmemptr[i] = editormemptr[i];
+        textmemptr[i] = editormemptr[i];
     }
 }
 

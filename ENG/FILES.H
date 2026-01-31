@@ -3,6 +3,7 @@
 
 #include "STD.H"
 #include "..\APP\MAIN.H"
+#include "..\DATA\DATA.H"
 
 /* Const. ================================================================*/
 
@@ -10,13 +11,27 @@
 
 /* Types =================================================================*/
 
+typedef struct Line {
+    char *buffer;
+    size_t length;
+} Line;
+
 typedef struct File {
     char *name;
     char *path;
     char *extension;
 
     char *buffer;
-    unsigned short bufferLength;  // also known as file size
+
+    size_t bufferLength;  /* also known as file size */
+    
+    /* New line-based fields */
+    List *lines;
+    unsigned short scrollY;
+    unsigned short scrollX;
+
+    unsigned short cursorLine;
+    unsigned short cursorCol;
 
     bool isModified;
     bool isActive;
@@ -32,6 +47,8 @@ typedef struct FileArena {
 
 extern FileArena fileList[MAX_ARENAS];
 
+extern FileArena *currentFileArena;
+
 /* Protypes =============================================================*/
 
 void f_dumpToFile(char *filename);
@@ -41,8 +58,8 @@ void _initFileArenas();
 FileArena *_getFileArena(char *filename);
 FileArena *_addFileArena(FileArena *fileArena);
 void _closeFile(FileArena *fileArena);
-char *_getFileName(char *filename);
-char *_getFileExtension(char *filename);
-char *_getPath(char *filename);
+char *_getFileName(MemoryArena *arena, char *filename);
+char *_getFileExtension(MemoryArena *arena, char *filename);
+char *_getPath(MemoryArena *arena, char *filename);
 
 #endif

@@ -50,18 +50,39 @@ void ed_putCursor(unsigned char x, unsigned char y){
 }
 
 void ed_moveCursor(short x, short y){
-    if(currentCursorX + x >= VIDEO_COLS || currentCursorY + y >= VIDEO_ROWS){
-        return;
+    File *file;
+    file = currentFileArena->file;
+
+    if( currentCursorY + y < 0 ){
+        if(file->scrollY > 0){
+            file->scrollY--;
+        } else {
+            currentCursorY = 0;
+        }
+    } else if( currentCursorY + y >= VIDEO_ROWS ){
+        if(file->lines && file->scrollY + VIDEO_ROWS < file->lines->length){
+            file->scrollY++;
+        } else {
+            currentCursorY = VIDEO_ROWS - 1;
+        }
+    } else {
+        currentCursorY += y;
     }
 
-    if(currentCursorX + x < 0 || currentCursorY + y < 0){
-        return;
+    if(currentCursorX + x < 0){
+        currentCursorX = 0;
+    } else if(currentCursorX + x >= VIDEO_COLS){
+        currentCursorX = VIDEO_COLS - 1;
+    } else {
+        currentCursorX += x;
     }
-
-    currentCursorX += x;
-    currentCursorY += y;
+    
+    /* Sync file cursor */
+    file->cursorLine = file->scrollY + currentCursorY;
+    file->cursorCol = currentCursorX; /* Simplified for now, doesn't account for scrollX yet */
 
     ed_putCursor(currentCursorX, currentCursorY);
+    el_renderFiles_test();
 }
 
 void ed_triggerSave(){

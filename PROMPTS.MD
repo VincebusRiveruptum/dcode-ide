@@ -257,3 +257,45 @@ I was kinda tired so the AI helped me in the most miserable and small bugs, at t
 
 The next challenge is to format the buffered text because tabs, line breaks are visible as weird
 characters.
+
+# 29.01.2026
+
+I'm back, it's 21:01 PM, trying to remember what is pending.
+
+The file content display is wrong. I need to fix it.
+
+So, the scheme would be the following
+
+
+  FILE BUFFER    <---------- DIRECT TO HERE-
+                                            |
+      |                                     |
+    FORMATTING TABS AND SPACES ...          |
+      |                                     |    
+      |                                     |
+  EDITOR BUFFER                             |
+                                            |
+      |                                     |
+      |                                     |
+    DIRECT COPY                             |
+      |                                     |
+      |                                     |
+      |                                     |
+  VIDEO BUFFER                              |
+      |                                     |
+      |                                     |
+      |                                     |   
+      |                                     |
+      v                                     |
+    USER TYPING  ---------------------------
+
+So the cursor pointing the position on screen it will be translated to the file buffer position and after typing the character will be formatted and so on.
+
+# 30.01.2026
+
+Yesterday i was so tired, today i do too. Yesteday atleast got the formatting right and some sort of scrolling, however my job now is to get it 
+fixed.
+
+The scroll kinda works but half-assed due that the scroll logic is not counting the 'artifical line jumps' where visually are line jumps but not in the file buffer. 
+
+A solution could be instead of scrolling by changing the file offset (which is the start point of where the file buffer is being copied to the editor buffer), could be scrolling the editor buffer which already has the file content formatted, and this way we could consider the line jumps as real line jumps.

@@ -194,3 +194,111 @@ void dw_char(unsigned short *buffer, char c){
     currentCursorX++;
 }
     
+
+/* This also will take care of reserved word coloring */
+void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, File *file){
+
+    int x, y;
+    Node *currentNode = NULL;
+    Line *line;
+    int linePos;
+    int screenX;
+    int screenPos;
+    char c;
+    int t;
+    int j;
+    int spaceBetween = 0;
+    int lineCounterWidth = 6;
+    int lineCount = 0;
+    char lineCounterBufferTemp[8] = {0};
+    
+    /* Boundary check */
+    if(x1 > x2 || y1 > y2) return;
+
+    if(!file->lines || file->lines->length == 0) {
+        /* Clear area if no lines */
+        for(y = y1; y <= y2; y++){
+            for(x = x1; x <= x2; x++){
+                destBuffer[(y * VIDEO_COLS) + x] = ' ' | ((backgroundColor << 4 | foregroundColor) << 8);
+            }
+        }
+        return;
+    }
+
+    /* Get the starting node for scrollY */
+    if(file->scrollY < file->lines->length) {
+        currentNode = getNodeByIndex(&file->lines, file->scrollY);
+        lineCount = file->scrollY;
+    }
+    
+    for(y = y1; y <= y2; y++){
+        if(currentNode){
+            line = (Line *)currentNode->data;
+            linePos = 0;
+            screenX = x1;
+            spaceBetween = 0;
+
+            while(screenX <= x2){
+                screenPos = (y * VIDEO_COLS) + screenX;
+                
+                /* If is line counter column */
+                if (screenX == x1){
+                    /* TERRIBLE CODE I KNOW*/
+                    for(j=0; j < lineCounterWidth; j++){
+                        destBuffer[screenPos + j] = ' ' | ((COLOR_BLACK << 4 | COLOR_WHITE) << 8);
+                    }
+
+                    sprintf(lineCounterBufferTemp, "%d", lineCount + 1);
+                    
+
+                    if (lineCount >= 9) spaceBetween = 1;
+                    if (lineCount >= 99) spaceBetween = 2;
+                    if (lineCount >= 999) spaceBetween = 3;
+                    if (lineCount >= 9999) spaceBetween = 4;
+                    if (lineCount >= 99999) spaceBetween = 5;
+
+                    for(j=0; j < (int)strlen(lineCounterBufferTemp); j++){
+                        destBuffer[screenPos + j + (lineCounterWidth - spaceBetween - 1)] = lineCounterBufferTemp[j] | ((COLOR_BLACK << 4 | COLOR_WHITE) << 8);
+                    }
+                    
+                    screenX += lineCounterWidth;
+                }else{
+                    /* After line counter column, we draw the rest of the line content */
+                    if(linePos < line->length){
+                        c = line->buffer[linePos];
+                        
+                        if(c == '\t'){
+                            for(t=0; t < 4 && screenX <= x2; t++){
+                                destBuffer[(y * VIDEO_COLS) + screenX] = ' ' | ((backgroundColor << 4 | foregroundColor) << 8);
+                                screenX++;
+                            }
+                            linePos++;
+                            /* Subtract one because screenX is incremented in the loop logic below or will be incremented in next iteration */
+                            /* Actually we just continue and screenX is already at the next position */
+                            continue; 
+                        } else if (c == '\r' || c == '\n') {
+                            /* Skip these as we are already on a new line */
+                            linePos++;
+                            continue;
+                        } else {
+                            destBuffer[screenPos] = c | ((backgroundColor << 4 | foregroundColor) << 8);
+                            screenX++;
+                            linePos++;
+                        }
+                    } else {
+                        destBuffer[screenPos] = ' ' | ((backgroundColor << 4 | foregroundColor) << 8);
+                        screenX++;
+                    }
+                }
+                
+            }
+            currentNode = currentNode->next;
+            lineCount++;
+        } else {
+            /* Fill remaining lines with spaces */
+            for(x = x1; x <= x2; x++){
+                destBuffer[(y * VIDEO_COLS) + x] = ' ' | ((backgroundColor << 4 | foregroundColor) << 8);
+            }
+        }
+    }
+}

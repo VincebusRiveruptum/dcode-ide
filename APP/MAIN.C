@@ -16,14 +16,6 @@ int main(int argc, char *argv[]){
     
     // So, the steps are:
     // 1. Set VGA mode 2
-    // 2. Fill screen with color 
-    // 3. Write something on screen with bg color, foreground, blinking
-    
-    // This goes this way:
-    // 1. Keyboard ISR listens keyboard strokes
-    // 2. If all strokes are not ESC, then we go to INSERT mode
-    // 3. After inserting a single character we go back to COMMAND mode
-    // 4. And so on...
     log_init();
     mem_init();
     v_init_video();
@@ -31,17 +23,29 @@ int main(int argc, char *argv[]){
     t_initTests();
 
     handleArguments(argc, argv);
+
     
     while(endProgram == false){
+
         // ACTION KEYS HANDLING
         // This is uses ISR approach, not getch()
-        if(keyboardTable[KEY_ESC] == true) endProgram = true;
-
-        if(keyboardTable[KEY_F1] == true) v_set25Lines();
-        if(keyboardTable[KEY_F2] == true) v_set50Lines();
-        if(keyboardTable[KEY_F3] == true) v_set43Lines();
-        if(keyboardTable[KEY_LCTRL] == true && keyboardTable[KEY_LSHIFT] == true && keyboardTable[KEY_S] == true) ed_triggerSave(); 
-        if(keyboardTable[KEY_SPACE] == true) ed_renderEvent = true;
+        if(isKeyDown(KEY_ESC)) endProgram = true;
+        if(isKeyDown(KEY_F1)) v_set25Lines();
+        if(isKeyDown(KEY_F2)) v_set50Lines();
+        if(isKeyDown(KEY_F3)) v_set43Lines();
+        
+        if(keysPressed(3, KEY_LCTRL, KEY_LSHIFT, KEY_S)) ed_triggerSave();
+        if(isKeyDown(KEY_SPACE)) ed_renderEvent = true;
+        
+        // NEW FILE
+        if(keysPressed(2, KEY_LCTRL, KEY_N)){
+            logger("[main]: User created new file.");
+        }
+        
+        // CLOSE FILE (Alt+F4)
+        if(keysPressed(2, KEY_LALT, KEY_F4)){
+            logger("[main]: User closed file.");
+        }
         
         // Getch approach, why? Because getch() reads and uses DOS routines for handling the keyboard
         // so it translates the input scancode to the correct codepage value.
@@ -96,7 +100,10 @@ int main(int argc, char *argv[]){
             ed_renderElements();
             ed_renderEvent = false;
         }
+
+        updateKeyboard();
     }
+
     
     closeKeyboard();
     v_set25Lines();

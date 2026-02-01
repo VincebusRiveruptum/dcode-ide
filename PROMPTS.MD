@@ -306,8 +306,11 @@ much more easier to handle.
 Now i have to do the following:
 
 - Open file with command line arguments OK
-- Special keywords coloring
+- Special keywords coloring OK --- WIP THO 
 - Update lines on input
 - Create/Remove lines when user does a line break or backspace
 - Save file by reading all lines and parsing into the file buffer.
 - Create file windows
+
+- Close file
+- Create new file

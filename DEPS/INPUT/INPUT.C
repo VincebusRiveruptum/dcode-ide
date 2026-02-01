@@ -1,5 +1,11 @@
 #include "INPUT.H"
 
+/*
+    Ver 1.1 , 
+        - Multi-key press detection with a single function
+        - isKeyDown, isKeyPressed, isKeyReleased
+        - keyBoardTable is still usable for legacy.
+*/
 // BIOS Data Area (BDA) addresses for 32-bit protected mode
 volatile unsigned char keyboardTable[256];          // Stores the current keys status
 volatile unsigned char prevKeyboardTable[256];      // Stores the previous keys status
@@ -108,6 +114,9 @@ const unsigned char *keyboardMap[256] = {
     NULL
 };
 
+#define PRESS_TYPE_PRESS 1
+#define PRESS_TYPE_RELEASE 2
+
 // Variables managed by ISR
 unsigned char scanCode;
 
@@ -148,7 +157,7 @@ static void __interrupt __far keyISR() {
     scanCode = inPortb(0x60);
     // Update table
     if (scanCode < 128) {
-        keyboardTable[scanCode] = 1;        
+        keyboardTable[scanCode] = 1;   
     } else {
         keyboardTable[scanCode - 128] = 0;
     }
@@ -169,30 +178,88 @@ void closeKeyboard() {
     _dos_setvect(0x09, oldKeyISR);
 }
 
+void updateKeyboard() {
+    int i;
+    for(i = 0; i < 256; i++) {
+        prevKeyboardTable[i] = keyboardTable[i];
+    }
+}
+
+bool isKeyDown(unsigned char key) {
+    return keyboardTable[key];
+}
+
+bool isKeyPressed(unsigned char key) {
+    return (keyboardTable[key] == true && prevKeyboardTable[key] == false);
+}
+
+bool isKeyReleased(unsigned char key) {
+    return (keyboardTable[key] == false && prevKeyboardTable[key] == true);
+}
+
+unsigned char keysPressed(int nKeys, ...) {
+    int i;
+    int allDown = 1;
+    int anyJustPressed = 0;
+    unsigned char key;
+    va_list args;
+    
+    va_start(args, nKeys);
+    
+    for(i = 0; i < nKeys; i++) {
+        /* In C89, variadic arguments are promoted: char/short -> int */
+        key = (unsigned char)va_arg(args, int);
+        
+        if(keyboardTable[key] == false) {
+            allDown = 0;
+        }
+        
+        if(keyboardTable[key] == true && prevKeyboardTable[key] == false) {
+            anyJustPressed = 1;
+        }
+    }
+    
+    va_end(args);
+
+    /* Return 1 only if ALL keys are held AND at least one was just pressed this frame */
+    return (unsigned char)(allDown && anyJustPressed);
+}
+
+
 #ifdef STANDALONE  
 // Standalone test for input
 int main(){
+
     int i=0;
     printf("Input System Test (ISR)\n");
     printf("Press ESC to exit.\n\n");
 
     initKeyboard();
 
+    // while(keyboardTable[KEY_ESC] == false) {
+    //     for(i = 0; i < 256; i++) {
+    //         // Only act if the state CHANGED since the last check
+    //         if(keyboardTable[i] != prevKeyboardTable[i]) {
+    //             if (keyboardMap[i] != NULL) {
+    //                 if (keyboardTable[i] == true) {
+    //                     printf("Key %s: PRESSED\n", keyboardMap[i]);
+    //                 } else {
+    //                     printf("Key %s: RELEASED\n", keyboardMap[i]);
+    //                 }
+    //             }
+    //             prevKeyboardTable[i] = keyboardTable[i]; // Update the tracker
+    //         }
+    //     }
+    // }
+    
     while(keyboardTable[KEY_ESC] == false) {
-        for(i = 0; i < 256; i++) {
-            // Only act if the state CHANGED since the last check
-            if(keyboardTable[i] != prevKeyboardTable[i]) {
-                if (keyboardMap[i] != NULL) {
-                    if (keyboardTable[i] == true) {
-                        printf("Key %s: PRESSED\n", keyboardMap[i]);
-                    } else {
-                        printf("Key %s: RELEASED\n", keyboardMap[i]);
-                    }
-                }
-                prevKeyboardTable[i] = keyboardTable[i]; // Update the tracker
-            }
+        if (keysPressed(2, KEY_N, KEY_LCTRL)) {
+            printf("CTRL + N combo detected!\n");
         }
+        
+        updateKeyboard();
     }
+    
     closeKeyboard();
     return 0;
 }

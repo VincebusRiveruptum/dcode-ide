@@ -7,7 +7,7 @@ FileArena *currentFileArena = NULL;
 
 void f_splitIntoLines(File *file, MemoryArena *arena) {
     char *start;
-    char *end;
+    char *end;    
     char *p;
     size_t lineLen;
     Line *line;

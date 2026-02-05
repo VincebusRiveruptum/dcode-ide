@@ -26,6 +26,7 @@ void ed_updateCursor(){
     ed_putCursor(currentCursorX, currentCursorY);
 }
 
+
 void ed_putCursor(unsigned char x, unsigned char y){
     unsigned short temp;
 
@@ -85,11 +86,6 @@ void ed_moveCursor(short x, short y){
     el_renderFiles_test();
 }
 
-void ed_triggerSave(){
-    dw_writeBuffer(textmemptr, "Saved!", 0, 0, 10, 0, COLOR_WHITE, COLOR_BLACK);   
-
-    f_dumpToFile("test.txt");
-}
 
 void ed_renderElements(){
     el_renderFiles_test();
@@ -103,3 +99,4 @@ void handleArguments(int argc, char *argv[]){
         }
     }
 }
+

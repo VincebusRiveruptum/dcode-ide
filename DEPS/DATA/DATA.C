@@ -217,13 +217,15 @@ bool includes(float val, float *arr, size_t n) {
 }
 
 // GENERIC
-void addGenericNode(List **list, void *data, char *arenaName){
+void addGenericNode(List **list, void *data, char *arenaName, MemoryArena *arena){
 	Node *newNode = NULL;
 
-    if(arenaName == NULL){
-        newNode = (Node*)malloc(sizeof(Node));
-    }else{
+    if(arena != NULL){
+        newNode = (Node*)mem_arena_alloc(arena, NULL, sizeof(Node));
+    }else if (arenaName != NULL) {
         newNode = (Node*)mem_arena_alloc(NULL, arenaName, sizeof(Node));
+    }else{
+        newNode = (Node*)malloc(sizeof(Node));
     }
 
 	newNode->data = data;

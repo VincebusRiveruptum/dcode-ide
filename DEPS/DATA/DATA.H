@@ -19,7 +19,7 @@ void softDeleteByIndex(List **list, int index);
 Node *insertByIndex(List **list, Node *newNode, unsigned int index);
 Node *pop(List **list);
 List *invertList(List **list);
-void addGenericNode(List **list, void *data, char *arenaName);
+void addGenericNode(List **list, void *data, char *arenaName, MemoryArena *arena);
 void freeList(List **list);
 
 #endif

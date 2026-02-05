@@ -291,6 +291,8 @@ So, the scheme would be the following
 
 So the cursor pointing the position on screen it will be translated to the file buffer position and after typing the character will be formatted and so on.
 
+---
+
 # 30.01.2026
 
 Yesterday i was so tired, today i do too. Yesteday atleast got the formatting right and some sort of scrolling, however my job now is to get it 
@@ -307,6 +309,7 @@ Now i have to do the following:
 
 - Open file with command line arguments OK
 - Special keywords coloring OK --- WIP THO 
+- Better keyboard handling OK
 - Update lines on input
 - Create/Remove lines when user does a line break or backspace
 - Save file by reading all lines and parsing into the file buffer.
@@ -314,3 +317,5 @@ Now i have to do the following:
 
 - Close file
 - Create new file
+
+---

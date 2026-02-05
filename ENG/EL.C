@@ -8,8 +8,6 @@ void el_renderFiles_test(){
     /* For now we will use this way of list travel
         altrough we know its O(N) we will use it for now
     */
-    logger("\n[el_renderFiles_test]: Rendering %d files", MAX_ARENAS);
-
     for(i; i < MAX_ARENAS; i++){
         fileArena = &fileList[i];    
 

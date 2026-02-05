@@ -112,6 +112,5 @@ extern bool ed_renderEvent;
 void ed_updateCursor();
 void ed_putCursor(unsigned char x, unsigned char y);
 void ed_moveCursor(short x, short y);
-void ed_triggerSave();
 
 #endif

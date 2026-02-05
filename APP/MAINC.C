@@ -23,6 +23,7 @@ int main(int argc, char *argv[]){
     t_initTests();
 
     handleArguments(argc, argv);
+
     
     while(endProgram == false){
 

@@ -17,10 +17,7 @@ typedef struct Line {
 } Line;
 
 typedef struct File {
-    char *name;
-    char *path;
-    char *extension;
-
+    char *name;         // full name and path
     char *buffer;
 
     size_t bufferLength;  /* also known as file size */
@@ -56,15 +53,18 @@ extern FileArena *currentFileArena;
 /* Protypes =============================================================*/
 
 void f_dumpToFile(char *filename);
-void f_bufferDumpToFile(char *buffer, size_t bufferLength, char *filename);
+void f_dumpBufferTofile(char *buffer, size_t bufferLength, char *filename);
 
-void _initFileArenas();
-FileArena *_getFileArena(char *filename);
-FileArena *_addFileArena(FileArena *fileArena);
-void _closeFile(FileArena *fileArena);
-char *_getFileName(MemoryArena *arena, char *filename);
-char *_getFileExtension(MemoryArena *arena, char *filename);
-char *_getPath(MemoryArena *arena, char *filename);
+void f_initFileArenas();
+FileArena *f_getFileArena(char *filename);
+FileArena *f_addFileArena(FileArena *fileArena);
+void f_closeFile(FileArena *fileArena);
+
+size_t f_getFileName(char *filename);
+size_t f_getFileExtension(char *filename);
+
+void f_init();
 bool f_openFile(char *filename);
-
+void f_saveFile();
+void f_triggerClose();
 #endif

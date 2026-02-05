@@ -315,7 +315,7 @@ void dw_writeBuffer(unsigned short *buffer, const char *format, int x1, int y1, 
     vsnprintf(tempBuffer, VIDEO_BUFFER_SIZE, format, args);
     va_end(args);
 
-    // f_bufferDumpToFile(&tempBuffer, VIDEO_BUFFER_SIZE, "temp1.txt");
+    // f_dumpBufferTofile(&tempBuffer, VIDEO_BUFFER_SIZE, "temp1.txt");
     // Boundary check
     if(x1 > x2 || y1 > y2) return;
 

@@ -20,9 +20,12 @@ unsigned char VIDEO_ROWS = 25;
 unsigned char currentCursorX = 0;
 unsigned char currentCursorY = 0;
 
+bool ed_renderEvent = false;
+
 void ed_updateCursor(){
     ed_putCursor(currentCursorX, currentCursorY);
 }
+
 
 void ed_putCursor(unsigned char x, unsigned char y){
     unsigned short temp;
@@ -48,22 +51,52 @@ void ed_putCursor(unsigned char x, unsigned char y){
 }
 
 void ed_moveCursor(short x, short y){
-    if(currentCursorX + x >= VIDEO_COLS || currentCursorY + y >= VIDEO_ROWS){
-        return;
+    File *file;
+    file = currentFileArena->file;
+
+    if( currentCursorY + y < 0 ){
+        if(file->scrollY > 0){
+            file->scrollY--;
+        } else {
+            currentCursorY = 0;
+        }
+    } else if( currentCursorY + y >= VIDEO_ROWS ){
+        if(file->lines && file->scrollY + VIDEO_ROWS < file->lines->length){
+            file->scrollY++;
+        } else {
+            currentCursorY = VIDEO_ROWS - 1;
+        }
+    } else {
+        currentCursorY += y;
     }
 
-    if(currentCursorX + x < 0 || currentCursorY + y < 0){
-        return;
+    if(currentCursorX + x < 0){
+        currentCursorX = 0;
+    } else if(currentCursorX + x >= VIDEO_COLS){
+        currentCursorX = VIDEO_COLS - 1;
+    } else {
+        currentCursorX += x;
     }
-
-    currentCursorX += x;
-    currentCursorY += y;
+    
+    /* Sync file cursor */
+    file->cursorLine = file->scrollY + currentCursorY;
+    file->cursorCol = currentCursorX; /* Simplified for now, doesn't account for scrollX yet */
 
     ed_putCursor(currentCursorX, currentCursorY);
+    el_renderFiles_test();
 }
 
-void ed_triggerSave(){
-    dw_writeBuffer("Saved!", 0, 0, 10, 0, COLOR_WHITE, COLOR_BLACK);   
 
-    f_dumpToFile(textmemptr, "test.txt");
+void ed_renderElements(){
+    el_renderFiles_test();
 }
+
+void handleArguments(int argc, char *argv[]){
+    // File opening
+    if(argc > 1){
+        if(!f_openFile(argv[1])){
+            dw_writeBuffer(textmemptr, "File not found!", 0, 0, 16, 0, COLOR_WHITE, COLOR_BLACK);   
+        }
+    }
+}
+

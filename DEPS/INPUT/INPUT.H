@@ -9,7 +9,7 @@
 #include <time.h>
 #include <ctype.h>
 #include <dos.h>
-
+#include <stdarg.h>
 #include "..\VGA\VGAREGS.H"
 
 #ifndef __cplusplus
@@ -156,6 +156,12 @@ typedef unsigned char bool;
 
 void initKeyboard();
 void closeKeyboard();
+void updateKeyboard();
+
+bool isKeyDown(unsigned char key);
+bool isKeyPressed(unsigned char key);
+bool isKeyReleased(unsigned char key);
+unsigned char keysPressed(int nKeys, ...);
 
 /* VARIABLES ============================================================*/
 

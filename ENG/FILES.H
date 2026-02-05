@@ -3,48 +3,68 @@
 
 #include "STD.H"
 #include "..\APP\MAIN.H"
+#include "..\DATA\DATA.H"
 
 /* Const. ================================================================*/
 
-#define MAX_FILE_CHUNK_SIZE 4096
-#define MAX_FILE_CHUNKS 16
+#define MAX_FILE_LINE_LENGTH 256
+
 /* Types =================================================================*/
 
+typedef struct Line {
+    char *buffer;
+    size_t length;
+} Line;
+
 typedef struct File {
-    char *name;
-    char *path;
- 
-    struct FileExtension*extension;
+    char *name;         // full name and path
+    char *buffer;
 
-    struct FileChunk *chunks[MAX_FILE_CHUNKS];
-    unsigned short chunkLength;
+    size_t bufferLength;  /* also known as file size */
+    
+    /* New line-based fields */
+    List *lines;
+    
+    // This will be used for the editor to know if the previous line to the first visible was a comment
+    // So the comment formmating will still function when scrolling down
+    
+    unsigned short scrollY;
+    unsigned short scrollX;
 
-    unsigned short size;
+    unsigned short cursorLine;
+    unsigned short cursorCol;
+
+    bool isModified;
+    bool isActive;
 } File;
 
-typedef struct FileList{
-    List *files;
-    unsigned short length;
-} FileList;
+typedef struct FileArena {
+    struct File *file;
+    MemoryArena *arena;
+} FileArena;
 
-typedef struct FileChunk {
-    char *content;
-    unsigned short offset;
-    unsigned short size;
-} FileChunk;
-
-typedef struct FileExtension {
-    char *name;
-    char *description;
-    char *icon;
-} Extension;
 
 /* Globals ==============================================================*/
 
-extern FileList *fileTree;
+extern FileArena fileList[MAX_ARENAS];
+
+extern FileArena *currentFileArena;
 
 /* Protypes =============================================================*/
 
-void f_dumpToFile(char *buffer, char *filename);
+void f_dumpToFile(char *filename);
+void f_dumpBufferTofile(char *buffer, size_t bufferLength, char *filename);
 
+void f_initFileArenas();
+FileArena *f_getFileArena(char *filename);
+FileArena *f_addFileArena(FileArena *fileArena);
+void f_closeFile(FileArena *fileArena);
+
+size_t f_getFileName(char *filename);
+size_t f_getFileExtension(char *filename);
+
+void f_init();
+bool f_openFile(char *filename);
+void f_saveFile();
+void f_triggerClose();
 #endif

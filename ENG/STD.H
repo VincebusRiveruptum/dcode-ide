@@ -8,5 +8,6 @@
 #include <DOS.H>    
 #include <MEM.H>
 #include <i86.h>
+#include <errno.h>
 
 #endif

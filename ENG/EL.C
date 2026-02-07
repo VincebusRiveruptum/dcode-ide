@@ -24,8 +24,7 @@ void el_renderFiles_test(){
             somehow.
         */
         //logger("\n[el_renderFiles_test]: Rendering %s", file->buffer);
-
-        dw_writeBufferEditorFormatted(&editormemptr, 0, 0, VIDEO_COLS - 1, VIDEO_ROWS - 1, COLOR_LIGHT_GRAY, COLOR_BLACK, file) ;
+        dw_writeBufferEditorFormatted(&editormemptr, 0, 0, VIDEO_COLS - 1, VIDEO_ROWS - 2, COLOR_LIGHT_GRAY, COLOR_BLACK, file) ;
      
     }
 

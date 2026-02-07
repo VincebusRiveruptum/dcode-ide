@@ -27,9 +27,9 @@ void f_splitIntoLines(File *file, MemoryArena *arena) {
                 lineLen--;
             }
             line = (Line *)mem_arena_alloc(arena, NULL, sizeof(Line));
-            line->buffer = (char *)mem_arena_alloc(arena, NULL, lineLen + 1);
+            line->buffer = (char *)mem_arena_alloc(arena, NULL, MAX_FILE_LINE_LENGTH);
+            memset(line->buffer, '\0', MAX_FILE_LINE_LENGTH);
             memcpy(line->buffer, start, lineLen);
-            line->buffer[lineLen] = '\0';
             line->length = lineLen;
 
             addGenericNode(&file->lines, line, NULL, arena);
@@ -44,9 +44,9 @@ void f_splitIntoLines(File *file, MemoryArena *arena) {
         if (lineLen > 0 && start[lineLen-1] == '\r') lineLen--;
 
         line = (Line *)mem_arena_alloc(arena, NULL, sizeof(Line));
-        line->buffer = (char *)mem_arena_alloc(arena, NULL, lineLen + 1);
+        line->buffer = (char *)mem_arena_alloc(arena, NULL, MAX_FILE_LINE_LENGTH);
+        memset(line->buffer, '\0', MAX_FILE_LINE_LENGTH);
         memcpy(line->buffer, start, lineLen);
-        line->buffer[lineLen] = '\0';
         line->length = lineLen;
         addGenericNode(&file->lines, line, NULL, arena);
     }

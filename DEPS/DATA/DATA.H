@@ -20,6 +20,8 @@ Node *insertByIndex(List **list, Node *newNode, unsigned int index);
 Node *pop(List **list);
 List *invertList(List **list);
 void addGenericNode(List **list, void *data, char *arenaName, MemoryArena *arena);
+void *insertGenericNode(List **list, void *data, MemoryArena *arena, unsigned int index);
+
 void freeList(List **list);
 
 #endif

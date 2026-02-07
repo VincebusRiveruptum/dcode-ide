@@ -235,3 +235,68 @@ void addGenericNode(List **list, void *data, char *arenaName, MemoryArena *arena
 
 	addToList(list, newNode, arenaName);
 }
+
+void *insertGenericNode(List **list, void *data, MemoryArena *arena, unsigned int index){
+    Node *temp = NULL;
+    Node *newNode = NULL;
+
+    if(!data) return NULL;
+    if(!arena){
+        logger("[data/insertGenericNode]: arena is NULL");
+        return NULL;
+    }
+    if((*list) == NULL) {
+        logger("[data/insertGenericNode]: list is NULL");
+        return NULL;
+    }
+
+    /* Check bounds: can insert at any index from 0 to length inclusive (appending) */
+    if(index > (*list)->length){
+        logger("[data/insertGenericNode]: index %d out of bounds (length %d)", index, (*list)->length);
+        return NULL;
+    }
+
+    newNode = (Node*)mem_arena_alloc(arena, NULL, sizeof(Node));
+    newNode->data = data;
+    newNode->isDeleted = false;
+
+    if(index == 0){
+        /* Insert at the beginning */
+        newNode->next = (*list)->firstNode;
+        newNode->prev = NULL;
+        if((*list)->firstNode != NULL){
+            (*list)->firstNode->prev = newNode;
+        }
+        (*list)->firstNode = newNode;
+        
+        /* If list was empty, it's also the last node */
+        if((*list)->lastNode == NULL){
+            (*list)->lastNode = newNode;
+        }
+    } else if(index == (*list)->length){
+        /* Append at the end */
+        newNode->next = NULL;
+        newNode->prev = (*list)->lastNode;
+        if((*list)->lastNode != NULL){
+            (*list)->lastNode->next = newNode;
+        }
+        (*list)->lastNode = newNode;
+    } else {
+        /* Insert in the middle */
+        temp = getNodeByIndex(list, index);
+        if(temp != NULL){
+            newNode->next = temp;
+            newNode->prev = temp->prev;
+            if(temp->prev != NULL){
+                temp->prev->next = newNode;
+            }
+            temp->prev = newNode;
+        } else {
+            /* Should not happen due to bounds check, but safe fallback */
+            return NULL;
+        }
+    }
+
+    (*list)->length++;
+    return newNode;
+}

@@ -22,6 +22,8 @@
 #define COLOR_LIGHT_YELLOW 0x0E
 #define COLOR_WHITE 0x0F
 
+#define LINE_COUNTER_WIDTH 6
+
 typedef enum {
     DRAW_BORDER_SIMPLE,
     DRAW_BORDER_DOUBLE

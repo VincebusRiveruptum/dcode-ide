@@ -8,6 +8,10 @@ void el_renderFiles_test(){
     /* For now we will use this way of list travel
         altrough we know its O(N) we will use it for now
     */
+
+    // Workspace background
+    dw_fill(editormemptr, COLOR_BLUE, COLOR_LIGHT_BLUE, '°');
+    
     for(i; i < MAX_ARENAS; i++){
         fileArena = &fileList[i];    
 
@@ -21,7 +25,7 @@ void el_renderFiles_test(){
         */
         //logger("\n[el_renderFiles_test]: Rendering %s", file->buffer);
 
-        dw_writeBufferEditorFormatted(&editormemptr, 0, 0, VIDEO_COLS - 1, VIDEO_ROWS - 1, COLOR_LIGHT_GRAY, COLOR_BLUE, file) ;
+        dw_writeBufferEditorFormatted(&editormemptr, 0, 0, VIDEO_COLS - 1, VIDEO_ROWS - 1, COLOR_LIGHT_GRAY, COLOR_BLACK, file) ;
      
     }
 

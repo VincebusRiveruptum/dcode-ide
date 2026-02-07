@@ -478,12 +478,22 @@ void f_newFile(){
     
     newFileArena->file->lines = (List*)mem_arena_alloc(newArena, NULL, sizeof(List));
     firstLine = (Line*)mem_arena_alloc(newArena, NULL, sizeof(Line));
-
+    
     if(!firstLine){
         logger("[f_newFile]: Could not create initial line to new file!");
         return;
     }
     
+    firstLine->buffer = (char*)mem_arena_alloc(newArena, NULL, sizeof(char) * MAX_FILE_LINE_LENGTH);
+    
+    if(!firstLine->buffer){
+        logger("[f_newFile]: Could not create initial line BUFFER to new file!");
+        return;
+    }
+    
+    firstLine->length = 0;
+    memset(firstLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
+
     if(!newFileArena->file->lines){
         logger("[f_newFile]: Could not allocate list of lines to new file!");
         return;

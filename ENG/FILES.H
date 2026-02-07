@@ -8,6 +8,7 @@
 /* Const. ================================================================*/
 
 #define MAX_FILE_LINE_LENGTH 256
+#define MAX_FILE_NAME 256
 
 /* Types =================================================================*/
 
@@ -49,6 +50,8 @@ typedef struct FileArena {
 extern FileArena fileList[MAX_ARENAS];
 
 extern FileArena *currentFileArena;
+
+extern char f_defaultExtension[8];
 
 /* Protypes =============================================================*/
 

@@ -349,9 +349,50 @@ void dw_char(unsigned short *buffer, char c){
     
     screenPos = (currentCursorY * VIDEO_COLS) + currentCursorX;
     buffer[screenPos] = c | (buffer[screenPos] & 0xFF00);
-    currentCursorX++;
+
 }
+
+char dw_read(unsigned short *buffer, int x, int y){
+    char c;
     
+    if(x < 0 && x >= VIDEO_COLS && y < 0 && y >= VIDEO_ROWS) return 0;
+
+    c = (buffer[(y * VIDEO_COLS) + x] & 0xFF);
+    
+    return c;
+}
+
+char dw_readForegroundColor(unsigned short *buffer, int x, int y){
+    char c;
+    
+    if(x < 0 && x >= VIDEO_COLS && y < 0 && y >= VIDEO_ROWS) return 0;
+    
+    c = ((buffer[(y * VIDEO_COLS) + x]) >> 8) & 0x0F;
+    
+    return c;
+}
+
+char dw_readBackgroundColor(unsigned short *buffer, int x, int y){
+    char c;
+    
+    if(x < 0 && x >= VIDEO_COLS && y < 0 && y >= VIDEO_ROWS) return 0;
+    
+    c = ((buffer[(y * VIDEO_COLS) + x]) >> 12) & 0x0F;
+    
+    return c;
+}
+
+void dw_writeColor(unsigned short *buffer, int x, int y, unsigned short foregroundColor, unsigned short backgroundColor){
+    unsigned short screenPos;
+    unsigned short bgColor = (buffer[(y * VIDEO_COLS) + x] >> 12) & 0x0F;
+    unsigned short fgColor = (buffer[(y * VIDEO_COLS) + x] >> 8) & 0x0F;
+
+    if(foregroundColor <= 0x0F) fgColor = foregroundColor;
+    if(backgroundColor <= 0x0F) bgColor = backgroundColor;
+
+    screenPos = (y * VIDEO_COLS) + x;
+    buffer[screenPos] = (buffer[screenPos] & 0x00FF) | (bgColor << 12) | (fgColor << 8);
+}
 
 /* This also will take care of reserved word coloring */
 void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, File *file){
@@ -554,4 +595,3 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
         }
     }
 }
-

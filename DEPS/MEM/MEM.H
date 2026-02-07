@@ -5,7 +5,7 @@
 #include "STD.H"
 #include "../LOG/LOG.H"
 
-#define MAX_ARENAS 128
+#define MAX_ARENAS 32
 
 /* ARENA SIZES =========================================================================*/
 

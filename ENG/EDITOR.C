@@ -23,6 +23,12 @@ unsigned char currentCursorY = 0;
 bool ed_renderEvent = false;
 
 void ed_updateCursor(){
+    char c;
+    
+    // Force a cursor in 43/50 line moded
+    if(VIDEO_ROWS == 43 || VIDEO_ROWS == 50){
+        dw_writeColor(textmemptr, currentCursorX, currentCursorY, COLOR_BLACK, COLOR_LIGHT_GRAY);
+    }
     ed_putCursor(currentCursorX, currentCursorY);
 }
 
@@ -330,4 +336,11 @@ void ed_newLine(){
     file->cursorCol = currentCursorX;
     
     ed_renderEvent = true;
+}
+
+void ed_initConfig(){
+    //f_defaultExtension
+
+    // We will hardcode the default extension until i implement .ENV/CFG LOADING
+    strcpy(f_defaultExtension, ".c");
 }

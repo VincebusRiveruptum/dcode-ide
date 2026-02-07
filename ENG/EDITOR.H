@@ -116,4 +116,6 @@ void ed_typeChar(char c);
 void ed_backspace();
 void ed_supr();
 
+char *ed_getDefaultExtension();
+void ed_initConfig();
 #endif

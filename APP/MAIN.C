@@ -5,6 +5,7 @@
 
     This library is for educational or entertainment purposes only.
     It is not intended for use in production environments.
+    So, there are still some issues, unfortunatelly
 */
 
 #include "MAIN.H"
@@ -23,6 +24,7 @@ int main(int argc, char *argv[]){
     
     ed_handleArguments(argc, argv);
 
+    ed_initConfig();
     t_initTests();
     
     ed_renderEvent = true;
@@ -51,6 +53,8 @@ int main(int argc, char *argv[]){
             logger("[main]: User created new file.");
         }
         
+
+        // Hice mi propio editor, ke wea!!
         // CLOSE FILE (Alt+F4)
         if(keysPressed(2, KEY_LALT, KEY_F4)){
             logger("[main]: User closed file.");
@@ -132,3 +136,5 @@ int main(int argc, char *argv[]){
     printf("96 Tears...\n");
     return 0;
 }
+
+

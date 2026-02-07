@@ -257,11 +257,28 @@ void f_saveFile(){
     
     // We create a new arena for the file buffer
     newArena = mem_create_arena(newArenaName, oldArena->type, MEM_ARENA_256K);
+
+    if(!newArena){
+        logger("[f_saveFile]: Could not create swapping arena!");
+        return;
+    }
     
     newFileArena = (FileArena *)mem_arena_alloc(newArena, NULL, sizeof(FileArena));
+
+    if(!newFileArena){
+        logger("[f_saveFile]: Could not create swapping FILE arena!");
+        return;
+    }
+
     newFileArena->arena = newArena;
     newFileArena->file = (File *)mem_arena_alloc(newArena, NULL, sizeof(File));
     newFileArena->file->name = (char*)mem_arena_alloc(newArena, NULL, sizeof(char) * (strlen(oldFileArena->file->name) + 1));
+
+    if(!newFileArena->file->name){
+        logger("[f_saveFile]: Could not allocate file name!");
+        return;
+    }
+
     sprintf(newFileArena->file->name, "%s", oldFileArena->file->name);
     
     // We are going to travel the old file lines and copy them to the new file buffer
@@ -269,6 +286,12 @@ void f_saveFile(){
     lengthSum = _copyLines(oldFileArena, newFileArena);
 
     newFileArena->file->buffer = (char*)mem_arena_alloc(newArena, NULL, sizeof(char) * (lengthSum + 1));
+
+    if(!newFileArena->file->buffer){
+        logger("[f_saveFile]: Could not allocate file buffer!");
+        return;
+    }
+
     memset(newFileArena->file->buffer, '\0', sizeof(char) * (lengthSum + 1));
 
     if(currentNode == NULL){
@@ -436,7 +459,7 @@ void f_newFile(){
         return;
     }
 
-    sprintf(&tempName, ".\\newfile%d.%s", newFileCounter, f_defaultExtension);
+    sprintf(&tempName, "newfile%d%s", newFileCounter, f_defaultExtension);
 
     /* ==== */
 

@@ -50,7 +50,8 @@ int main(int argc, char *argv[]){
         
         // NEW FILE
         if(keysPressed(2, KEY_LCTRL, KEY_N)){
-            logger("[main]: User created new file.");
+            f_newFile();
+            logger("[main]: User created %s ,a new file.", currentFileArena->file->name);
         }
         
 

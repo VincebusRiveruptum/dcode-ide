@@ -398,7 +398,7 @@ int f_checkAvailableName(){
     int i=0, index=0, prevIndex=0;
 
     for(i=0; i < MAX_ARENAS; i++){
-        fileArena = &fileList[i]
+        fileArena = &fileList[i];
 
         if(!fileArena) continue;
         if(!fileArena->file) continue;
@@ -411,7 +411,7 @@ int f_checkAvailableName(){
         if(!occurence) continue;
         
         // We travel the occurence and find the number at the end
-        index = strtol(occurence + 7, NULL, 10)
+        index = strtol(occurence + 7, NULL, 10);
         
         if(prevIndex > index){
             index = prevIndex;
@@ -427,6 +427,7 @@ void f_newFile(){
     
     char tempName[MAX_FILE_NAME] = {'\0'};
     int newFileCounter;
+    Line *firstLine;
 
     newFileCounter = f_checkAvailableName();
 
@@ -470,17 +471,25 @@ void f_newFile(){
     
     memset(newFileArena->file->name, '\0', MAX_FILE_NAME * sizeof(char));
     strcpy(newFileArena->file->name, tempName);
-
+    
     // Buffer will not be used for now as this is used for parsing to lines when opening a file.
     newFileArena->file->buffer = NULL;
     newFileArena->file->bufferLength = 0;
     
     newFileArena->file->lines = (List*)mem_arena_alloc(newArena, NULL, sizeof(List));
+    firstLine = (Line*)mem_arena_alloc(newArena, NULL, sizeof(Line));
+
+    if(!firstLine){
+        logger("[f_newFile]: Could not create initial line to new file!");
+        return;
+    }
     
     if(!newFileArena->file->lines){
         logger("[f_newFile]: Could not allocate list of lines to new file!");
         return;
     }
+    
+    addGenericNode(&newFileArena->file->lines,(void*) firstLine, NULL, newArena);
         
     newFileArena->file->scrollY = 0;
     newFileArena->file->scrollX = 0;

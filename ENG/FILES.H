@@ -25,6 +25,11 @@ typedef struct File {
     
     /* New line-based fields */
     List *lines;
+
+    // real line counter is real because due that we cannot remove lines from 
+    // memory.. we virtually count them and if by action was removed ie backspace
+    // we decrease the counter so the bounds do match with the actions
+    unsigned int lineCount;
     
     // This will be used for the editor to know if the previous line to the first visible was a comment
     // So the comment formmating will still function when scrolling down

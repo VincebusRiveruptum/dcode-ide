@@ -323,6 +323,8 @@ void f_newFile(){
     newFileArena->file->cursorLine = 0;
     newFileArena->file->cursorCol = LINE_COUNTER_WIDTH;
     
+    newFileArena->file->lineCount = 0;
+    
     newFileArena->file->isModified = false;
     newFileArena->file->isActive = false;
 
@@ -416,6 +418,8 @@ bool f_openFile(char *filename){
     currentFileArena = f_addFileArena(fileArena);
 
     f_splitIntoLines(file, arena);
+
+    currentFileArena->file->lineCount = currentFileArena->file->lines->length;
     
     fclose(fp);
     return true;
@@ -487,6 +491,8 @@ void f_saveFile(){
     // We are going to travel the old file lines and copy them to the new file buffer
     currentNode = getNodeByIndex(&oldFileArena->file->lines, 0);
     lengthSum = _copyLines(oldFileArena, newFileArena);
+
+    newFileArena->file->lineCount = lengthSum;
 
     newFileArena->file->buffer = (char*)mem_arena_alloc(newArena, NULL, sizeof(char) * (lengthSum + 1));
 

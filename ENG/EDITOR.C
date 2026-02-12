@@ -107,10 +107,19 @@ void ed_moveCursor(short x, short y){
 
     file = currentFileArena->file;
 
+    // If the number of lines is less than the screen height
+    // and the current Y cursor position is less than the nmber of lines
+    if( y > 0 && !(
+        currentCursorY + currentFileArena->file->scrollY < currentFileArena->file->lineCount
+        )
+    )    return;
+    
     // We check if we are in the current line
     currentLineNode = getNodeByIndex(&file->lines, file->scrollY + currentCursorY);
     currentLine = (Line *)currentLineNode->data;
     currentLineStartIndex = currentLine ? currentLine->length : 0;
+
+
 
     if(file->scrollY + currentCursorY + y >= 0){
         nextLineNode = currentLineNode->next;
@@ -284,7 +293,8 @@ void ed_backspace(){
             prevNode->next = node->next;
             node->next->prev = prevNode;
         }
-
+        
+        currentFileArena->file->lineCount--;
         currentCursorY--;
     }else{
         node = getNodeByIndex(&file->lines, y);
@@ -375,6 +385,7 @@ void ed_newLine(){
     file->cursorCol = currentCursorX;
     
     currentFileArena->file->isModified = true;
+    currentFileArena->file->lineCount++;
     ed_renderEvent = true;
 }
 

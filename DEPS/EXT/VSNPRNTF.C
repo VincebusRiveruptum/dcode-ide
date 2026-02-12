@@ -89,6 +89,7 @@ int vsnprintf(char *out, size_t size, const char *fmt, va_list ap)
         if (*fmt == 'd') {
             long v;
             unsigned long uv;
+            int numLen;
 
             v = va_arg(ap, int);
             if (v < 0) {
@@ -99,17 +100,20 @@ int vsnprintf(char *out, size_t size, const char *fmt, va_list ap)
                 uv = (unsigned long)v;
             }
 
-            count += utoa_base(uv, dst, 10, 0);
-            dst += utoa_base(uv, dst, 10, 0);
+            numLen = utoa_base(uv, dst, 10, 0);
+            dst += numLen;
+            count += numLen;
             fmt++;
             continue;
         }
 
         if (*fmt == 'u') {
             unsigned long v;
+            int numLen;
             v = va_arg(ap, unsigned int);
-            count += utoa_base(v, dst, 10, 0);
-            dst += utoa_base(v, dst, 10, 0);
+            numLen = utoa_base(v, dst, 10, 0);
+            dst += numLen;
+            count += numLen;
             fmt++;
             continue;
         }
@@ -117,11 +121,13 @@ int vsnprintf(char *out, size_t size, const char *fmt, va_list ap)
         if (*fmt == 'x' || *fmt == 'X') {
             unsigned long v;
             int upper;
+            int numLen;
 
             v = va_arg(ap, unsigned int);
             upper = (*fmt == 'X');
-            count += utoa_base(v, dst, 16, upper);
-            dst += utoa_base(v, dst, 16, upper);
+            numLen = utoa_base(v, dst, 16, upper);
+            dst += numLen;
+            count += numLen;
             fmt++;
             continue;
         }

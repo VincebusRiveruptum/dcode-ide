@@ -109,6 +109,8 @@ extern bool ed_renderEvent;
 
 /* Prototypes ==============================================*/
 
+void ed_initConfig(int argc, char *argv[]);
+void ed_handleArguments(int argc, char *argv[]);
 void ed_updateCursor();
 void ed_putCursor(unsigned char x, unsigned char y);
 void ed_moveCursor(short x, short y);
@@ -117,5 +119,5 @@ void ed_backspace();
 void ed_supr();
 
 char *ed_getDefaultExtension();
-void ed_initConfig();
+
 #endif

@@ -11,10 +11,10 @@
 #include "MAIN.H"
 
 int main(int argc, char *argv[]){
-    bool endProgram = false;
     char c;
     int ticks = 0;
     
+    endProgram = false;
     // So, the steps are:
     // 1. Set VGA mode 2
     log_init();
@@ -22,22 +22,17 @@ int main(int argc, char *argv[]){
     v_init_video();
     initKeyboard();
     
-    ed_handleArguments(argc, argv);
-
-    ed_initConfig();
+    logger("[main]: %d %s", argc, argv[1]);
+    ed_initConfig(argc, argv);
     t_initTests();
     
     ed_renderEvent = true;
     
-    // We put the cursor inside the text area by default
-    currentCursorX = LINE_COUNTER_WIDTH;
-    currentCursorY = 0;
-
     while(endProgram == false){
 
         // ACTION KEYS HANDLING
         // This is uses ISR approach, not getch()
-        if(isKeyDown(KEY_ESC)) endProgram = true;
+        if(isKeyDown(KEY_ESC)) f_triggerClose();
         if(isKeyDown(KEY_F1)) {v_set25Lines(); ed_renderEvent = true;}
         if(isKeyDown(KEY_F2)) {v_set50Lines(); ed_renderEvent = true;}
         if(isKeyDown(KEY_F3)) {v_set43Lines(); ed_renderEvent = true;}
@@ -116,6 +111,7 @@ int main(int argc, char *argv[]){
         // This is kinda a statusbar
         // The line and column are relative and assuming that the text area is full screen, in the future they will be resizable so
         // I have to store and calculate relative by size and position
+        //dw_writeBuffer(textmemptr, "Modified : %d", 0, VIDEO_ROWS - 1, 60, VIDEO_ROWS - 1, COLOR_BLACK, COLOR_LIGHT_GRAY, currentFileArena->file->isModified);
         dw_writeBuffer(textmemptr, "Line %d, Col %d %c", 0, VIDEO_ROWS - 1, 39, VIDEO_ROWS - 1, COLOR_BLACK, COLOR_LIGHT_GRAY, currentFileArena->file->scrollY + currentCursorY + 1, currentCursorX - LINE_COUNTER_WIDTH + 1, 179);
         dw_writeBuffer(textmemptr, " %s", 40, VIDEO_ROWS - 1, VIDEO_COLS, VIDEO_ROWS - 1, COLOR_BLACK, COLOR_LIGHT_GRAY, currentFileArena->file->name);
         ed_updateCursor();

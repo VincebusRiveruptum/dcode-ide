@@ -9,6 +9,9 @@
 */
 
 #include "EDITOR.H"
+#include "FILES.H"
+
+
 
 
 //unsigned char attrib = 0x07; // Default attribute: White on Black
@@ -21,6 +24,43 @@ unsigned char currentCursorX = 0;
 unsigned char currentCursorY = 0;
 
 bool ed_renderEvent = false;
+
+void ed_initConfig(int argc, char *argv[]){
+    //f_defaultExtension
+
+    // We will hardcode the default extension until i implement .ENV/CFG LOADING
+    strcpy(f_defaultExtension, ".c");
+
+    logger("[ed_initConfig]: %d %s", argc, argv[1]);
+    ed_handleArguments(argc, argv);
+
+    ed_resetCursor();
+}
+
+void ed_handleArguments(int argc, char *argv[]){
+    // File opening
+    logger("[ed_handleArguments]: %d %s", argc, argv[1]);
+    
+    if(argc > 1 || (argv != NULL && argv[1] != NULL)){
+        if(!f_openFile(argv[1])){
+            logger("[ed_handleArguments]: File %s not found. Falling back to new file.", argv[1]);
+            f_newFile();
+        }
+    }else{
+        f_newFile();
+    }
+
+    ed_renderEvent = true;
+}
+
+// We reset the cursor to X:0 Y:0 relative to the active currentFileArena text area
+void ed_resetCursor(){
+
+    // In th future, when the text area became a movable element we will have to 
+    // calculate the cursor position relative to the text area position.
+    currentCursorX = LINE_COUNTER_WIDTH;
+    currentCursorY = 0;
+}
 
 void ed_updateCursor(){
     char c;
@@ -140,15 +180,6 @@ void ed_renderElements(){
     el_renderFiles_test();
 }
 
-void ed_handleArguments(int argc, char *argv[]){
-    // File opening
-    if(argc > 1){
-        if(!f_openFile(argv[1])){
-            dw_writeBuffer(editormemptr, "File not found!", 0, 0, 16, 0, COLOR_WHITE, COLOR_BLACK);   
-        }
-    }
-    ed_renderEvent = true;
-}
 
 void ed_typeChar(char c){
     // We type the char at 
@@ -172,6 +203,11 @@ void ed_typeChar(char c){
         
 
     node = getNodeByIndex(&file->lines, y);
+    
+    if(!node) {
+        logger("[ed_typeChar]: Node at y=%d is NULL", y);
+        return;
+    }
     line = (Line *)node->data;
     
     line->length++;
@@ -186,6 +222,7 @@ void ed_typeChar(char c){
 
     currentCursorX++;
 
+    currentFileArena->file->isModified = true;
     ed_renderEvent = true;
 }
 
@@ -258,6 +295,7 @@ void ed_backspace(){
         currentCursorX--;
     }
 
+    currentFileArena->file->isModified = true;      
     ed_renderEvent = true;
 }
 void ed_supr(){
@@ -285,6 +323,7 @@ void ed_supr(){
     memcpy(line->buffer + x, line->buffer + x + 1, line->length - x);    
     line->length--;
 
+    currentFileArena->file->isModified = true;
     ed_renderEvent = true;
 }
 
@@ -335,12 +374,7 @@ void ed_newLine(){
     file->cursorLine = file->scrollY + currentCursorY;
     file->cursorCol = currentCursorX;
     
+    currentFileArena->file->isModified = true;
     ed_renderEvent = true;
 }
 
-void ed_initConfig(){
-    //f_defaultExtension
-
-    // We will hardcode the default extension until i implement .ENV/CFG LOADING
-    strcpy(f_defaultExtension, ".c");
-}

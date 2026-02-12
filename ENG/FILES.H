@@ -53,6 +53,8 @@ extern FileArena *currentFileArena;
 
 extern char f_defaultExtension[8];
 
+extern bool endProgram;
+
 /* Protypes =============================================================*/
 
 void f_dumpToFile(char *filename);
@@ -67,6 +69,7 @@ size_t f_getFileName(char *filename);
 size_t f_getFileExtension(char *filename);
 
 void f_init();
+void f_newFile();
 bool f_openFile(char *filename);
 void f_saveFile();
 void f_triggerClose();

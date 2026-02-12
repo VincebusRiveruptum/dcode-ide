@@ -323,7 +323,7 @@ void f_newFile(){
     newFileArena->file->cursorLine = 0;
     newFileArena->file->cursorCol = LINE_COUNTER_WIDTH;
     
-    newFileArena->file->lineCount = 0;
+    newFileArena->file->lineCount = 1;
     
     newFileArena->file->isModified = false;
     newFileArena->file->isActive = false;
@@ -492,7 +492,7 @@ void f_saveFile(){
     currentNode = getNodeByIndex(&oldFileArena->file->lines, 0);
     lengthSum = _copyLines(oldFileArena, newFileArena);
 
-    newFileArena->file->lineCount = lengthSum;
+    newFileArena->file->lineCount = lengthSum + 1;
 
     newFileArena->file->buffer = (char*)mem_arena_alloc(newArena, NULL, sizeof(char) * (lengthSum + 1));
 

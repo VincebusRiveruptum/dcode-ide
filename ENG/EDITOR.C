@@ -110,7 +110,7 @@ void ed_moveCursor(short x, short y){
     // If the number of lines is less than the screen height
     // and the current Y cursor position is less than the nmber of lines
     if( y > 0 && !(
-        currentCursorY + currentFileArena->file->scrollY < currentFileArena->file->lineCount
+        currentCursorY + currentFileArena->file->scrollY < currentFileArena->file->lineCount - 1
         )
     )    return;
     
@@ -118,8 +118,6 @@ void ed_moveCursor(short x, short y){
     currentLineNode = getNodeByIndex(&file->lines, file->scrollY + currentCursorY);
     currentLine = (Line *)currentLineNode->data;
     currentLineStartIndex = currentLine ? currentLine->length : 0;
-
-
 
     if(file->scrollY + currentCursorY + y >= 0){
         nextLineNode = currentLineNode->next;

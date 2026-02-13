@@ -119,5 +119,6 @@ void ed_backspace();
 void ed_supr();
 
 char *ed_getDefaultExtension();
+char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars);
 
 #endif

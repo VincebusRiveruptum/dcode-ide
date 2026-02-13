@@ -387,3 +387,83 @@ void ed_newLine(){
     ed_renderEvent = true;
 }
 
+// PROMPT ELEMENT
+char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
+    int i = 0, j = 0;
+    char c = 0;
+
+    static char buffer[MAX_FILE_LINE_LENGTH];
+
+    memset(buffer, '\0', MAX_FILE_LINE_LENGTH);
+
+    ed_putCursor(x,y);    
+
+    while(c != CHAR_ENTER){
+        c = getch();
+
+        if(c == 0 || (unsigned char)c == 0xE0){
+            c = getch();
+
+            if(c == KEY_LEFT && i > 0){
+                i--;
+                ed_putCursor(x + i, y);
+            } 
+            if(c == KEY_RIGHT && i < strlen(buffer)){
+                i++;
+                ed_putCursor(x + i, y);
+            } 
+            if(c == KEY_DELETE){
+                // Shift to the left the buffer from the current position 
+                for(j=i; j < strlen(buffer); j++){
+                    buffer[j] = buffer[j+1];
+                }
+
+                // Redraw he entire prompt by copying the buffer content to the screen buffer
+                for(j=0;j <  maxChars; j++){
+                    dw_charXY(textmemptr,buffer[j], x+j, y);
+                }
+            }
+        }else{   
+            // OK
+            if(c == CHAR_BACKSPACE && i > 0 ){
+
+                for(j=i; i > 0 && j < strlen(buffer) + 1; j++){
+                    buffer[j - 1] = buffer[j];
+                }   
+                
+                // Redraw
+                i--;
+
+                // Redraw he entire prompt by copying the buffer content to the screen buffer
+                for(j=0;j < maxChars; j++){
+                    dw_charXY(textmemptr,buffer[j], x+j, y);
+                }   
+
+                ed_putCursor(x + i, y);
+            }else if(c == CHAR_SPACE){                
+                for(j=strlen(buffer); j >= i; j--){
+                    if(j + 1 < MAX_FILE_LINE_LENGTH && j + 1 < maxChars ){
+                        buffer[j + 1] = buffer[j];
+                    }
+                }
+
+                buffer[i] = ' ';
+
+                // Redraw he entire prompt by copying the buffer content to the screen buffer
+                for(j=0;j <  maxChars; j++){
+                    dw_charXY(textmemptr,buffer[j], x+j, y);
+                }   
+                
+                i++;
+                ed_putCursor(x + i, y);
+            } else if (i < maxChars && i < MAX_FILE_LINE_LENGTH - 1){
+                buffer[i] = c;
+                dw_charXY(textmemptr,c,x + i,y);
+                i++;
+                ed_putCursor(x + i, y);
+            }
+        }
+    }
+
+    return buffer;
+}

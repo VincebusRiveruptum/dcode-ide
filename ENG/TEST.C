@@ -15,16 +15,28 @@ void _filesTest(){
     f_openFile("..\\DEPS\\DATA\\DATA.C");  
 }
 
+void _scanfTest(){
+    char *output;
+
+    output = ed_scanf(1,1,20);
+
+    logger("[t_scanfTest]: SCANF %s", output);
+}
+
 /* ===================================================================*/
 
 void t_initTests(){
     printf("This is just a blank test\n");
 
-    dw_fill(textmemptr, COLOR_BLUE, COLOR_LIGHT_BLUE, '°');
+    //dw_fill(textmemptr, COLOR_BLUE, COLOR_LIGHT_BLUE, '°');
     
     //_colorRectangles();
 
     //_filesTest();
+
+    _scanfTest();
+
+
     
 }
 

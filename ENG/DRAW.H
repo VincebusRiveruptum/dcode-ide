@@ -46,7 +46,10 @@ void dw_fill(unsigned short *buffer, unsigned char backgroundColor, unsigned cha
 void dw_rectangle(unsigned short *buffer, unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2, unsigned char backgroundBorderColor, unsigned char foregroundBorderColor, unsigned char fillCharacter,  unsigned char foregroundFillColor, unsigned char backgroundFillColor, bool blinking, BorderType borderType);
 void dw_writeBuffer(unsigned short *buffer, const char *format, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, ...);
 void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, struct File *file);
+
+void dw_charXY(unsigned short *buffer, char c, unsigned char x, unsigned char y);
 char dw_read(unsigned short *buffer, int x, int y);
+
 
 void dw_writeColor(unsigned short *buffer, int x, int y, unsigned short foregroundColor, unsigned short backgroundColor);
 char dw_readForegroundColor(unsigned short *buffer, int x, int y);

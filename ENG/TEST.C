@@ -20,7 +20,7 @@ void _scanfTest(){
 
     output = ed_scanf(1,1,20);
 
-    logger("[t_scanfTest]: SCANF %s", output);
+    logger("[t_scanfTest]: Scanned value : %s", output);
 }
 
 /* ===================================================================*/
@@ -34,7 +34,7 @@ void t_initTests(){
 
     //_filesTest();
 
-    _scanfTest();
+    //_scanfTest();
 
 
     

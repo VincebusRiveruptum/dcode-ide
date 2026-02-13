@@ -7,6 +7,10 @@ FileArena *currentFileArena = NULL;
 char f_defaultExtension[8] = {'\0'};
 bool endProgram = false;
 
+unsigned short ed_statusbarBgColor = COLOR_LIGHT_GRAY;
+unsigned short ed_statusbarFgColor = COLOR_BLACK;
+
+
 /* File arena managing and utlis ======================================================*/
 
 void f_init(){
@@ -542,11 +546,11 @@ void f_saveFile(){
 
 void f_triggerClose(){
     char input;
-    char filename[MAX_FILE_NAME] = {"\0"};
+    char *filename;
     int len = 0;
 
     if(currentFileArena->file->isModified == true){
-        dw_writeBuffer(textmemptr, "File modified, save? Y/N ",0,0,64,0, COLOR_WHITE, COLOR_BLACK);
+        dw_writeBuffer(textmemptr, "File modified, save? Y/N ",0,VIDEO_ROWS - 1 ,26, VIDEO_ROWS - 1, ed_statusbarFgColor, ed_statusbarBgColor);
         
         while(!(
             input == 'n' ||
@@ -565,16 +569,17 @@ void f_triggerClose(){
         ed_renderElements();
         
         if(f_isDefaultFileName() == true){
-            dw_writeBuffer(textmemptr, "Save as?",0,0,64,0, COLOR_WHITE, COLOR_BLACK);
+            dw_writeBuffer(textmemptr, "File name: ",0,VIDEO_ROWS - 1, 10,VIDEO_ROWS - 1, ed_statusbarFgColor, ed_statusbarBgColor);
             
             while(len <= 3 || len > 12){
-                scanf("%s",&filename);
+                dw_writeBuffer(textmemptr, "",11,VIDEO_ROWS - 1, VIDEO_COLS - 1, VIDEO_ROWS - 1, ed_statusbarFgColor, ed_statusbarBgColor);
+                filename = ed_scanf(11, VIDEO_ROWS - 1, 32);
                 
                 len = strlen(filename);
 
                 ed_renderElements();
                 if(len <= 3 || len > 12){
-                    dw_writeBuffer(textmemptr, "Invalid filename! Try again",0,0,64,0, COLOR_WHITE, COLOR_BLACK);
+                    dw_writeBuffer(textmemptr, "Invalid filename! Try again",0,VIDEO_ROWS - 1,30, VIDEO_ROWS - 1, ed_statusbarFgColor, ed_statusbarBgColor);
                 }
             }
             

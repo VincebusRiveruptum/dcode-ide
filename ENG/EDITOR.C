@@ -31,6 +31,9 @@ void ed_initConfig(int argc, char *argv[]){
     // We will hardcode the default extension until i implement .ENV/CFG LOADING
     strcpy(f_defaultExtension, ".c");
 
+    ed_statusbarBgColor = COLOR_LIGHT_GRAY;
+    ed_statusbarFgColor = COLOR_RED;
+
     logger("[ed_initConfig]: %d %s", argc, argv[1]);
     ed_handleArguments(argc, argv);
 
@@ -389,9 +392,9 @@ void ed_newLine(){
 
 // PROMPT ELEMENT
 char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
-    int i = 0, j = 0;
+    int i = 0, j = 0, lenbuff = 0;
     char c = 0;
-
+    
     static char buffer[MAX_FILE_LINE_LENGTH];
 
     memset(buffer, '\0', MAX_FILE_LINE_LENGTH);
@@ -414,7 +417,8 @@ char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
             } 
             if(c == KEY_DELETE){
                 // Shift to the left the buffer from the current position 
-                for(j=i; j < strlen(buffer); j++){
+                lenbuff = strlen(buffer);
+                for(j=i; j <= lenbuff; j++){
                     buffer[j] = buffer[j+1];
                 }
 
@@ -426,8 +430,8 @@ char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
         }else{   
             // OK
             if(c == CHAR_BACKSPACE && i > 0 ){
-
-                for(j=i; i > 0 && j < strlen(buffer) + 1; j++){
+                lenbuff = strlen(buffer);
+                for(j=i; i > 0 && j <= lenbuff; j++){
                     buffer[j - 1] = buffer[j];
                 }   
                 
@@ -456,7 +460,7 @@ char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
                 
                 i++;
                 ed_putCursor(x + i, y);
-            } else if (i < maxChars && i < MAX_FILE_LINE_LENGTH - 1){
+            } else if (c != CHAR_ENTER && i < maxChars && i < MAX_FILE_LINE_LENGTH - 1){
                 buffer[i] = c;
                 dw_charXY(textmemptr,c,x + i,y);
                 i++;

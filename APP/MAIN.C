@@ -112,8 +112,8 @@ int main(int argc, char *argv[]){
         // The line and column are relative and assuming that the text area is full screen, in the future they will be resizable so
         // I have to store and calculate relative by size and position
         //dw_writeBuffer(textmemptr, "Modified : %d", 0, VIDEO_ROWS - 1, 60, VIDEO_ROWS - 1, COLOR_BLACK, COLOR_LIGHT_GRAY, currentFileArena->file->isModified);
-        dw_writeBuffer(textmemptr, "Line %d, Col %d %c LOC: %d", 0, VIDEO_ROWS - 1, 39, VIDEO_ROWS - 1, COLOR_BLACK, COLOR_LIGHT_GRAY, currentFileArena->file->scrollY + currentCursorY + 1, currentCursorX - LINE_COUNTER_WIDTH + 1, 179, currentFileArena->file->lineCount);
-        dw_writeBuffer(textmemptr, " %s", 40, VIDEO_ROWS - 1, VIDEO_COLS, VIDEO_ROWS - 1, COLOR_BLACK, COLOR_LIGHT_GRAY, currentFileArena->file->name);
+        dw_writeBuffer(textmemptr, "Line %d, Col %d %c LOC: %d", 0, VIDEO_ROWS - 1, 39, VIDEO_ROWS - 1, ed_statusbarFgColor, ed_statusbarBgColor, currentFileArena->file->scrollY + currentCursorY + 1, currentCursorX - LINE_COUNTER_WIDTH + 1, 179, currentFileArena->file->lineCount);
+        dw_writeBuffer(textmemptr, " %s", 40, VIDEO_ROWS - 1, VIDEO_COLS, VIDEO_ROWS - 1, ed_statusbarFgColor, ed_statusbarBgColor, currentFileArena->file->name);
         ed_updateCursor();
 
         if(ed_renderEvent == true){

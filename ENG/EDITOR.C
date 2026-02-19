@@ -123,21 +123,16 @@ void ed_moveCursor(short x, short y){
     prevLineStartIndex = currentFileArena->file->prevLine->length;
     nextLineStartIndex = currentFileArena->file->nextLine->length;
    
-    // VERTICAL SCROLLING ===========================================================
+    // VERTICAL SCROLLING ==============================================================
+
     // If the cursor is at 0 and we want to scroll up
     if( currentCursorY + y < 0 ){
         if(currentFileArena->file->scrollY > 0){
-            currentFileArena->file->scrollY-- ;
-            
-            tempNode = currentFileArena->file->currentLineNode;
-            currentFileArena->file->currentLineNode = tempNode->prev;
-            
-            currentFileArena->file->prevLine = currentFileArena->file->currentLineNode->prev->data;
-            currentFileArena->file->currentLine = currentFileArena->file->currentLineNode->data;
-            currentFileArena->file->nextLine = currentFileArena->file->currentLineNode->next->data;
+            currentFileArena->file->scrollY-- ;           
         }else{
             currentCursorY = 0;
         } 
+
     } 
     // If the cursor is closer to the bottom
     else if( currentCursorY + y >= VIDEO_ROWS ){
@@ -147,13 +142,6 @@ void ed_moveCursor(short x, short y){
         if( currentFileArena->file->lines && 
             currentFileArena->file->scrollY + VIDEO_ROWS < currentFileArena->file->lines->length){
             currentFileArena->file->scrollY++;
-            
-            tempNode = currentFileArena->file->currentLineNode;
-            currentFileArena->file->currentLineNode = tempNode->next;
-            
-            currentFileArena->file->prevLine = currentFileArena->file->currentLineNode->prev->data;
-            currentFileArena->file->currentLine = currentFileArena->file->currentLineNode->data;
-            currentFileArena->file->nextLine = currentFileArena->file->currentLineNode->next->data;
         } else {
             // Else, We keep the cursor at the bottom
             currentCursorY = VIDEO_ROWS - 1;
@@ -161,7 +149,50 @@ void ed_moveCursor(short x, short y){
     } else {
         // We move down the cursor 
         currentCursorY += y;
+
     }
+
+    // IF the cursor is moved by 1 step, then we move the data between nodes by one node
+    if(y == -1){
+        tempNode = currentFileArena->file->currentLineNode;
+        currentFileArena->file->currentLineNode = tempNode->prev;
+
+        currentFileArena->file->prevLine = 
+            currentFileArena->file->currentLineNode->prev &&
+            currentFileArena->file->currentLineNode->prev->data ?
+            currentFileArena->file->currentLineNode->prev->data
+            :
+            NULL;
+        currentFileArena->file->currentLine = currentFileArena->file->currentLineNode->data;
+        currentFileArena->file->nextLine = 
+            currentFileArena->file->currentLineNode->next &&
+            currentFileArena->file->currentLineNode->next->data ?
+            currentFileArena->file->currentLineNode->next->data
+            :
+            NULL;
+    }
+
+    if( y == 1){
+        tempNode = currentFileArena->file->currentLineNode;
+        currentFileArena->file->currentLineNode = tempNode->next;
+        
+        currentFileArena->file->prevLine = 
+            currentFileArena->file->currentLineNode->prev &&
+            currentFileArena->file->currentLineNode->prev->data ?
+            currentFileArena->file->currentLineNode->prev->data
+            :
+            NULL;
+        currentFileArena->file->currentLine = currentFileArena->file->currentLineNode->data;
+        currentFileArena->file->nextLine = 
+            currentFileArena->file->currentLineNode->next &&
+            currentFileArena->file->currentLineNode->next->data ?
+            currentFileArena->file->currentLineNode->next->data
+            :
+            NULL;
+    }
+
+    // However, if we want to reach the end it would be easier
+
     // END VERTICAL SCROLLING =====================================================
 
     // HORIZ, SCROLLING ===========================================================

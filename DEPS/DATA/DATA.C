@@ -236,7 +236,7 @@ void addGenericNode(List **list, void *data, char *arenaName, MemoryArena *arena
 	addToList(list, newNode, arenaName);
 }
 
-void *insertGenericNode(List **list, void *data, MemoryArena *arena, unsigned int index){
+Node *insertGenericNode(List **list, void *data, MemoryArena *arena, unsigned int index){
     Node *temp = NULL;
     Node *newNode = NULL;
 

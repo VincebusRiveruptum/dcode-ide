@@ -103,84 +103,94 @@ void ed_putCursor(unsigned char x, unsigned char y){
     This is the cursor behavior when is inside a TEXT AREA
 */
 void ed_moveCursor(short x, short y){
-    File *file;
-    Node *nextLineNode, *currentLineNode, *prevLineNode;
-    Line *nextLine, *currentLine, *prevLine;
-    int nextLineStartIndex = 0, currentLineStartIndex = 0, prevLineStartIndex = 0;
-
-    file = currentFileArena->file;
+    Node *tempNode;
+    Line *currentLine, *tempLine;
+    int nextLineStartIndex = 0, prevLineStartIndex = 0;
 
     // If the number of lines is less than the screen height
     // and the current Y cursor position is less than the nmber of lines
     if( y > 0 && !(
         currentCursorY + currentFileArena->file->scrollY < currentFileArena->file->lineCount - 1
-        )
-    )    return;
-    
+    )
+)    return;
+
     // We check if we are in the current line
-    currentLineNode = getNodeByIndex(&file->lines, file->scrollY + currentCursorY);
-    currentLine = (Line *)currentLineNode->data;
-    currentLineStartIndex = currentLine ? currentLine->length : 0;
-
-    if(file->scrollY + currentCursorY + y >= 0){
-        nextLineNode = currentLineNode->next;
-
-        if(nextLineNode){
-            nextLine = (Line *)nextLineNode->data;
-            nextLineStartIndex = nextLine->length;
-        }
+    if(! currentFileArena->file->currentLineNode){
+        logger("[ed_moveCursor]: CurrentLineNode is NULL");
+        return;
     }
-    
-    if(file->scrollY + currentCursorY - 1 >= 0){
-        prevLineNode = currentLineNode->prev;
 
-        if(prevLineNode){
-            prevLine = (Line *)prevLineNode->data;
-            prevLineStartIndex = prevLine->length;
-        }
-    }
-    
-
+    prevLineStartIndex = currentFileArena->file->prevLine->length;
+    nextLineStartIndex = currentFileArena->file->nextLine->length;
+   
+    // VERTICAL SCROLLING ===========================================================
+    // If the cursor is at 0 and we want to scroll up
     if( currentCursorY + y < 0 ){
-        if(file->scrollY > 0){
-            file->scrollY--;
-        } else {
+        if(currentFileArena->file->scrollY > 0){
+            currentFileArena->file->scrollY-- ;
+            
+            tempNode = currentFileArena->file->currentLineNode;
+            currentFileArena->file->currentLineNode = tempNode->prev;
+            
+            currentFileArena->file->prevLine = currentFileArena->file->currentLineNode->prev->data;
+            currentFileArena->file->currentLine = currentFileArena->file->currentLineNode->data;
+            currentFileArena->file->nextLine = currentFileArena->file->currentLineNode->next->data;
+        }else{
             currentCursorY = 0;
-        }
-    } else if( currentCursorY + y >= VIDEO_ROWS ){
-        if(file->lines && file->scrollY + VIDEO_ROWS < file->lines->length){
-            file->scrollY++;
+        } 
+    } 
+    // If the cursor is closer to the bottom
+    else if( currentCursorY + y >= VIDEO_ROWS ){
+
+        // If the cursor is at the bottom, the first line counter + number of rows in screen are less that the total of lines of the file
+        // we proceed to scroll down
+        if( currentFileArena->file->lines && 
+            currentFileArena->file->scrollY + VIDEO_ROWS < currentFileArena->file->lines->length){
+            currentFileArena->file->scrollY++;
+            
+            tempNode = currentFileArena->file->currentLineNode;
+            currentFileArena->file->currentLineNode = tempNode->next;
+            
+            currentFileArena->file->prevLine = currentFileArena->file->currentLineNode->prev->data;
+            currentFileArena->file->currentLine = currentFileArena->file->currentLineNode->data;
+            currentFileArena->file->nextLine = currentFileArena->file->currentLineNode->next->data;
         } else {
+            // Else, We keep the cursor at the bottom
             currentCursorY = VIDEO_ROWS - 1;
         }
     } else {
+        // We move down the cursor 
         currentCursorY += y;
     }
+    // END VERTICAL SCROLLING =====================================================
 
+    // HORIZ, SCROLLING ===========================================================
     // We can't move the cursor past the end of the line
-    if(LINE_COUNTER_WIDTH - 1 < currentCursorX + x && currentCursorX + x <= currentLine->length + LINE_COUNTER_WIDTH){   
+    if(
+        currentCursorX + x > LINE_COUNTER_WIDTH - 1 && 
+        currentCursorX + x <= currentLine->length + LINE_COUNTER_WIDTH
+    ){   
         if(currentCursorX + x < 0){
             currentCursorX = 0;
-
+            
         } else if(currentCursorX + x >= VIDEO_COLS){
             currentCursorX = VIDEO_COLS - 1;
         } else {
             currentCursorX += x;
         }
         
-        // Line jumping logic
-        if( y < 0 && prevLineStartIndex < currentCursorX){
-            currentCursorX = prevLineStartIndex + LINE_COUNTER_WIDTH;
-        }
-
-        if( y > 0 && nextLineStartIndex < currentCursorX){
-            currentCursorX = nextLineStartIndex + LINE_COUNTER_WIDTH;
-        }
     }
     
+    // Line jumping logic
+    if( y < 0 && prevLineStartIndex < currentCursorX) currentCursorX = prevLineStartIndex + LINE_COUNTER_WIDTH; 
+    
+    if( y > 0 && nextLineStartIndex < currentCursorX) currentCursorX = nextLineStartIndex + LINE_COUNTER_WIDTH;
+
+    // END HORIZ, SCROLLING =====================================================
+    
     /* Sync file cursor */
-    file->cursorLine = file->scrollY + currentCursorY;
-    file->cursorCol = currentCursorX; /* Simplified for now, doesn't account for scrollX yet */
+    currentFileArena->file->cursorLine = currentFileArena->file->scrollY + currentCursorY;
+    currentFileArena->file->cursorCol = currentCursorX; /* Simplified for now, doesn't account for scrollX yet */
 
     ed_putCursor(currentCursorX, currentCursorY);
     ed_renderEvent = true;
@@ -269,11 +279,11 @@ void ed_backspace(){
         line = (Line *)node->data;
         // wE Delete the current line but also we need to copy the current line content to 
         // the last character of the previous line
-        prevNode = node->prev;
-
-        // We are at the first line of the file
-        if(!prevNode) return;
         
+        // We are at the first line of the file
+        if(!node->prev) return;
+
+        prevNode = node->prev;
         prevLine = (Line *)prevNode->data;
 
         if(!prevLine){
@@ -282,9 +292,11 @@ void ed_backspace(){
         }
 
         if(prevLine->length > 0) prevLine->length--;
+
         currentCursorX = prevLine->length + LINE_COUNTER_WIDTH;
 
-        memcpy(prevLine->buffer + prevLine->length, line->buffer, line->length);
+        if(line->length > 0) memcpy(prevLine->buffer + prevLine->length, line->buffer, line->length);
+        
         prevLine->length += line->length;
 
         // NOT FOR NOW
@@ -340,7 +352,7 @@ void ed_supr(){
 
 void ed_newLine(){
     unsigned int newLinePos = 0, x = 0;
-    Node *node;
+    Node *node, *newNode;
     Line *line, *newLine;
     MemoryArena *arena;
     
@@ -357,8 +369,6 @@ void ed_newLine(){
     /* Insert the new line after the current line */
     newLinePos = file->cursorLine + 1;
 
-    logger("[ed_newLine]:newLinePos: %d", newLinePos);
-
     newLine = (Line*)mem_arena_alloc(arena, NULL, sizeof(Line));
     newLine->length = 0;
     newLine->buffer = (char*)mem_arena_alloc(arena, NULL, sizeof(char) * MAX_FILE_LINE_LENGTH);
@@ -372,7 +382,7 @@ void ed_newLine(){
     line->length = x + 1;
 
     /* No need to set '\n' as it's a line buffer */
-    insertGenericNode(&file->lines, newLine, arena, newLinePos);
+    newNode = insertGenericNode(&file->lines, newLine, arena, newLinePos);
 
     /* Move cursor down and scroll if necessary */
     if (currentCursorY + 1 >= VIDEO_ROWS) {
@@ -384,6 +394,13 @@ void ed_newLine(){
     currentCursorX = LINE_COUNTER_WIDTH;
     file->cursorLine = file->scrollY + currentCursorY;
     file->cursorCol = currentCursorX;
+
+    currentFileArena->file->prevLine = line;
+    currentFileArena->file->currentLine = newLine;
+    
+    // Next line logic
+    currentFileArena->file->nextLine = newNode->next->data;
+
     
     currentFileArena->file->isModified = true;
     currentFileArena->file->lineCount++;
@@ -470,4 +487,12 @@ char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
     }
 
     return buffer;
+}
+
+void ed_putCursorEnd(){
+    currentCursorX = LINE_COUNTER_WIDTH + currentFileArena->file->currentLine->length ;
+}
+
+void ed_putCursorStart(){
+    currentCursorX = LINE_COUNTER_WIDTH;        
 }

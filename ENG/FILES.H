@@ -26,6 +26,13 @@ typedef struct File {
     /* New line-based fields */
     List *lines;
 
+    // Could be useful in the future
+    Node *currentLineNode;
+    
+    Line *prevLine;
+    Line *currentLine;
+    Line *nextLine;
+
     // real line counter is real because due that we cannot remove lines from 
     // memory.. we virtually count them and if by action was removed ie backspace
     // we decrease the counter so the bounds do match with the actions

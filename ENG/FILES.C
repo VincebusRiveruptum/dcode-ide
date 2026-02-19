@@ -329,6 +329,13 @@ void f_newFile(){
     
     newFileArena->file->lineCount = 1;
     
+
+    newFileArena->file->currentLineNode = newFileArena->file->lines->firstNode;
+
+    newFileArena->file->prevLine = NULL;
+    newFileArena->file->currentLine = firstLine;
+    newFileArena->file->nextLine = NULL;
+    
     newFileArena->file->isModified = false;
     newFileArena->file->isActive = false;
 
@@ -417,11 +424,33 @@ bool f_openFile(char *filename){
         fclose(fp);
         return false; 
     }
-
+    
     // So the after opening hte file, it becomes the current file active
     currentFileArena = f_addFileArena(fileArena);
-
+    
     f_splitIntoLines(file, arena);
+
+    // Line handling not the best way
+
+    currentFileArena->file->currentLineNode = currentFileArena->file->lines->firstNode;
+
+    currentFileArena->file->prevLine = NULL;
+    currentFileArena->file->currentLine = 
+        currentFileArena->file->lines->firstNode &&
+        currentFileArena->file->lines->firstNode->data 
+        ?
+        currentFileArena->file->lines->firstNode->data 
+        : 
+        NULL ;
+
+    currentFileArena->file->nextLine = 
+        currentFileArena->file->lines->firstNode &&
+        currentFileArena->file->lines->firstNode->next &&
+        currentFileArena->file->lines->firstNode->next->data 
+        ?
+        currentFileArena->file->lines->firstNode->next->data 
+        : 
+        NULL ;
 
     currentFileArena->file->lineCount = currentFileArena->file->lines->length;
     

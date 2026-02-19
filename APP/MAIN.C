@@ -37,6 +37,9 @@ int main(int argc, char *argv[]){
         if(isKeyDown(KEY_F2)) {v_set50Lines(); ed_renderEvent = true;}
         if(isKeyDown(KEY_F3)) {v_set43Lines(); ed_renderEvent = true;}
         
+        if(isKeyDown(KEY_HOME)) ed_putCursorStart();
+        if(isKeyDown(KEY_END)) ed_putCursorEnd();
+        
         if(keysPressed(3, KEY_LCTRL, KEY_LSHIFT, KEY_S)) f_saveFile();
         if(isKeyDown(KEY_SPACE)) ed_renderEvent = true;
         

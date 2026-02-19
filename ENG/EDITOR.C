@@ -153,7 +153,10 @@ void ed_moveCursor(short x, short y){
     }
 
     // IF the cursor is moved by 1 step, then we move the data between nodes by one node
-    if(y == -1){
+    if(
+        y == -1 &&
+        currentFileArena->file->currentLineNode->prev 
+    ){
         tempNode = currentFileArena->file->currentLineNode;
         currentFileArena->file->currentLineNode = tempNode->prev;
 
@@ -172,7 +175,10 @@ void ed_moveCursor(short x, short y){
             NULL;
     }
 
-    if( y == 1){
+    if( 
+        y == 1 &&
+        currentFileArena->file->currentLineNode->next
+    ){
         tempNode = currentFileArena->file->currentLineNode;
         currentFileArena->file->currentLineNode = tempNode->next;
         
@@ -526,4 +532,99 @@ void ed_putCursorEnd(){
 
 void ed_putCursorStart(){
     currentCursorX = LINE_COUNTER_WIDTH;        
+}
+
+void ed_putCursorFistLine(){
+    Line *tmpLine;
+    int lineposX;
+
+    currentFileArena->file->currentLineNode = currentFileArena->file->lines->firstNode;
+
+    currentFileArena->file->prevLine =
+        currentFileArena->file->currentLineNode &&
+        currentFileArena->file->currentLineNode->prev 
+        ?
+            currentFileArena->file->currentLineNode->prev->data
+        :
+            NULL
+        ;
+        
+    currentFileArena->file->currentLine = currentFileArena->file->currentLineNode->data;
+    
+    currentFileArena->file->nextLine =
+        currentFileArena->file->currentLineNode &&
+        currentFileArena->file->currentLineNode->next
+        ?
+            currentFileArena->file->currentLineNode->next->data
+        :
+            NULL
+        ;
+    
+    lineposX = 
+        currentFileArena->file->currentLine->length - 1 < currentCursorX - LINE_COUNTER_WIDTH
+        ?
+            LINE_COUNTER_WIDTH + currentFileArena->file->currentLine->length - 1
+        :
+            currentCursorX
+        ;
+    
+    currentCursorX = lineposX;
+    currentCursorY = 0;
+    
+    // then we need to reset some flags so we can redraw the screen properly
+    /* Sync file cursor */
+    currentFileArena->file->scrollY = 0;
+    currentFileArena->file->cursorLine = 0;
+    currentFileArena->file->cursorCol = currentCursorX;
+    
+
+    ed_putCursor(currentCursorX, currentCursorY);
+    ed_renderEvent = true;
+}
+
+void ed_putCursorLastLine(){
+    Line *tmpLine;
+    int lineposX;
+
+    currentFileArena->file->currentLineNode = currentFileArena->file->lines->lastNode;
+
+    currentFileArena->file->prevLine =
+        currentFileArena->file->currentLineNode &&
+        currentFileArena->file->currentLineNode->prev 
+        ?
+            currentFileArena->file->currentLineNode->prev->data
+        :
+            NULL
+        ;
+        
+    currentFileArena->file->currentLine = currentFileArena->file->currentLineNode->data;
+    
+    currentFileArena->file->nextLine =
+        currentFileArena->file->currentLineNode &&
+        currentFileArena->file->currentLineNode->next
+        ?
+            currentFileArena->file->currentLineNode->next->data
+        :
+            NULL
+        ;
+    
+    lineposX = 
+        currentFileArena->file->currentLine->length - 1 < currentCursorX - LINE_COUNTER_WIDTH
+        ?
+            LINE_COUNTER_WIDTH + currentFileArena->file->currentLine->length - 1
+        :
+            currentCursorX
+        ;
+    
+    currentCursorX = lineposX;
+    // then we need to reset some flags so we can redraw the screen properly
+    /* Sync file cursor */
+    currentFileArena->file->scrollY = currentFileArena->file->lines->length - VIDEO_ROWS;
+    currentFileArena->file->cursorLine = currentFileArena->file->lines->length;
+    currentFileArena->file->cursorCol = currentCursorX;
+    
+    currentCursorY = currentFileArena->file->lines->length - currentFileArena->file->scrollY - 1;
+        
+    ed_putCursor(currentCursorX, currentCursorY);
+    ed_renderEvent = true;
 }

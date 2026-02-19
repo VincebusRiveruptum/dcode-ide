@@ -127,4 +127,7 @@ char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars);
 void ed_putCursorEnd();
 void ed_putCursorStart();
 
+void ed_putCursorFistLine();
+void ed_putCursorLastLine();
+
 #endif

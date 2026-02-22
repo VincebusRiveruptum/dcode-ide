@@ -23,6 +23,15 @@ void _scanfTest(){
     logger("[t_scanfTest]: Scanned value : %s", output);
 }
 
+void t_drawDebugger(){
+    dw_writeBuffer(textmemptr, "scrollY: %d", 65, 0, VIDEO_COLS - 1, 0, ed_statusbarFgColor, ed_statusbarBgColor, currentFileArena->file->scrollY );
+    dw_writeBuffer(textmemptr, "scrollX: %d", 65, 1, VIDEO_COLS - 1, 1,ed_statusbarFgColor, ed_statusbarBgColor, currentFileArena->file->scrollX );
+    dw_writeBuffer(textmemptr, "cursorLine: %d", 65, 2, VIDEO_COLS - 1, 2, ed_statusbarFgColor, ed_statusbarBgColor,currentFileArena->file->cursorLine );
+    dw_writeBuffer(textmemptr, "cursorCol: %d", 65, 3, VIDEO_COLS - 1, 3,ed_statusbarFgColor, ed_statusbarBgColor, currentFileArena->file->cursorCol );
+    dw_writeBuffer(textmemptr, "existing lines: %d", 60, 4, VIDEO_COLS - 1, 4,ed_statusbarFgColor, ed_statusbarBgColor, currentFileArena->file->lines->length );
+    dw_writeBuffer(textmemptr, "deleted lines: %d", 60, 5, VIDEO_COLS - 1, 5,ed_statusbarFgColor, ed_statusbarBgColor, currentFileArena->file->deletedLines->length );
+}
+
 /* ===================================================================*/
 
 void t_initTests(){

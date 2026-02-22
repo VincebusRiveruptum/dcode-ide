@@ -16,13 +16,17 @@ Node *createNode(void *data, char *arenaName){
     return newNode;
 }
 
-void addToList(List **list, Node *newNode, char *arenaName){
+void addToList(List **list, Node *newNode, char *arenaName, MemoryArena *arena){
     Node *rec = NULL;
     if((*list) == NULL){
-        if(arenaName == NULL){
+        if(arenaName == NULL && arena == NULL){
             (*list) = (List*)malloc(sizeof(List));
-        }else{
+        }else if (arena){
+            (*list) = (List*)mem_arena_alloc(arena, NULL, sizeof(List));
+        }else if (arenaName){
             (*list) = (List*)mem_arena_alloc(NULL, arenaName, sizeof(List));
+        }else{
+            return;
         }
 
         (*list)->firstNode = NULL;
@@ -133,10 +137,16 @@ Node *insertByIndex(List **list, Node *newNode, unsigned int index){
 Node *pop(List **list){
     Node *popped = NULL;
 
-    if((*list) != NULL && (*list)->lastNode != NULL){
+    if(
+        (*list) &&
+        (*list)->lastNode &&
+        (*list)->length > 0
+    ){
         popped = (*list)->lastNode;
         (*list)->lastNode = (*list)->lastNode->prev;
         (*list)->lastNode->next = NULL;
+        
+        
         (*list)->length--;
 
         popped->next = NULL;
@@ -233,7 +243,7 @@ void addGenericNode(List **list, void *data, char *arenaName, MemoryArena *arena
 	newNode->prev = NULL;
     newNode->isDeleted = false;
 
-	addToList(list, newNode, arenaName);
+	addToList(list, newNode, arenaName, arena);
 }
 
 Node *insertGenericNode(List **list, void *data, MemoryArena *arena, unsigned int index){

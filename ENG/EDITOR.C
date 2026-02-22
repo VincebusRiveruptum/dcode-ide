@@ -368,7 +368,7 @@ void ed_backspace(){
         node->next = NULL;
         node->prev = NULL;
         node->isDeleted = true;
-        addToList(&currentFileArena->file->deletedLines, node, NULL);
+        addToList(&currentFileArena->file->deletedLines, node, NULL, currentFileArena->arena);
         
         if(currentCursorY > 0){
             currentCursorY--;
@@ -450,7 +450,8 @@ void ed_newLine(){
     // RECYCLING/NEW LINE LOGIC ========================================================================
     newLineNode = pop(&currentFileArena->file->deletedLines);
     
-    if(newLineNode){
+    if(newLineNode && currentFileArena->file->deletedLines->length > 0){
+        logger("[ed_newLine]: reusing deleted line");
         newLine = (Line*)newLineNode->data;
         memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
         newLine->length = 0;

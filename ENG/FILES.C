@@ -101,6 +101,9 @@ void f_splitIntoLines(File *file, MemoryArena *arena) {
     file->lines = (List *)mem_arena_alloc(arena, NULL, sizeof(List));
     memset(file->lines, 0, sizeof(List));
 
+    file->deletedLines = (List *)mem_arena_alloc(arena, NULL, sizeof(List));
+    memset(file->deletedLines, 0, sizeof(List));
+
     while (p < end) {
         if (*p == '\n') {
             lineLen = p - start;
@@ -298,6 +301,9 @@ void f_newFile(){
     
     newFileArena->file->lines = (List*)mem_arena_alloc(newArena, NULL, sizeof(List));
     memset(newFileArena->file->lines, 0, sizeof(List));
+    
+    newFileArena->file->deletedLines = (List*)mem_arena_alloc(newArena, NULL, sizeof(List));
+    memset(newFileArena->file->deletedLines, 0, sizeof(List));
     firstLine = (Line*)mem_arena_alloc(newArena, NULL, sizeof(Line));
     
     if(!firstLine){
@@ -325,10 +331,7 @@ void f_newFile(){
     newFileArena->file->scrollY = 0;
     newFileArena->file->scrollX = 0;
     newFileArena->file->cursorLine = 0;
-    newFileArena->file->cursorCol = LINE_COUNTER_WIDTH;
-    
-    newFileArena->file->lineCount = 1;
-    
+    newFileArena->file->cursorCol = LINE_COUNTER_WIDTH; 
 
     newFileArena->file->currentLineNode = newFileArena->file->lines->firstNode;
 
@@ -375,6 +378,7 @@ bool f_openFile(char *filename){
     sprintf(file->name, "%s", filename);
 
     file->lines = NULL;
+    file->deletedLines = NULL;
     file->scrollY = 0;
     file->scrollX = 0;
     file->cursorLine = 0;
@@ -452,8 +456,6 @@ bool f_openFile(char *filename){
         : 
         NULL ;
 
-    currentFileArena->file->lineCount = currentFileArena->file->lines->length;
-    
     fclose(fp);
     return true;
 }
@@ -524,8 +526,6 @@ void f_saveFile(){
     // We are going to travel the old file lines and copy them to the new file buffer
     currentNode = getNodeByIndex(&oldFileArena->file->lines, 0);
     lengthSum = _copyLines(oldFileArena, newFileArena);
-
-    newFileArena->file->lineCount = lengthSum + 1;
 
     newFileArena->file->buffer = (char*)mem_arena_alloc(newArena, NULL, sizeof(char) * (lengthSum + 1));
 

@@ -104,13 +104,13 @@ void ed_putCursor(unsigned char x, unsigned char y){
 */
 void ed_moveCursor(short x, short y){
     Node *tempNode;
-    Line *currentLine, *tempLine;
+    Line *tempLine;
     int nextLineStartIndex = 0, prevLineStartIndex = 0;
 
     // If the number of lines is less than the screen height
     // and the current Y cursor position is less than the nmber of lines
     if( y > 0 && !(
-        currentCursorY + currentFileArena->file->scrollY < currentFileArena->file->lineCount - 1
+        currentCursorY + currentFileArena->file->scrollY < currentFileArena->file->lines->length
     )
 )    return;
 
@@ -120,8 +120,15 @@ void ed_moveCursor(short x, short y){
         return;
     }
 
-    prevLineStartIndex = currentFileArena->file->prevLine->length;
-    nextLineStartIndex = currentFileArena->file->nextLine->length;
+    prevLineStartIndex = 
+        currentFileArena->file->prevLine
+        ? (int) currentFileArena->file->prevLine->length
+        : 0;
+
+    nextLineStartIndex = 
+        currentFileArena->file->nextLine
+        ? (int) currentFileArena->file->nextLine->length
+        : 0;
    
     // VERTICAL SCROLLING ==============================================================
 
@@ -205,7 +212,7 @@ void ed_moveCursor(short x, short y){
     // We can't move the cursor past the end of the line
     if(
         currentCursorX + x > LINE_COUNTER_WIDTH - 1 && 
-        currentCursorX + x <= currentLine->length + LINE_COUNTER_WIDTH
+        currentCursorX + x <= currentFileArena->file->currentLine->length + LINE_COUNTER_WIDTH
     ){   
         if(currentCursorX + x < 0){
             currentCursorX = 0;
@@ -259,7 +266,7 @@ void ed_typeChar(char c){
     if (y < 0) y = 0;
         
 
-    node = getNodeByIndex(&file->lines, y);
+    node = currentFileArena->file->currentLineNode;
     
     if(!node) {
         logger("[ed_typeChar]: Node at y=%d is NULL", y);
@@ -328,7 +335,13 @@ void ed_backspace(){
             return;
         }
 
-        if(prevLine->length > 0) prevLine->length--;
+        // if(prevLine->length > 0) prevLine->length--; // REMOVED: Caused character deletion
+
+        // Check for buffer overflow before merging
+        if((prevLine->length + line->length) >= MAX_FILE_LINE_LENGTH){
+             // Cancel merge if it would overflow
+             return;
+        }
 
         currentCursorX = prevLine->length + LINE_COUNTER_WIDTH;
 
@@ -342,9 +355,20 @@ void ed_backspace(){
         if(node->next){
             prevNode->next = node->next;
             node->next->prev = prevNode;
+        } else {
+            // We were at the last node, so prevNode becomes the new last node
+            currentFileArena->file->lines->lastNode = prevNode;
+            if(prevNode) prevNode->next = NULL;
         }
         
-        currentFileArena->file->lineCount--;
+        currentFileArena->file->lines->length--;
+        
+        // RECYCLE THE NODE
+        node->next = NULL;
+        node->prev = NULL;
+        node->isDeleted = true;
+        addToList(&currentFileArena->file->deletedLines, node, NULL);
+        
         currentCursorY--;
     }else{
         node = getNodeByIndex(&file->lines, y);
@@ -388,59 +412,113 @@ void ed_supr(){
 }
 
 void ed_newLine(){
-    unsigned int newLinePos = 0, x = 0;
-    Node *node, *newNode;
-    Line *line, *newLine;
+    unsigned int x = 0;
+    size_t copyLen = 0;
+    Node *currentLineNode, *newLineNode;
+    Line *newLine;
     MemoryArena *arena;
     
-    File *file;
-    file = currentFileArena->file;
-
     arena = currentFileArena->arena;
-    
-    node = getNodeByIndex(&file->lines, file->cursorLine);
-    if (!node) return; /* Should not happen */
-    line = (Line *)node->data;
 
     x = currentCursorX - LINE_COUNTER_WIDTH;
-    /* Insert the new line after the current line */
-    newLinePos = file->cursorLine + 1;
 
-    newLine = (Line*)mem_arena_alloc(arena, NULL, sizeof(Line));
-    newLine->length = 0;
-    newLine->buffer = (char*)mem_arena_alloc(arena, NULL, sizeof(char) * MAX_FILE_LINE_LENGTH);
-    memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
+    // Creating the new line then zeroing
+    // RECYCLING LOGIC
+    newLineNode = pop(&currentFileArena->file->deletedLines);
+    
+    if(newLineNode){
+        newLine = (Line*)newLineNode->data;
+        memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
+        newLine->length = 0;
+        newLineNode->isDeleted = false; 
+    } else {
+        newLine = (Line*)mem_arena_alloc(arena, NULL, sizeof(Line));
+        newLine->length = 0;
+        newLine->buffer = (char*)mem_arena_alloc(arena, NULL, sizeof(char) * MAX_FILE_LINE_LENGTH);
+        memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
+        
+        newLineNode = (Node *)mem_arena_alloc(arena, NULL, sizeof(Node));
+        newLineNode->data = newLine;
+    }
 
-    memcpy(newLine->buffer, line->buffer + x, line->length - x);
-    newLine->length = line->length - x;
+    // We copy the content from the current line in the current cursor position onwards to the now line
+    copyLen = 
+        (x <= currentFileArena->file->currentLine->length)
+        ?
+            currentFileArena->file->currentLine->length - x
+        :
+            0
+        ;
+            
+    memcpy(newLine->buffer, currentFileArena->file->currentLine->buffer + x, copyLen);
+    newLine->length = copyLen;
 
-    memset(line->buffer + x, '\0', MAX_FILE_LINE_LENGTH - x );
-    line->buffer[x] = '\n';
-    line->length = x + 1;
+    // We clear the current line position onwards
+    memset(currentFileArena->file->currentLine->buffer + x, '\0', MAX_FILE_LINE_LENGTH - x);
+    
+    // REMOVED 'buffer[x-1] = \n' assignment logic here as it caused char eating
+    
+    currentFileArena->file->currentLine->length = x;
 
-    /* No need to set '\n' as it's a line buffer */
-    newNode = insertGenericNode(&file->lines, newLine, arena, newLinePos);
+    // Pointer logic
+    // newLineNode is already allocated or recycled above
+    newLineNode->prev = currentFileArena->file->currentLineNode;
+    newLineNode->next =
+        currentFileArena->file->currentLineNode->next 
+        ?
+            currentFileArena->file->currentLineNode->next 
+        :
+            NULL
+        ;
 
+    if(newLineNode->next) newLineNode->next->prev = newLineNode;
+
+
+    currentFileArena->file->currentLineNode->next = newLineNode;
+    currentFileArena->file->currentLineNode = newLineNode;
+
+    // Update List structure
+    if(!newLineNode->next){
+        currentFileArena->file->lines->lastNode = newLineNode;
+    }
+    currentFileArena->file->lines->length++;
+
+    currentFileArena->file->cursorLine = currentFileArena->file->scrollY + currentCursorY;
+    currentFileArena->file->cursorCol = currentCursorX;
+
+    currentFileArena->file->prevLine = 
+        currentFileArena->file->currentLineNode->prev &&
+        currentFileArena->file->currentLineNode->prev->data
+        ?
+            currentFileArena->file->currentLineNode->prev->data
+        :
+            NULL    
+        ;
+
+    currentFileArena->file->currentLine = currentFileArena->file->currentLineNode->data;
+    
+    // Next line logic
+    currentFileArena->file->nextLine = 
+        currentFileArena->file->currentLineNode->next &&
+        currentFileArena->file->currentLineNode->next->data
+        ?
+            currentFileArena->file->currentLineNode->next->data
+        :
+            NULL
+        ;
+
+    
     /* Move cursor down and scroll if necessary */
     if (currentCursorY + 1 >= VIDEO_ROWS) {
-        file->scrollY++;
+        currentFileArena->file->scrollY++;
     } else {
         currentCursorY++;
     }
-
     currentCursorX = LINE_COUNTER_WIDTH;
-    file->cursorLine = file->scrollY + currentCursorY;
-    file->cursorCol = currentCursorX;
 
-    currentFileArena->file->prevLine = line;
-    currentFileArena->file->currentLine = newLine;
-    
-    // Next line logic
-    currentFileArena->file->nextLine = newNode->next->data;
-
-    
+    // activity flags
     currentFileArena->file->isModified = true;
-    currentFileArena->file->lineCount++;
+
     ed_renderEvent = true;
 }
 

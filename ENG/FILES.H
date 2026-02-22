@@ -40,7 +40,10 @@ typedef struct File {
     unsigned short scrollY;
     unsigned short scrollX;
 
+    // Indicates the current cursor line index
     unsigned short cursorLine;
+
+    // Indicates the current cursor column index
     unsigned short cursorCol;
 
     bool isModified;

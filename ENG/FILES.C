@@ -331,7 +331,7 @@ void f_newFile(){
     newFileArena->file->scrollY = 0;
     newFileArena->file->scrollX = 0;
     newFileArena->file->cursorLine = 0;
-    newFileArena->file->cursorCol = LINE_COUNTER_WIDTH; 
+    newFileArena->file->cursorCol = 0; 
 
     newFileArena->file->currentLineNode = newFileArena->file->lines->firstNode;
 

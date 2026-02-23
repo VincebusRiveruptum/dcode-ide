@@ -106,11 +106,14 @@ void ed_moveCursor(short x, short y){
     Node *tempNode;
     Line *tempLine;
     int nextLineStartIndex = 0, prevLineStartIndex = 0;
+    char c;
 
     // If the number of lines is less than the screen heightc
     // and the current Y cursor position is less than the nmber of lines
+    // DANGEROUS
+
     if( y > 0 && !(
-        currentCursorY + currentFileArena->file->scrollY < currentFileArena->file->lines->length
+        currentFileArena->file->cursorLine < currentFileArena->file->lines->length - 1
     )
 )    return;
 
@@ -211,16 +214,22 @@ void ed_moveCursor(short x, short y){
     // HORIZ, SCROLLING ===========================================================
     // We can't move the cursor past the end of the line
     if(
-        currentCursorX + x > LINE_COUNTER_WIDTH - 1 && 
-        currentCursorX + x <= currentFileArena->file->currentLine->length + LINE_COUNTER_WIDTH
+        currentFileArena->file->cursorCol + x >= 0 && 
+        currentFileArena->file->cursorCol + x <= currentFileArena->file->currentLine->length
     ){   
-        if(currentCursorX + x < 0){
+       c = currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + x];
+
+        if(currentFileArena->file->cursorCol + x < 0){
             currentCursorX = 0;
             
-        } else if(currentCursorX + x >= VIDEO_COLS){
+        } else if(currentFileArena->file->cursorCol + x >= VIDEO_COLS){
             currentCursorX = VIDEO_COLS - 1;
         } else {
-            currentCursorX += x;
+            if(c == CHAR_TAB){
+                currentCursorX = currentCursorX + (x * 4);
+            }else{
+                currentCursorX += x;
+            }
         }
         
     }
@@ -233,8 +242,8 @@ void ed_moveCursor(short x, short y){
     // END HORIZ, SCROLLING =====================================================
     
     /* Sync file cursor */
-    currentFileArena->file->cursorLine = currentFileArena->file->scrollY + currentCursorY;
-    currentFileArena->file->cursorCol = currentCursorX - LINE_COUNTER_WIDTH; /* Simplified for now, doesn't account for scrollX yet */
+    currentFileArena->file->cursorLine += y;
+    currentFileArena->file->cursorCol += x; 
 
     ed_putCursor(currentCursorX, currentCursorY);
     ed_renderEvent = true;
@@ -259,8 +268,8 @@ void ed_typeChar(char c){
     File *file;
     file = currentFileArena->file;
 
-    x = currentCursorX - LINE_COUNTER_WIDTH;
-    y = currentCursorY + file->scrollY;
+    x = currentFileArena->file->cursorCol;
+    y = currentFileArena->file->cursorLine;
     
     if (x < 0) x = 0;
     if (y < 0) y = 0;
@@ -284,8 +293,12 @@ void ed_typeChar(char c){
     
     line->buffer[x] = c;
 
-    currentCursorX++;
-    currentFileArena->file->cursorCol = currentCursorX - LINE_COUNTER_WIDTH;
+    if(c == CHAR_TAB){
+        currentCursorX = currentCursorX + 4;
+    }else{
+        currentCursorX++;
+    }
+    currentFileArena->file->cursorCol++;
 
     currentFileArena->file->isModified = true;
     ed_renderEvent = true;
@@ -297,6 +310,7 @@ void ed_backspace(){
     // Y : currentCursorY + file->scrollY + 1 
     Node *node, *prevNode;
     Line *line, *prevLine;
+    char c;
 
     int x = 0;
     int y = 0;
@@ -316,13 +330,13 @@ void ed_backspace(){
         logger("[ed_backspace] node is null", 0);
         return;
     }
+
+    // Current character we are on
     // If we are at the first character of the line
     if(x == 0){
-
         line = file->currentLine;
         // wE Delete the current line but also we need to copy the current line content to 
         // the last character of the previous line
-        
         // We are at the first line of the file
         if(!node->prev) return;
 
@@ -341,13 +355,14 @@ void ed_backspace(){
         }
 
         currentCursorX = prevLine->length + LINE_COUNTER_WIDTH;
-        currentFileArena->file->cursorCol = currentCursorX - LINE_COUNTER_WIDTH;
-
+        
         // We only insert the content to the previous line if any
         if(line->length > 0){
             memcpy(prevLine->buffer + prevLine->length, line->buffer, line->length);
             prevLine->length += line->length ;
         }   
+        
+        currentFileArena->file->cursorCol = prevLine->length;
 
         // We delete the line by moving it to deleted lines and we re join the nodes without the current line
         if(node->next){
@@ -394,13 +409,21 @@ void ed_backspace(){
             ? (Line*) currentFileArena->file->currentLineNode->next->data
             : NULL;
 
-    }else{
-        line = file->currentLine;
-        
-        memcpy(line->buffer + x - 1, line->buffer + x, line->length - x);    
-        line->length--;
-        currentCursorX--;
-        currentFileArena->file->cursorCol = currentCursorX - LINE_COUNTER_WIDTH;
+        }else{
+            if(currentFileArena->file->cursorCol > 0){
+
+                memcpy(currentFileArena->file->currentLine->buffer + x - 1, currentFileArena->file->currentLine->buffer + x, currentFileArena->file->currentLine->length - x);
+                currentFileArena->file->currentLine->length--;
+                
+                c = currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1];
+                if(c == CHAR_TAB){
+                    logger("[ed_backspace]: currentCursorX = %d + %d - %d", LINE_COUNTER_WIDTH, (int)currentFileArena->file->cursorCol, 4);
+                    currentCursorX = currentCursorX - 4;
+                }else{
+                    currentCursorX--;
+                }
+                currentFileArena->file->cursorCol--;
+            }
     }
 
     currentFileArena->file->isModified = true;      

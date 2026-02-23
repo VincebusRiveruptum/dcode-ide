@@ -97,7 +97,6 @@ int main(int argc, char *argv[]){
 
                 if(!(c == CHAR_ESCAPE ||
                     c == CHAR_BACKSPACE ||
-                    c == CHAR_TAB ||
                     c == CHAR_ENTER ||
                     c == CHAR_DELETE)){
                         

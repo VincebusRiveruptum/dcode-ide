@@ -120,6 +120,7 @@ void ed_moveCursor(short x, short y);
 void ed_typeChar(char c);
 void ed_backspace();
 void ed_supr();
+void ed_tab();
 
 char *ed_getDefaultExtension();
 char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars);

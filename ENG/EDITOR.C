@@ -123,127 +123,146 @@ void ed_moveCursor(short x, short y){
         return;
     }
 
-    prevLineStartIndex = 
-        currentFileArena->file->prevLine
-        ? (int) currentFileArena->file->prevLine->length
-        : 0;
-
-    nextLineStartIndex = 
-        currentFileArena->file->nextLine
-        ? (int) currentFileArena->file->nextLine->length
-        : 0;
-   
     // VERTICAL SCROLLING ==============================================================
 
     // If the cursor is at 0 and we want to scroll up
-    if( currentCursorY + y < 0 ){
-        if(currentFileArena->file->scrollY > 0){
-            currentFileArena->file->scrollY-- ;           
-        }else{
-            currentCursorY = 0;
+    if(y){
+        if( currentCursorY + y < 0 ){
+            if(currentFileArena->file->scrollY > 0){
+                currentFileArena->file->scrollY-- ;           
+            }else{
+                currentCursorY = 0;
+            } 
+
         } 
+        // If the cursor is closer to the bottom
+        else if( currentCursorY + y >= VIDEO_ROWS ){
 
-    } 
-    // If the cursor is closer to the bottom
-    else if( currentCursorY + y >= VIDEO_ROWS ){
-
-        // If the cursor is at the bottom, the first line counter + number of rows in screen are less that the total of lines of the file
-        // we proceed to scroll down
-        if( currentFileArena->file->lines && 
-            currentFileArena->file->scrollY + VIDEO_ROWS < currentFileArena->file->lines->length){
-            currentFileArena->file->scrollY++;
+            // If the cursor is at the bottom, the first line counter + number of rows in screen are less that the total of lines of the file
+            // we proceed to scroll down
+            if( currentFileArena->file->lines && 
+                currentFileArena->file->scrollY + VIDEO_ROWS < currentFileArena->file->lines->length){
+                currentFileArena->file->scrollY++;
+            } else {
+                // Else, We keep the cursor at the bottom
+                currentCursorY = VIDEO_ROWS - 1;
+            }
         } else {
-            // Else, We keep the cursor at the bottom
-            currentCursorY = VIDEO_ROWS - 1;
+            // We move down the cursor 
+            currentCursorY += y;
+
         }
-    } else {
-        // We move down the cursor 
-        currentCursorY += y;
 
+        // IF the cursor is moved by 1 step, then we move the data between nodes by one node
+        if(
+            y == -1 &&
+            currentFileArena->file->currentLineNode->prev 
+        ){
+            tempNode = currentFileArena->file->currentLineNode;
+            currentFileArena->file->currentLineNode = tempNode->prev;
+
+            // If the character in the previous line at currentCursorX is a tab, we need to move 4 visual steps to the right
+            if (currentFileArena->file->cursorCol < currentFileArena->file->prevLine->length){
+                c = currentFileArena->file->prevLine->buffer[currentFileArena->file->cursorCol];
+                prevLineStartIndex = currentFileArena->file->cursorCol;
+            }else{
+                c = currentFileArena->file->prevLine->buffer[currentFileArena->file->prevLine->length - 1];
+                prevLineStartIndex = currentFileArena->file->prevLine->length;
+            }
+
+            currentFileArena->file->cursorCol = prevLineStartIndex;
+            currentCursorX = currentFileArena->file->cursorCol + LINE_COUNTER_WIDTH;
+
+            if (c == CHAR_TAB){
+                currentCursorX += 4;
+            }
+
+            currentFileArena->file->prevLine = 
+                currentFileArena->file->currentLineNode->prev &&
+                currentFileArena->file->currentLineNode->prev->data ?
+                currentFileArena->file->currentLineNode->prev->data
+                :
+                NULL;
+            currentFileArena->file->currentLine = currentFileArena->file->currentLineNode->data;
+            currentFileArena->file->nextLine = 
+                currentFileArena->file->currentLineNode->next &&
+                currentFileArena->file->currentLineNode->next->data ?
+                currentFileArena->file->currentLineNode->next->data
+                :
+                NULL;
+        }
+
+        if( 
+            y == 1 &&
+            currentFileArena->file->currentLineNode->next
+        ){
+            tempNode = currentFileArena->file->currentLineNode;
+            currentFileArena->file->currentLineNode = tempNode->next;
+            
+            // If the character in the previous line at currentCursorX is a tab, we need to move 4 visual steps to the right
+            if (currentFileArena->file->cursorCol < currentFileArena->file->nextLine->length){
+                c = currentFileArena->file->nextLine->buffer[currentFileArena->file->cursorCol];
+
+                nextLineStartIndex = currentFileArena->file->cursorCol;
+
+            }else{
+                c = currentFileArena->file->nextLine->buffer[currentFileArena->file->nextLine->length - 1];
+
+                nextLineStartIndex = currentFileArena->file->nextLine->length;
+
+            }
+
+            currentFileArena->file->cursorCol = nextLineStartIndex;
+            currentCursorX = currentFileArena->file->cursorCol + LINE_COUNTER_WIDTH;
+
+            if (c == CHAR_TAB){
+                currentCursorX += 4;
+            }
+
+            currentFileArena->file->prevLine = 
+                currentFileArena->file->currentLineNode->prev &&
+                currentFileArena->file->currentLineNode->prev->data ?
+                currentFileArena->file->currentLineNode->prev->data
+                :
+                NULL;
+            currentFileArena->file->currentLine = currentFileArena->file->currentLineNode->data;
+            currentFileArena->file->nextLine = 
+                currentFileArena->file->currentLineNode->next &&
+                currentFileArena->file->currentLineNode->next->data ?
+                currentFileArena->file->currentLineNode->next->data
+                :
+                NULL;
+        }
+
+        currentFileArena->file->cursorLine += y;
     }
-
-    // IF the cursor is moved by 1 step, then we move the data between nodes by one node
-    if(
-        y == -1 &&
-        currentFileArena->file->currentLineNode->prev 
-    ){
-        tempNode = currentFileArena->file->currentLineNode;
-        currentFileArena->file->currentLineNode = tempNode->prev;
-
-        currentFileArena->file->prevLine = 
-            currentFileArena->file->currentLineNode->prev &&
-            currentFileArena->file->currentLineNode->prev->data ?
-            currentFileArena->file->currentLineNode->prev->data
-            :
-            NULL;
-        currentFileArena->file->currentLine = currentFileArena->file->currentLineNode->data;
-        currentFileArena->file->nextLine = 
-            currentFileArena->file->currentLineNode->next &&
-            currentFileArena->file->currentLineNode->next->data ?
-            currentFileArena->file->currentLineNode->next->data
-            :
-            NULL;
-    }
-
-    if( 
-        y == 1 &&
-        currentFileArena->file->currentLineNode->next
-    ){
-        tempNode = currentFileArena->file->currentLineNode;
-        currentFileArena->file->currentLineNode = tempNode->next;
-        
-        currentFileArena->file->prevLine = 
-            currentFileArena->file->currentLineNode->prev &&
-            currentFileArena->file->currentLineNode->prev->data ?
-            currentFileArena->file->currentLineNode->prev->data
-            :
-            NULL;
-        currentFileArena->file->currentLine = currentFileArena->file->currentLineNode->data;
-        currentFileArena->file->nextLine = 
-            currentFileArena->file->currentLineNode->next &&
-            currentFileArena->file->currentLineNode->next->data ?
-            currentFileArena->file->currentLineNode->next->data
-            :
-            NULL;
-    }
-
-    // However, if we want to reach the end it would be easier
-
     // END VERTICAL SCROLLING =====================================================
 
     // HORIZ, SCROLLING ===========================================================
     // We can't move the cursor past the end of the line
-    if(
-        currentFileArena->file->cursorCol + x >= 0 && 
-        currentFileArena->file->cursorCol + x <= currentFileArena->file->currentLine->length
-    ){   
-       c = currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + x];
+    if(x){
+        if(currentFileArena->file->cursorCol + x <= 0){
+            currentCursorX = LINE_COUNTER_WIDTH;
+            currentFileArena->file->cursorCol = 0;
+        } else if(
+            currentFileArena->file->cursorCol + x > 0 && 
+            currentFileArena->file->cursorCol + x <= currentFileArena->file->currentLine->length
+        ){  
+            if (x < 0) c = currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + x];
+            if (x > 0) c = currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + x - 1];
 
-        if(currentFileArena->file->cursorCol + x < 0){
-            currentCursorX = 0;
+            currentCursorX += x;
+            currentFileArena->file->cursorCol +=x;
+                
+            if(c == CHAR_TAB) currentCursorX = currentCursorX + (x * 3);
             
-        } else if(currentFileArena->file->cursorCol + x >= VIDEO_COLS){
+        }else if(currentFileArena->file->cursorCol + x >= VIDEO_COLS && currentFileArena->file->currentLine->length >= VIDEO_COLS){
+            // HERE WE SHOULD SCROLL RIGHT 
             currentCursorX = VIDEO_COLS - 1;
-        } else {
-            if(c == CHAR_TAB){
-                currentCursorX = currentCursorX + (x * 4);
-            }else{
-                currentCursorX += x;
-            }
+            currentFileArena->file->cursorCol = currentFileArena->file->currentLine->length - 1;
         }
-        
     }
-    
-    // Line jumping logic
-    if( y < 0 && prevLineStartIndex < currentCursorX) currentCursorX = prevLineStartIndex + LINE_COUNTER_WIDTH; 
-    
-    if( y > 0 && nextLineStartIndex < currentCursorX) currentCursorX = nextLineStartIndex + LINE_COUNTER_WIDTH;
-
     // END HORIZ, SCROLLING =====================================================
-    
-    /* Sync file cursor */
-    currentFileArena->file->cursorLine += y;
-    currentFileArena->file->cursorCol += x; 
 
     ed_putCursor(currentCursorX, currentCursorY);
     ed_renderEvent = true;
@@ -294,7 +313,7 @@ void ed_typeChar(char c){
     line->buffer[x] = c;
 
     if(c == CHAR_TAB){
-        currentCursorX = currentCursorX + 4;
+        currentCursorX += 4;
     }else{
         currentCursorX++;
     }
@@ -409,21 +428,22 @@ void ed_backspace(){
             ? (Line*) currentFileArena->file->currentLineNode->next->data
             : NULL;
 
-        }else{
-            if(currentFileArena->file->cursorCol > 0){
+    }else{
+        if(currentFileArena->file->cursorCol > 0){
 
-                memcpy(currentFileArena->file->currentLine->buffer + x - 1, currentFileArena->file->currentLine->buffer + x, currentFileArena->file->currentLine->length - x);
-                currentFileArena->file->currentLine->length--;
-                
-                c = currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1];
-                if(c == CHAR_TAB){
-                    logger("[ed_backspace]: currentCursorX = %d + %d - %d", LINE_COUNTER_WIDTH, (int)currentFileArena->file->cursorCol, 4);
-                    currentCursorX = currentCursorX - 4;
-                }else{
-                    currentCursorX--;
-                }
-                currentFileArena->file->cursorCol--;
+            c = currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1];
+
+            memcpy(currentFileArena->file->currentLine->buffer + x - 1, currentFileArena->file->currentLine->buffer + x, currentFileArena->file->currentLine->length - x);
+            currentFileArena->file->currentLine->length--;
+            
+            if(c == CHAR_TAB){
+                //logger("[ed_backspace]: currentCursorX = %d + %d - %d", LINE_COUNTER_WIDTH, (int)currentFileArena->file->cursorCol, 4);
+                currentCursorX -= 4;
+            }else{
+                currentCursorX--;
             }
+            currentFileArena->file->cursorCol--;
+        }
     }
 
     currentFileArena->file->isModified = true;      
@@ -676,14 +696,59 @@ char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
     return buffer;
 }
 
+// Calculate current line number of tabs
+int _calculateTabCount(){
+    unsigned int i = 0, tabCount = 0;
+    char c;
+
+    while(c != '\0'){
+        c = currentFileArena->file->currentLine->buffer[i];
+
+        if(c == CHAR_TAB) tabCount++;
+
+        i++;
+    }
+    return tabCount;
+}
+
+int _calculateTabStart(){
+    int i = 0, tabCount = 0;
+    char c, cnext;
+
+    while(c != '\0'){
+        c = currentFileArena->file->currentLine->buffer[i];
+
+        if (c == CHAR_TAB){
+            tabCount++;
+
+            cnext = currentFileArena->file->currentLine->buffer[i + 1];
+
+            if(cnext == NULL && cnext != CHAR_TAB){
+                return tabCount;
+            }
+        }
+        i++;
+
+    }
+
+    return tabCount;
+}
 void ed_putCursorEnd(){
-    currentCursorX = LINE_COUNTER_WIDTH + currentFileArena->file->currentLine->length ;
-    currentFileArena->file->cursorCol = currentCursorX - LINE_COUNTER_WIDTH;
+    unsigned int tabCount = 0;
+
+    tabCount = _calculateTabCount();
+
+    currentCursorX = LINE_COUNTER_WIDTH + currentFileArena->file->currentLine->length + (tabCount * 3);
+    currentFileArena->file->cursorCol = currentFileArena->file->currentLine->length;
 }
 
 void ed_putCursorStart(){
-    currentCursorX = LINE_COUNTER_WIDTH;        
-    currentFileArena->file->cursorCol = 0;
+    int tabCount = 0;
+
+    tabCount = _calculateTabStart();
+
+    currentCursorX = LINE_COUNTER_WIDTH + (tabCount * 4);        
+    currentFileArena->file->cursorCol = tabCount;
 }
 
 void ed_putCursorFistLine(){
@@ -780,3 +845,4 @@ void ed_putCursorLastLine(){
     ed_putCursor(currentCursorX, currentCursorY);
     ed_renderEvent = true;
 }
+

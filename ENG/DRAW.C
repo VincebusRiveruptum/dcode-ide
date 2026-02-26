@@ -59,6 +59,8 @@ unsigned char _keywordMap(char *word, char *previousWord){
     if (strcmp(word, "char") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "void") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "bool") == 0) return COLOR_LIGHT_RED;
+if (strcmp(word, "typedef") == 0) return COLOR_LIGHT_RED;
+if (strcmp(word, "unsigned") == 0) return COLOR_LIGHT_RED;
 
     /* Control flow */
     if (strcmp(word, "if") == 0) return COLOR_LIGHT_RED;
@@ -603,3 +605,4 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
         }
     }
 }
+

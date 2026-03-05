@@ -59,7 +59,7 @@ void ed_handleArguments(int argc, char *argv[]){
 int _get_tab_counts_until_cursorCol(){
     int i = 0, tabCount = 0;
 
-    while(i <= currentFileArena->file->cursorCol){
+    while(i < currentFileArena->file->cursorCol){
         if(currentFileArena->file->currentLine->buffer[i] == CHAR_TAB) tabCount++;
         i++; 
     }
@@ -70,27 +70,6 @@ int _get_tab_counts_until_cursorCol(){
 void _updateCurrentCursorX(){
     int tabcounts = 0;
     // For debugging
-    
-    if(currentFileArena->file->cursorCol <= 0 ){
-        currentCursorX = LINE_COUNTER_WIDTH;
-        if(currentFileArena->file->currentChar == CHAR_TAB) currentCursorX += 3;
-
-    }else if(currentFileArena->file->cursorCol > 0){
-        tabcounts = _get_tab_counts_until_cursorCol();
-        currentCursorX = (currentFileArena->file->cursorCol) + LINE_COUNTER_WIDTH;        
-        currentCursorX += tabcounts * 3;
-         
-            
-    }else if(currentFileArena->file->cursorCol >= VIDEO_COLS) {
-        // SCROLL X
-        currentCursorX = VIDEO_COLS - 1;
-        
-        if((currentFileArena->file->prevChar)  == CHAR_TAB){
-            // wE SCROLL 4 STEPS TO THE RIGHT
-        }
-    }    
-
-    
     currentFileArena->file->prevChar = 
     currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1]
     ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1]
@@ -105,8 +84,20 @@ void _updateCurrentCursorX(){
     currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + 1]
     ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + 1]
     : ' ';
-
-    logger("[_updateCurrentCursorX]: '%c' '%c' '%c'", currentFileArena->file->prevChar, currentFileArena->file->currentChar, currentFileArena->file->nextChar);
+    
+    
+     if(currentFileArena->file->cursorCol <= 0 ){
+         currentCursorX = 0;
+        
+     }else if(currentFileArena->file->cursorCol > 0){
+         currentCursorX = currentFileArena->file->cursorCol;        
+    
+     }else if(currentFileArena->file->cursorCol >= VIDEO_COLS) {
+         currentCursorX = VIDEO_COLS - 1;
+     }    
+    
+    tabcounts = _get_tab_counts_until_cursorCol();
+    currentCursorX = currentCursorX + tabcounts * 3 + LINE_COUNTER_WIDTH;
 
     ed_putCursor(currentCursorX, currentCursorY);
     ed_renderEvent = true;

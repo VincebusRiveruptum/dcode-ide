@@ -34,6 +34,11 @@ typedef struct File {
     Line *currentLine;
     Line *nextLine;
 
+    // Current line position chars
+    char prevChar;
+    char currentChar;
+    char nextChar;
+
     // This will be used for the editor to know if the previous line to the first visible was a comment
     // So the comment formmating will still function when scrolling down
     

@@ -56,6 +56,62 @@ void ed_handleArguments(int argc, char *argv[]){
     ed_renderEvent = true;
 }
 
+int _get_tab_counts_until_cursorCol(){
+    int i = 0, tabCount = 0;
+
+    while(i <= currentFileArena->file->cursorCol){
+        if(currentFileArena->file->currentLine->buffer[i] == CHAR_TAB) tabCount++;
+        i++; 
+    }
+    
+    return tabCount;
+}
+
+void _updateCurrentCursorX(){
+    int tabcounts = 0;
+    // For debugging
+    
+    if(currentFileArena->file->cursorCol <= 0 ){
+        currentCursorX = LINE_COUNTER_WIDTH;
+        if(currentFileArena->file->currentChar == CHAR_TAB) currentCursorX += 3;
+
+    }else if(currentFileArena->file->cursorCol > 0){
+        tabcounts = _get_tab_counts_until_cursorCol();
+        currentCursorX = (currentFileArena->file->cursorCol) + LINE_COUNTER_WIDTH;        
+        currentCursorX += tabcounts * 3;
+         
+            
+    }else if(currentFileArena->file->cursorCol >= VIDEO_COLS) {
+        // SCROLL X
+        currentCursorX = VIDEO_COLS - 1;
+        
+        if((currentFileArena->file->prevChar)  == CHAR_TAB){
+            // wE SCROLL 4 STEPS TO THE RIGHT
+        }
+    }    
+
+    
+    currentFileArena->file->prevChar = 
+    currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1]
+    ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1]
+    : ' ';
+    
+    currentFileArena->file->currentChar =
+    currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol]
+    ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol]
+    : ' ';
+    
+    currentFileArena->file->nextChar = 
+    currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + 1]
+    ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + 1]
+    : ' ';
+
+    logger("[_updateCurrentCursorX]: '%c' '%c' '%c'", currentFileArena->file->prevChar, currentFileArena->file->currentChar, currentFileArena->file->nextChar);
+
+    ed_putCursor(currentCursorX, currentCursorY);
+    ed_renderEvent = true;
+}
+
 // We reset the cursor to X:0 Y:0 relative to the active currentFileArena text area
 void ed_resetCursor(){
 
@@ -160,22 +216,10 @@ void ed_moveCursor(short x, short y){
         ){
             tempNode = currentFileArena->file->currentLineNode;
             currentFileArena->file->currentLineNode = tempNode->prev;
-
-            // If the character in the previous line at currentCursorX is a tab, we need to move 4 visual steps to the right
-            if (currentFileArena->file->cursorCol < currentFileArena->file->prevLine->length){
-                c = currentFileArena->file->prevLine->buffer[currentFileArena->file->cursorCol];
-                prevLineStartIndex = currentFileArena->file->cursorCol;
-            }else{
-                c = currentFileArena->file->prevLine->buffer[currentFileArena->file->prevLine->length - 1];
-                prevLineStartIndex = currentFileArena->file->prevLine->length;
-            }
-
-            currentFileArena->file->cursorCol = prevLineStartIndex;
-            currentCursorX = currentFileArena->file->cursorCol + LINE_COUNTER_WIDTH;
-
-            if (c == CHAR_TAB){
-                currentCursorX += 4;
-            }
+            
+            (currentFileArena->file->prevLine->length < currentFileArena->file->cursorCol) 
+            ? currentFileArena->file->prevLine->length - 1
+            : currentFileArena->file->cursorCol;
 
             currentFileArena->file->prevLine = 
                 currentFileArena->file->currentLineNode->prev &&
@@ -199,25 +243,9 @@ void ed_moveCursor(short x, short y){
             tempNode = currentFileArena->file->currentLineNode;
             currentFileArena->file->currentLineNode = tempNode->next;
             
-            // If the character in the previous line at currentCursorX is a tab, we need to move 4 visual steps to the right
-            if (currentFileArena->file->cursorCol < currentFileArena->file->nextLine->length){
-                c = currentFileArena->file->nextLine->buffer[currentFileArena->file->cursorCol];
-
-                nextLineStartIndex = currentFileArena->file->cursorCol;
-
-            }else{
-                c = currentFileArena->file->nextLine->buffer[currentFileArena->file->nextLine->length - 1];
-
-                nextLineStartIndex = currentFileArena->file->nextLine->length;
-
-            }
-
-            currentFileArena->file->cursorCol = nextLineStartIndex;
-            currentCursorX = currentFileArena->file->cursorCol + LINE_COUNTER_WIDTH;
-
-            if (c == CHAR_TAB){
-                currentCursorX += 4;
-            }
+            (currentFileArena->file->nextLine->length < currentFileArena->file->cursorCol) 
+            ? currentFileArena->file->prevLine->length - 1
+            : currentFileArena->file->cursorCol;
 
             currentFileArena->file->prevLine = 
                 currentFileArena->file->currentLineNode->prev &&
@@ -242,7 +270,6 @@ void ed_moveCursor(short x, short y){
     // We can't move the cursor past the end of the line
     if(x){
         if(currentFileArena->file->cursorCol + x <= 0){
-            currentCursorX = LINE_COUNTER_WIDTH;
             currentFileArena->file->cursorCol = 0;
         } else if(
             currentFileArena->file->cursorCol + x > 0 && 
@@ -251,21 +278,16 @@ void ed_moveCursor(short x, short y){
             if (x < 0) c = currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + x];
             if (x > 0) c = currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + x - 1];
 
-            currentCursorX += x;
             currentFileArena->file->cursorCol +=x;
-                
-            if(c == CHAR_TAB) currentCursorX = currentCursorX + (x * 3);
-            
+
         }else if(currentFileArena->file->cursorCol + x >= VIDEO_COLS && currentFileArena->file->currentLine->length >= VIDEO_COLS){
             // HERE WE SHOULD SCROLL RIGHT 
-            currentCursorX = VIDEO_COLS - 1;
             currentFileArena->file->cursorCol = currentFileArena->file->currentLine->length - 1;
         }
     }
     // END HORIZ, SCROLLING =====================================================
 
-    ed_putCursor(currentCursorX, currentCursorY);
-    ed_renderEvent = true;
+    _updateCurrentCursorX();
 }
 
 void ed_renderElements(){
@@ -312,15 +334,11 @@ void ed_typeChar(char c){
     
     line->buffer[x] = c;
 
-    if(c == CHAR_TAB){
-        currentCursorX += 4;
-    }else{
-        currentCursorX++;
-    }
     currentFileArena->file->cursorCol++;
 
     currentFileArena->file->isModified = true;
-    ed_renderEvent = true;
+    
+    _updateCurrentCursorX();
 }
 
 void ed_backspace(){
@@ -373,8 +391,6 @@ void ed_backspace(){
              return;
         }
 
-        currentCursorX = prevLine->length + LINE_COUNTER_WIDTH;
-        
         // We only insert the content to the previous line if any
         if(line->length > 0){
             memcpy(prevLine->buffer + prevLine->length, line->buffer, line->length);
@@ -430,24 +446,17 @@ void ed_backspace(){
 
     }else{
         if(currentFileArena->file->cursorCol > 0){
-
             c = currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1];
 
             memcpy(currentFileArena->file->currentLine->buffer + x - 1, currentFileArena->file->currentLine->buffer + x, currentFileArena->file->currentLine->length - x);
             currentFileArena->file->currentLine->length--;
             
-            if(c == CHAR_TAB){
-                //logger("[ed_backspace]: currentCursorX = %d + %d - %d", LINE_COUNTER_WIDTH, (int)currentFileArena->file->cursorCol, 4);
-                currentCursorX -= 4;
-            }else{
-                currentCursorX--;
-            }
             currentFileArena->file->cursorCol--;
         }
     }
 
     currentFileArena->file->isModified = true;      
-    ed_renderEvent = true;
+    _updateCurrentCursorX();
 }
 void ed_supr(){
         // We type the char at 
@@ -462,8 +471,8 @@ void ed_supr(){
     File *file;
     file = currentFileArena->file;
 
-    x = currentCursorX - LINE_COUNTER_WIDTH;
-    y = currentCursorY + file->scrollY;
+    x = currentFileArena->file->cursorCol;
+    y = currentFileArena->file->cursorLine;
     
     if (x < 0) x = 0;
     if (y < 0) y = 0;
@@ -475,7 +484,7 @@ void ed_supr(){
     line->length--;
 
     currentFileArena->file->isModified = true;
-    ed_renderEvent = true;
+    _updateCurrentCursorX();
 }
 
 void ed_newLine(){
@@ -487,7 +496,7 @@ void ed_newLine(){
     
     arena = currentFileArena->arena;
 
-    x = currentCursorX - LINE_COUNTER_WIDTH;
+    x = currentFileArena->file->cursorCol;
 
     // Creating the new line then zeroing
     // RECYCLING/NEW LINE LOGIC ========================================================================
@@ -604,14 +613,13 @@ void ed_newLine(){
         currentCursorY++;
     }
 
-    currentCursorX = LINE_COUNTER_WIDTH;
     currentFileArena->file->cursorCol = 0;
     currentFileArena->file->cursorLine++;
 
     // activity flags
     currentFileArena->file->isModified = true;
 
-    ed_renderEvent = true;
+    _updateCurrentCursorX();
 }
 
 // PROMPT ELEMENT

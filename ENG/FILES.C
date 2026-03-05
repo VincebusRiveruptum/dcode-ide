@@ -339,6 +339,10 @@ void f_newFile(){
     newFileArena->file->currentLine = firstLine;
     newFileArena->file->nextLine = NULL;
     
+    newFileArena->file->prevChar = 0;
+    newFileArena->file->currentChar = 0;
+    newFileArena->file->nextChar = 0;
+    
     newFileArena->file->isModified = false;
     newFileArena->file->isActive = false;
 
@@ -383,7 +387,10 @@ bool f_openFile(char *filename){
     file->scrollX = 0;
     file->cursorLine = 0;
     file->cursorCol = 0;
-    
+    file->prevChar = NULL;
+    file->currentChar = NULL;
+    file->nextChar = NULL;
+
     if(!file->name){
         logger("\n[f_openFile]: Error: Could not allocate memory for file details");
         f_closeFile(fileArena);
@@ -428,7 +435,7 @@ bool f_openFile(char *filename){
         fclose(fp);
         return false; 
     }
-    
+
     // So the after opening hte file, it becomes the current file active
     currentFileArena = f_addFileArena(fileArena);
     
@@ -455,6 +462,17 @@ bool f_openFile(char *filename){
         currentFileArena->file->lines->firstNode->next->data 
         : 
         NULL ;
+
+    currentFileArena->file->prevChar = NULL;
+    currentFileArena->file->currentChar = 
+        currentFileArena->file->currentLine->buffer[0] 
+        ? currentFileArena->file->currentLine->buffer[0]
+        : 0;
+         
+    currentFileArena->file->nextChar = 
+        currentFileArena->file->currentLine->buffer[1] 
+        ? currentFileArena->file->currentLine->buffer[1]
+        : 0;
 
     fclose(fp);
     return true;
@@ -521,6 +539,16 @@ void f_saveFile(){
     newFileArena->file->scrollX = oldFileArena->file->scrollX;
     newFileArena->file->cursorLine = oldFileArena->file->cursorLine;
     newFileArena->file->cursorCol = oldFileArena->file->cursorCol;
+    
+    newFileArena->file->currentLineNode = oldFileArena->file->currentLineNode;
+    newFileArena->file->prevLine = oldFileArena->file->prevLine;
+    newFileArena->file->currentLine = oldFileArena->file->currentLine;
+    newFileArena->file->nextLine = oldFileArena->file->nextLine;
+    
+    newFileArena->file->prevChar = oldFileArena->file->prevChar;
+    newFileArena->file->currentChar = oldFileArena->file->currentChar;
+    newFileArena->file->nextChar = oldFileArena->file->nextChar;
+
     newFileArena->file->isActive = oldFileArena->file->isActive;
     
     // We are going to travel the old file lines and copy them to the new file buffer

@@ -66,7 +66,54 @@ int _get_tab_counts_until_cursorCol(){
     
     return tabCount;
 }
+// Calculate current line number of tabs
+int _calculateTabCount(){
+    unsigned int i = 0, tabCount = 0;
+    char c;
 
+    while(c != '\0'){
+        c = currentFileArena->file->currentLine->buffer[i];
+
+        if(c == CHAR_TAB) tabCount++;
+
+        i++;
+    }
+    return tabCount;
+}
+
+int _calculateTabStart(){
+    int i = 0, tabCount = 0;
+    char c, cnext;
+
+    while(c != '\0'){
+        c = currentFileArena->file->currentLine->buffer[i];
+
+        if (c == CHAR_TAB){
+            tabCount++;
+
+            cnext = currentFileArena->file->currentLine->buffer[i + 1];
+
+            if(cnext == NULL && cnext != CHAR_TAB){
+                return tabCount;
+            }
+        }
+        i++;
+
+    }
+
+    return tabCount;
+}
+
+void _updateCurrentCursorY(){
+     // If the cursor is closer to the bottom
+    if(currentCursorY <=0 || currentFileArena->file->cursorLine < 0) currentCursorY = 0;
+    
+    if( currentFileArena->file->cursorLine - currentFileArena->file->scrollY >= 0){
+        currentCursorY = currentFileArena->file->cursorLine - currentFileArena->file->scrollY;
+    }
+
+    if(currentCursorY >= VIDEO_ROWS ) currentCursorY = VIDEO_ROWS;
+}
 void _updateCurrentCursorX(){
     int tabcounts = 0;
     // For debugging
@@ -98,11 +145,15 @@ void _updateCurrentCursorX(){
     
     tabcounts = _get_tab_counts_until_cursorCol();
     currentCursorX = currentCursorX + tabcounts * 3 + LINE_COUNTER_WIDTH;
+}
+
+void _updateCursor(){
+    _updateCurrentCursorY();
+    _updateCurrentCursorX();
 
     ed_putCursor(currentCursorX, currentCursorY);
     ed_renderEvent = true;
 }
-
 // We reset the cursor to X:0 Y:0 relative to the active currentFileArena text area
 void ed_resetCursor(){
 
@@ -173,32 +224,8 @@ void ed_moveCursor(short x, short y){
     // VERTICAL SCROLLING ==============================================================
 
     // If the cursor is at 0 and we want to scroll up
-    if(y){
-        if( currentCursorY + y < 0 ){
-            if(currentFileArena->file->scrollY > 0){
-                currentFileArena->file->scrollY-- ;           
-            }else{
-                currentCursorY = 0;
-            } 
+    if(y && currentFileArena->file->cursorLine + y >= 0){       
 
-        } 
-        // If the cursor is closer to the bottom
-        else if( currentCursorY + y >= VIDEO_ROWS ){
-
-            // If the cursor is at the bottom, the first line counter + number of rows in screen are less that the total of lines of the file
-            // we proceed to scroll down
-            if( currentFileArena->file->lines && 
-                currentFileArena->file->scrollY + VIDEO_ROWS < currentFileArena->file->lines->length){
-                currentFileArena->file->scrollY++;
-            } else {
-                // Else, We keep the cursor at the bottom
-                currentCursorY = VIDEO_ROWS - 1;
-            }
-        } else {
-            // We move down the cursor 
-            currentCursorY += y;
-
-        }
 
         // IF the cursor is moved by 1 step, then we move the data between nodes by one node
         if(
@@ -208,9 +235,10 @@ void ed_moveCursor(short x, short y){
             tempNode = currentFileArena->file->currentLineNode;
             currentFileArena->file->currentLineNode = tempNode->prev;
             
-            (currentFileArena->file->prevLine->length < currentFileArena->file->cursorCol) 
-            ? currentFileArena->file->prevLine->length - 1
-            : currentFileArena->file->cursorCol;
+            currentFileArena->file->cursorCol = 
+                (currentFileArena->file->prevLine->length < currentFileArena->file->cursorCol) 
+                ? currentFileArena->file->prevLine->length - 1
+                : currentFileArena->file->cursorCol;
 
             currentFileArena->file->prevLine = 
                 currentFileArena->file->currentLineNode->prev &&
@@ -234,9 +262,10 @@ void ed_moveCursor(short x, short y){
             tempNode = currentFileArena->file->currentLineNode;
             currentFileArena->file->currentLineNode = tempNode->next;
             
-            (currentFileArena->file->nextLine->length < currentFileArena->file->cursorCol) 
-            ? currentFileArena->file->prevLine->length - 1
-            : currentFileArena->file->cursorCol;
+            currentFileArena->file->cursorCol = 
+                (currentFileArena->file->nextLine->length < currentFileArena->file->cursorCol) 
+                ? currentFileArena->file->nextLine->length - 1
+                : currentFileArena->file->cursorCol;
 
             currentFileArena->file->prevLine = 
                 currentFileArena->file->currentLineNode->prev &&
@@ -253,7 +282,16 @@ void ed_moveCursor(short x, short y){
                 NULL;
         }
 
+        
         currentFileArena->file->cursorLine += y;
+        // If the cursor is closer to the bottom
+        if( (currentCursorY >= VIDEO_ROWS - 1 && y > 0) || (currentCursorY <= currentFileArena->file->scrollY - currentFileArena->file->cursorLine && y < 0) ){
+            currentFileArena->file->scrollY += y;
+            
+            // If the cursor is at the bottom, the first line counter + number of rows in screen are less that the total of lines of the file
+            // we proceed to scroll down
+        }
+    
     }
     // END VERTICAL SCROLLING =====================================================
 
@@ -278,7 +316,7 @@ void ed_moveCursor(short x, short y){
     }
     // END HORIZ, SCROLLING =====================================================
 
-    _updateCurrentCursorX();
+    _updateCursor();
 }
 
 void ed_renderElements(){
@@ -329,7 +367,7 @@ void ed_typeChar(char c){
 
     currentFileArena->file->isModified = true;
     
-    _updateCurrentCursorX();
+    _updateCursor();
 }
 
 void ed_backspace(){
@@ -447,7 +485,7 @@ void ed_backspace(){
     }
 
     currentFileArena->file->isModified = true;      
-    _updateCurrentCursorX();
+    _updateCursor();
 }
 void ed_supr(){
         // We type the char at 
@@ -475,7 +513,7 @@ void ed_supr(){
     line->length--;
 
     currentFileArena->file->isModified = true;
-    _updateCurrentCursorX();
+    _updateCursor();
 }
 
 void ed_newLine(){
@@ -610,7 +648,7 @@ void ed_newLine(){
     // activity flags
     currentFileArena->file->isModified = true;
 
-    _updateCurrentCursorX();
+    _updateCursor();
 }
 
 // PROMPT ELEMENT
@@ -695,59 +733,20 @@ char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
     return buffer;
 }
 
-// Calculate current line number of tabs
-int _calculateTabCount(){
-    unsigned int i = 0, tabCount = 0;
-    char c;
 
-    while(c != '\0'){
-        c = currentFileArena->file->currentLine->buffer[i];
-
-        if(c == CHAR_TAB) tabCount++;
-
-        i++;
-    }
-    return tabCount;
-}
-
-int _calculateTabStart(){
-    int i = 0, tabCount = 0;
-    char c, cnext;
-
-    while(c != '\0'){
-        c = currentFileArena->file->currentLine->buffer[i];
-
-        if (c == CHAR_TAB){
-            tabCount++;
-
-            cnext = currentFileArena->file->currentLine->buffer[i + 1];
-
-            if(cnext == NULL && cnext != CHAR_TAB){
-                return tabCount;
-            }
-        }
-        i++;
-
-    }
-
-    return tabCount;
-}
 void ed_putCursorEnd(){
     unsigned int tabCount = 0;
 
     tabCount = _calculateTabCount();
-
-    currentCursorX = LINE_COUNTER_WIDTH + currentFileArena->file->currentLine->length + (tabCount * 3);
     currentFileArena->file->cursorCol = currentFileArena->file->currentLine->length;
+
+    _updateCursor();
 }
 
-void ed_putCursorStart(){
-    int tabCount = 0;
+void ed_putCursorStart(){   
+    currentFileArena->file->cursorCol = 0;
 
-    tabCount = _calculateTabStart();
-
-    currentCursorX = LINE_COUNTER_WIDTH + (tabCount * 4);        
-    currentFileArena->file->cursorCol = tabCount;
+    _updateCursor();
 }
 
 void ed_putCursorFistLine(){

@@ -107,11 +107,28 @@
 extern struct Container *root;
 extern bool ed_renderEvent;
 
+extern unsigned short ed_statusbarBgColor;
+extern unsigned short ed_statusbarFgColor;
+
 /* Prototypes ==============================================*/
 
+void ed_initConfig(int argc, char *argv[]);
+void ed_handleArguments(int argc, char *argv[]);
 void ed_updateCursor();
 void ed_putCursor(unsigned char x, unsigned char y);
 void ed_moveCursor(short x, short y);
-void ed_triggerSave();
+void ed_typeChar(char c);
+void ed_backspace();
+void ed_supr();
+void ed_tab();
+
+char *ed_getDefaultExtension();
+char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars);
+
+void ed_putCursorEnd();
+void ed_putCursorStart();
+
+void ed_putCursorFistLine();
+void ed_putCursorLastLine();
 
 #endif

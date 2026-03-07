@@ -20,6 +20,7 @@
     "int 0x10" \
     "mov ax, 0x0083" \
     "int 0x10" \
+    modify [ax bx cx dx]
 
 #pragma aux _set400Lines_asm = \
     "mov ax, 0x1202" \
@@ -27,16 +28,19 @@
     "int 0x10" \
     "mov ax, 0x0083" \
     "int 0x10" \
+    modify [ax bx cx dx]
 
 #pragma aux _set43Lines_asm = \
     "mov ax, 0x1112" \
     "mov bl, 0x00" \
     "int 0x10" \
+    modify [ax bx cx dx]
     
 #pragma aux _set25Lines_asm = \
     "mov ax, 0x1114" \
     "mov bl, 0x00" \
     "int 0x10" \
+    modify [ax bx cx dx]
 
    
 extern unsigned short *textmemptr;      // VIDEO BUFFER

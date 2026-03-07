@@ -10,7 +10,7 @@
 
 #include "TYPES.H"
 
-void addToList(List **list, Node *newNode, char *arenaName);
+void addToList(List **list, Node *newNode, char *arenaName, MemoryArena *arena);
 Node *createNode(void *data, char *arenaName);
 Node *getNodeByIndex(List **list, int index);
 void deleteNodeByIndex(List **list, int index);
@@ -19,7 +19,9 @@ void softDeleteByIndex(List **list, int index);
 Node *insertByIndex(List **list, Node *newNode, unsigned int index);
 Node *pop(List **list);
 List *invertList(List **list);
-void addGenericNode(List **list, void *data, char *arenaName);
+void addGenericNode(List **list, void *data, char *arenaName, MemoryArena *arena);
+Node *insertGenericNode(List **list, void *data, MemoryArena *arena, unsigned int index);
+
 void freeList(List **list);
 
 #endif

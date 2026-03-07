@@ -16,13 +16,17 @@ Node *createNode(void *data, char *arenaName){
     return newNode;
 }
 
-void addToList(List **list, Node *newNode, char *arenaName){
+void addToList(List **list, Node *newNode, char *arenaName, MemoryArena *arena){
     Node *rec = NULL;
     if((*list) == NULL){
-        if(arenaName == NULL){
+        if(arenaName == NULL && arena == NULL){
             (*list) = (List*)malloc(sizeof(List));
-        }else{
+        }else if (arena){
+            (*list) = (List*)mem_arena_alloc(arena, NULL, sizeof(List));
+        }else if (arenaName){
             (*list) = (List*)mem_arena_alloc(NULL, arenaName, sizeof(List));
+        }else{
+            return;
         }
 
         (*list)->firstNode = NULL;
@@ -133,10 +137,16 @@ Node *insertByIndex(List **list, Node *newNode, unsigned int index){
 Node *pop(List **list){
     Node *popped = NULL;
 
-    if((*list) != NULL && (*list)->lastNode != NULL){
+    if(
+        (*list) &&
+        (*list)->lastNode &&
+        (*list)->length > 0
+    ){
         popped = (*list)->lastNode;
         (*list)->lastNode = (*list)->lastNode->prev;
         (*list)->lastNode->next = NULL;
+        
+        
         (*list)->length--;
 
         popped->next = NULL;
@@ -217,13 +227,15 @@ bool includes(float val, float *arr, size_t n) {
 }
 
 // GENERIC
-void addGenericNode(List **list, void *data, char *arenaName){
+void addGenericNode(List **list, void *data, char *arenaName, MemoryArena *arena){
 	Node *newNode = NULL;
 
-    if(arenaName == NULL){
-        newNode = (Node*)malloc(sizeof(Node));
-    }else{
+    if(arena != NULL){
+        newNode = (Node*)mem_arena_alloc(arena, NULL, sizeof(Node));
+    }else if (arenaName != NULL) {
         newNode = (Node*)mem_arena_alloc(NULL, arenaName, sizeof(Node));
+    }else{
+        newNode = (Node*)malloc(sizeof(Node));
     }
 
 	newNode->data = data;
@@ -231,5 +243,70 @@ void addGenericNode(List **list, void *data, char *arenaName){
 	newNode->prev = NULL;
     newNode->isDeleted = false;
 
-	addToList(list, newNode, arenaName);
+	addToList(list, newNode, arenaName, arena);
+}
+
+Node *insertGenericNode(List **list, void *data, MemoryArena *arena, unsigned int index){
+    Node *temp = NULL;
+    Node *newNode = NULL;
+
+    if(!data) return NULL;
+    if(!arena){
+        logger("[data/insertGenericNode]: arena is NULL");
+        return NULL;
+    }
+    if((*list) == NULL) {
+        logger("[data/insertGenericNode]: list is NULL");
+        return NULL;
+    }
+
+    /* Check bounds: can insert at any index from 0 to length inclusive (appending) */
+    if(index > (*list)->length){
+        logger("[data/insertGenericNode]: index %d out of bounds (length %d)", index, (*list)->length);
+        return NULL;
+    }
+
+    newNode = (Node*)mem_arena_alloc(arena, NULL, sizeof(Node));
+    newNode->data = data;
+    newNode->isDeleted = false;
+
+    if(index == 0){
+        /* Insert at the beginning */
+        newNode->next = (*list)->firstNode;
+        newNode->prev = NULL;
+        if((*list)->firstNode != NULL){
+            (*list)->firstNode->prev = newNode;
+        }
+        (*list)->firstNode = newNode;
+        
+        /* If list was empty, it's also the last node */
+        if((*list)->lastNode == NULL){
+            (*list)->lastNode = newNode;
+        }
+    } else if(index == (*list)->length){
+        /* Append at the end */
+        newNode->next = NULL;
+        newNode->prev = (*list)->lastNode;
+        if((*list)->lastNode != NULL){
+            (*list)->lastNode->next = newNode;
+        }
+        (*list)->lastNode = newNode;
+    } else {
+        /* Insert in the middle */
+        temp = getNodeByIndex(list, index);
+        if(temp != NULL){
+            newNode->next = temp;
+            newNode->prev = temp->prev;
+            if(temp->prev != NULL){
+                temp->prev->next = newNode;
+            }
+            temp->prev = newNode;
+        } else {
+            /* Should not happen due to bounds check, but safe fallback */
+            return NULL;
+        }
+    }
+
+    (*list)->length++;
+    return newNode;
 }

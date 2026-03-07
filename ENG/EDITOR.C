@@ -318,6 +318,15 @@ void ed_moveCursor(short x, short y){
             // HERE WE SHOULD SCROLL RIGHT 
             currentFileArena->file->cursorCol = currentFileArena->file->currentLine->length - 1;
         }
+
+        // HORIZONTAL SCREEN SCROLL
+        if(
+            (currentCursorX - LINE_COUNTER_WIDTH - currentFileArena->file->scrollX <= currentFileArena->file->cursorCol && currentFileArena->file->cursorCol > 0) && ( x <= 0) ||
+            (currentCursorX >= VIDEO_COLS - 1) && (x > 0)){
+            currentFileArena->file->scrollX += x;
+        }
+
+
     }
     // END HORIZ, SCROLLING =====================================================
 

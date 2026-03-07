@@ -514,17 +514,17 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                 // ============ LINE CONTENT ========================================================
                 //
                     /* After line counter column, we draw the rest of the line content */
-                    if(linePos < line->length){
-                        c = line->buffer[linePos];
+                    if(linePos + currentFileArena->file->scrollX < line->length){
+                        c = line->buffer[linePos + currentFileArena->file->scrollX];
 
                         // =========== SPECIAL KEYWORD COLORING=======================================
-                        if(&line->buffer[linePos] > csWordEnd){
+                        if(&line->buffer[linePos + currentFileArena->file->scrollX] > csWordEnd){
                             memcpy(previousWord, detectedWord, strlen(detectedWord));
                             previousWord[strlen(detectedWord)] = '\0';
 
                             memset(detectedWord, 0, 32);
                             
-                            csWordStart = &line->buffer[linePos];
+                            csWordStart = &line->buffer[linePos + currentFileArena->file->scrollX];
                             csWordEnd = csWordStart;
 
                             if(isMultilineComment == false){
@@ -534,11 +534,11 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                                
                             }
 
-                            if(line->buffer[linePos] == '*' && line->buffer[linePos + 1] == '/'){
+                            if(line->buffer[linePos + currentFileArena->file->scrollX ] == '*' && line->buffer[linePos + currentFileArena->file->scrollX + 1] == '/'){
                                 isMultilineComment = false;
                             }
                             
-                            if(line->buffer[linePos] == '/' && line->buffer[linePos + 1] == '/'){
+                            if(line->buffer[linePos + currentFileArena->file->scrollX] == '/' && line->buffer[linePos + currentFileArena->file->scrollX + 1] == '/'){
                                 isSingleLineComment = true;
                             }
                             

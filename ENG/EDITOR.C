@@ -71,13 +71,14 @@ int _calculateTabCount(){
     unsigned int i = 0, tabCount = 0;
     char c;
 
-    while(c != '\0'){
+    do{
         c = currentFileArena->file->currentLine->buffer[i];
 
         if(c == CHAR_TAB) tabCount++;
 
         i++;
-    }
+    }while ( c != '\0');
+
     return tabCount;
 }
 
@@ -85,7 +86,7 @@ int _calculateTabStart(){
     int i = 0, tabCount = 0;
     char c, cnext;
 
-    while(c != '\0'){
+    do{
         c = currentFileArena->file->currentLine->buffer[i];
 
         if (c == CHAR_TAB){
@@ -98,8 +99,7 @@ int _calculateTabStart(){
             }
         }
         i++;
-
-    }
+    }while (c != '\0');
 
     return tabCount;
 }
@@ -118,20 +118,23 @@ void _updateCurrentCursorX(){
     int tabcounts = 0;
     // For debugging
     currentFileArena->file->prevChar = 
-    currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1]
-    ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1]
-    : ' ';
-    
+        currentFileArena->file->cursorCol - 1 > 0 &&
+        currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1]
+        ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1]
+        : ' ';
+        
     currentFileArena->file->currentChar =
     currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol]
     ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol]
     : ' ';
     
     currentFileArena->file->nextChar = 
+    currentFileArena->file->cursorCol + 1 < currentFileArena->file->currentLine->length && 
     currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + 1]
     ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + 1]
     : ' ';
     
+    //logger("[_updateCurrentCursorX]: '%c' '%c' '%c'", currentFileArena->file->prevChar, currentFileArena->file->currentChar, currentFileArena->file->nextChar);
     
      if(currentFileArena->file->cursorCol <= 0 ){
          currentCursorX = 0;
@@ -225,8 +228,6 @@ void ed_moveCursor(short x, short y){
 
     // If the cursor is at 0 and we want to scroll up
     if(y && currentFileArena->file->cursorLine + y >= 0){       
-
-
         // IF the cursor is moved by 1 step, then we move the data between nodes by one node
         if(
             y == -1 &&
@@ -291,7 +292,11 @@ void ed_moveCursor(short x, short y){
             // If the cursor is at the bottom, the first line counter + number of rows in screen are less that the total of lines of the file
             // we proceed to scroll down
         }
-    
+
+        // Cursor col update 
+        if (currentFileArena->file->currentLine->length < currentFileArena->file->cursorCol){
+            currentFileArena->file->cursorCol = currentFileArena->file->currentLine->length;
+        }
     }
     // END VERTICAL SCROLLING =====================================================
 

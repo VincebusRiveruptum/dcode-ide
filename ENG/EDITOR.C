@@ -139,15 +139,19 @@ void _updateCurrentCursorX(){
      if(currentFileArena->file->cursorCol <= 0 ){
          currentCursorX = 0;
         
-     }else if(currentFileArena->file->cursorCol > 0){
+     }
+     
+     if(currentFileArena->file->cursorCol > 0){
          currentCursorX = currentFileArena->file->cursorCol;        
     
-     }else if(currentFileArena->file->cursorCol >= VIDEO_COLS) {
+     }
+     
+     if(currentFileArena->file->cursorCol + LINE_COUNTER_WIDTH >= VIDEO_COLS) {
          currentCursorX = VIDEO_COLS - 1;
-     }    
-    
-    tabcounts = _get_tab_counts_until_cursorCol();
-    currentCursorX = currentCursorX + tabcounts * 3 + LINE_COUNTER_WIDTH;
+     }else{
+         tabcounts = _get_tab_counts_until_cursorCol();
+         currentCursorX = currentCursorX + tabcounts * 3 + LINE_COUNTER_WIDTH;
+    }
 }
 
 void _updateCursor(){
@@ -320,9 +324,12 @@ void ed_moveCursor(short x, short y){
         }
 
         // HORIZONTAL SCREEN SCROLL
+        // TODO: THIS HAS A BUG THAT NEED TO BE FIXED...
         if(
+            currentFileArena->file->scrollX > 0 &&
+            currentFileArena->file->scrollX < MAX_FILE_LINE_LENGTH - VIDEO_COLS &&
             (currentCursorX - LINE_COUNTER_WIDTH - currentFileArena->file->scrollX <= currentFileArena->file->cursorCol && currentFileArena->file->cursorCol > 0) && ( x <= 0) ||
-            (currentCursorX >= VIDEO_COLS - 1) && (x > 0)){
+            (currentCursorX >= VIDEO_COLS - 1 && currentFileArena->file->cursorCol + x < currentFileArena->file->currentLine->length) && (x > 0)){
             currentFileArena->file->scrollX += x;
         }
 

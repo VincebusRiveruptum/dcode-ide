@@ -32,6 +32,7 @@ void t_drawDebugger(){
     dw_writeBuffer(textmemptr, "deleted lines: %d", 60, 5, VIDEO_COLS - 1, 5,ed_statusbarFgColor, ed_statusbarBgColor, currentFileArena->file->deletedLines->length );
     dw_writeBuffer(textmemptr, "currentCursorX: %d", 60, 6, VIDEO_COLS - 1, 6, ed_statusbarFgColor, ed_statusbarBgColor, currentCursorX );
     dw_writeBuffer(textmemptr, "currentCursorY: %d", 60, 7, VIDEO_COLS - 1, 7, ed_statusbarFgColor, ed_statusbarBgColor, currentCursorY );
+    dw_writeBuffer(textmemptr, "line length: %d", 60, 8, VIDEO_COLS - 1, 8, ed_statusbarFgColor, ed_statusbarBgColor, currentFileArena->file->currentLine->length);
 }
 
 /* ===================================================================*/

@@ -263,7 +263,7 @@ void f_newFile(){
     }
 
     sprintf(&tempName, "newfile%d%s", newFileCounter, f_defaultExtension);
-    newArena = (MemoryArena *)mem_create_arena(tempName, MEM_ARENA_FILE, MEM_ARENA_256K);
+    newArena = (MemoryArena *)mem_create_arena(tempName, MEM_ARENA_FILE, MEM_ARENA_512K);
 
     if(!newArena){
         logger("[f_newFile]: Failed creating memory arena");
@@ -368,7 +368,7 @@ bool f_openFile(char *filename){
     }
 
     /* We prepare the File arena */
-    arena = mem_create_arena(filename + f_getFileName(filename), MEM_ARENA_FILE, MEM_ARENA_256K);
+    arena = mem_create_arena(filename + f_getFileName(filename), MEM_ARENA_FILE, MEM_ARENA_512K);
 
     fileArena = (FileArena *)mem_arena_alloc(arena, NULL ,sizeof(FileArena));
     fileArena->arena = arena;
@@ -504,7 +504,7 @@ void f_saveFile(){
     }
     
     // We create a new arena for the file buffer
-    newArena = mem_create_arena(newArenaName, oldArena->type, MEM_ARENA_256K);
+    newArena = mem_create_arena(newArenaName, oldArena->type, MEM_ARENA_512K);
 
     if(!newArena){
         logger("[f_saveFile]: Could not create swapping arena!");

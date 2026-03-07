@@ -56,15 +56,21 @@ void ed_handleArguments(int argc, char *argv[]){
     ed_renderEvent = true;
 }
 
-int _get_tab_counts_until_cursorCol(){
+int _get_tab_counts_until(int col){
     int i = 0, tabCount = 0;
 
-    while(i < currentFileArena->file->cursorCol){
+    if (!currentFileArena->file->currentLine) return 0;
+
+    while(i < col && i < currentFileArena->file->currentLine->length){
         if(currentFileArena->file->currentLine->buffer[i] == CHAR_TAB) tabCount++;
         i++; 
     }
     
     return tabCount;
+}
+
+int _calculateVisualOffset(int col){
+    return col + (_get_tab_counts_until(col) * 3);
 }
 // Calculate current line number of tabs
 int _calculateTabCount(){
@@ -115,42 +121,34 @@ void _updateCurrentCursorY(){
     if(currentCursorY >= VIDEO_ROWS ) currentCursorY = VIDEO_ROWS;
 }
 void _updateCurrentCursorX(){
-    int tabcounts = 0;
-    // For debugging
-    currentFileArena->file->prevChar = 
-        currentFileArena->file->cursorCol - 1 > 0 &&
-        currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1]
-        ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1]
-        : ' ';
-        
-    currentFileArena->file->currentChar =
-    currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol]
-    ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol]
-    : ' ';
+    int visualCursor = 0;
+    int visualScroll = 0;
     
-    currentFileArena->file->nextChar = 
-    currentFileArena->file->cursorCol + 1 < currentFileArena->file->currentLine->length && 
-    currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + 1]
-    ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + 1]
-    : ' ';
-    
-    //logger("[_updateCurrentCursorX]: '%c' '%c' '%c'", currentFileArena->file->prevChar, currentFileArena->file->currentChar, currentFileArena->file->nextChar);
-    
-     if(currentFileArena->file->cursorCol <= 0 ){
-         currentCursorX = 0;
-        
-     }
-     
-     if(currentFileArena->file->cursorCol > 0){
-         currentCursorX = currentFileArena->file->cursorCol;        
-    
-     }
-     
-     if(currentFileArena->file->cursorCol + LINE_COUNTER_WIDTH >= VIDEO_COLS) {
-         currentCursorX = VIDEO_COLS - 1;
-     }else{
-         tabcounts = _get_tab_counts_until_cursorCol();
-         currentCursorX = currentCursorX + tabcounts * 3 + LINE_COUNTER_WIDTH;
+    visualCursor = _calculateVisualOffset(currentFileArena->file->cursorCol);
+    visualScroll = _calculateVisualOffset(currentFileArena->file->scrollX);
+
+    currentCursorX = (visualCursor - visualScroll) + LINE_COUNTER_WIDTH;
+
+    // Boundary check to keep cursor on screen if something goes wrong
+    if(currentCursorX < LINE_COUNTER_WIDTH) currentCursorX = LINE_COUNTER_WIDTH;
+    if(currentCursorX >= VIDEO_COLS) currentCursorX = VIDEO_COLS - 1;
+}
+
+void _ensureHorizontalScroll(){
+    int visualCursor = _calculateVisualOffset(currentFileArena->file->cursorCol);
+    int visualScroll = _calculateVisualOffset(currentFileArena->file->scrollX);
+    int displayWidth = VIDEO_COLS - LINE_COUNTER_WIDTH;
+
+    // If cursor is to the left of the visible area
+    if (visualCursor < visualScroll) {
+        currentFileArena->file->scrollX = currentFileArena->file->cursorCol;
+    } 
+    // If cursor is to the right of the visible area
+    else if (visualCursor >= visualScroll + displayWidth) {
+        // We move scrollX forward until the cursor is visible
+        while (_calculateVisualOffset(currentFileArena->file->scrollX) + displayWidth <= visualCursor) {
+            currentFileArena->file->scrollX++;
+        }
     }
 }
 
@@ -305,7 +303,6 @@ void ed_moveCursor(short x, short y){
     // END VERTICAL SCROLLING =====================================================
 
     // HORIZ, SCROLLING ===========================================================
-    // We can't move the cursor past the end of the line
     if(x){
         if(currentFileArena->file->cursorCol + x <= 0){
             currentFileArena->file->cursorCol = 0;
@@ -313,27 +310,17 @@ void ed_moveCursor(short x, short y){
             currentFileArena->file->cursorCol + x > 0 && 
             currentFileArena->file->cursorCol + x <= currentFileArena->file->currentLine->length
         ){  
-            if (x < 0) c = currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + x];
-            if (x > 0) c = currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + x - 1];
-
             currentFileArena->file->cursorCol +=x;
 
-        }else if(currentFileArena->file->cursorCol + x >= VIDEO_COLS && currentFileArena->file->currentLine->length >= VIDEO_COLS){
-            // HERE WE SHOULD SCROLL RIGHT 
-            currentFileArena->file->cursorCol = currentFileArena->file->currentLine->length - 1;
+        }else if(currentFileArena->file->cursorCol + x >= MAX_FILE_LINE_LENGTH){
+            currentFileArena->file->cursorCol = MAX_FILE_LINE_LENGTH - 1;
         }
 
-        // HORIZONTAL SCREEN SCROLL
-        // TODO: THIS HAS A BUG THAT NEED TO BE FIXED...
-        if(
-            currentFileArena->file->scrollX > 0 &&
-            currentFileArena->file->scrollX < MAX_FILE_LINE_LENGTH - VIDEO_COLS &&
-            (currentCursorX - LINE_COUNTER_WIDTH - currentFileArena->file->scrollX <= currentFileArena->file->cursorCol && currentFileArena->file->cursorCol > 0) && ( x <= 0) ||
-            (currentCursorX >= VIDEO_COLS - 1 && currentFileArena->file->cursorCol + x < currentFileArena->file->currentLine->length) && (x > 0)){
-            currentFileArena->file->scrollX += x;
-        }
-
-
+        _ensureHorizontalScroll();
+    }
+    
+    if (y) {
+        _ensureHorizontalScroll();
     }
     // END HORIZ, SCROLLING =====================================================
 
@@ -388,6 +375,7 @@ void ed_typeChar(char c){
 
     currentFileArena->file->isModified = true;
     
+    _ensureHorizontalScroll();
     _updateCursor();
 }
 
@@ -502,6 +490,7 @@ void ed_backspace(){
             currentFileArena->file->currentLine->length--;
             
             currentFileArena->file->cursorCol--;
+            _ensureHorizontalScroll();
         }
     }
 
@@ -632,7 +621,6 @@ void ed_newLine(){
     currentFileArena->file->lines->length++;
 
     currentFileArena->file->cursorLine = currentFileArena->file->scrollY + currentCursorY;
-    currentFileArena->file->cursorCol = currentCursorX - LINE_COUNTER_WIDTH ;
 
     currentFileArena->file->prevLine = 
         currentFileArena->file->currentLineNode->prev &&
@@ -664,6 +652,7 @@ void ed_newLine(){
     }
 
     currentFileArena->file->cursorCol = 0;
+    currentFileArena->file->scrollX = 0;
     currentFileArena->file->cursorLine++;
 
     // activity flags
@@ -756,17 +745,16 @@ char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
 
 
 void ed_putCursorEnd(){
-    unsigned int tabCount = 0;
-
-    tabCount = _calculateTabCount();
     currentFileArena->file->cursorCol = currentFileArena->file->currentLine->length;
 
+    _ensureHorizontalScroll();
     _updateCursor();
 }
 
 void ed_putCursorStart(){   
     currentFileArena->file->cursorCol = 0;
 
+    _ensureHorizontalScroll();
     _updateCursor();
 }
 

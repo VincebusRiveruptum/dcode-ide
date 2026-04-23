@@ -132,3 +132,4 @@ void ed_putCursorFistLine();
 void ed_putCursorLastLine();
 
 #endif
+

@@ -36,6 +36,7 @@ int main(int argc, char *argv[]){
         if(isKeyDown(KEY_F1)) {v_set25Lines(); ed_renderEvent = true;}
         if(isKeyDown(KEY_F2)) {v_set50Lines(); ed_renderEvent = true;}
         if(isKeyDown(KEY_F3)) {v_set43Lines(); ed_renderEvent = true;}
+        if(isKeyDown(KEY_F12)){mem_vis_mem()};
         
         if(isKeyDown(KEY_HOME)) ed_putCursorStart();
         if(isKeyDown(KEY_END)) ed_putCursorEnd();
@@ -120,7 +121,7 @@ int main(int argc, char *argv[]){
         dw_writeBuffer(textmemptr, "Line %d, Col %d %c", 0, VIDEO_ROWS - 1, 39, VIDEO_ROWS - 1, ed_statusbarFgColor, ed_statusbarBgColor, currentFileArena->file->cursorLine + 1, currentFileArena->file->cursorCol + 1, 179, currentFileArena->file->currentLine->length);
         dw_writeBuffer(textmemptr, " %s", 40, VIDEO_ROWS - 1, VIDEO_COLS, VIDEO_ROWS - 1, ed_statusbarFgColor, ed_statusbarBgColor, currentFileArena->file->name);
         
-        t_drawDebugger();
+        //t_drawDebugger();
         ed_updateCursor();
 
         if(ed_renderEvent == true){
@@ -140,6 +141,10 @@ int main(int argc, char *argv[]){
     printf("96 Tears...\n");
     return 0;
 }
+
+
+
+
 
 
 

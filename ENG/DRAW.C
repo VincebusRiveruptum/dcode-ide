@@ -606,3 +606,4 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
     }
 }
 
+

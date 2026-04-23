@@ -802,54 +802,78 @@ void ed_putCursorFistLine(){
     currentFileArena->file->cursorCol = currentCursorX - LINE_COUNTER_WIDTH;
     
 
-    ed_putCursor(currentCursorX, currentCursorY);
-    ed_renderEvent = true;
+    _updateCursor();
 }
 
 void ed_putCursorLastLine(){
-    Line *tmpLine;
-    int lineposX;
+	int lineJump = 0;
+	Node *newLineNode = NULL;
+	Line *newLine = NULL;
 
-    currentFileArena->file->currentLineNode = currentFileArena->file->lines->lastNode;
+    if(
+		currentFileArena->file->lines->length > 0 &&
+		currentFileArena->file->cursorLine < currentFileArena->file->lines->length
+	){
+		lineJump = 
+			(currentFileArena->file->lines->length < VIDEO_ROWS)	
+			? currentFileArena->file->lines->length - 1
+			: VIDEO_ROWS - 1;
+			 
+		currentFileArena->file->cursorLine += lineJump;
+		currentFileArena->file->scrollY += 
+			currentFileArena->file->lines->length < VIDEO_ROWS
+			? 0 
+			: lineJump;	
+	}
+	
+	newLineNode = getNodeByIndex(&currentFileArena->file->lines, currentFileArena->file->cursorLine);
 
-    currentFileArena->file->prevLine =
-        currentFileArena->file->currentLineNode &&
-        currentFileArena->file->currentLineNode->prev 
-        ?
-            currentFileArena->file->currentLineNode->prev->data
-        :
-            NULL
-        ;
-        
-    currentFileArena->file->currentLine = currentFileArena->file->currentLineNode->data;
-    
-    currentFileArena->file->nextLine =
-        currentFileArena->file->currentLineNode &&
-        currentFileArena->file->currentLineNode->next
-        ?
-            currentFileArena->file->currentLineNode->next->data
-        :
-            NULL
-        ;
-    
-    lineposX = 
-        currentFileArena->file->currentLine->length - 1 < currentCursorX - LINE_COUNTER_WIDTH
-        ?
-            LINE_COUNTER_WIDTH + currentFileArena->file->currentLine->length - 1
-        :
-            currentCursorX
-        ;
-    
-    currentCursorX = lineposX;
-    // then we need to reset some flags so we can redraw the screen properly
-    /* Sync file cursor */
-    currentFileArena->file->scrollY = currentFileArena->file->lines->length - VIDEO_ROWS;
-    currentFileArena->file->cursorLine = currentFileArena->file->lines->length;
-    currentFileArena->file->cursorCol = currentCursorX - LINE_COUNTER_WIDTH;
-    
-    currentCursorY = currentFileArena->file->lines->length - currentFileArena->file->scrollY - 1;
-        
-    ed_putCursor(currentCursorX, currentCursorY);
-    ed_renderEvent = true;
+	if(!newLineNode){
+		logger("[ed_putCursorLastLine]: Error trying to obtain last line node.");
+		return;
+	}
+	
+	newLine = (Line*)newLineNode->data;
+
+	if(!newLine){
+		logger("[ed_putCursorLastLine]: Error trying to obtain last line object.");
+		return;
+	}	        
+	// Line metadata updating
+
+	currentFileArena->file->currentLineNode = newLineNode;
+	currentFileArena->file->currentLine = newLine;
+
+	currentFileArena->file->prevLine = 
+		currentFileArena->file->currentLineNode->prev 
+		? currentFileArena->file->currentLineNode->prev
+		: NULL;
+
+	currentFileArena->file->nextLine = 
+		currentFileArena->file->currentLineNode->next
+		? currentFileArena->file->currentLineNode->next
+		: NULL;
+	
+	// If on the new line the previous position is larger than the new line length, then we do the following
+	if(currentFileArena->file->cursorCol >= currentFileArena->file->currentLine->length - 1){
+		currentFileArena->file->cursorCol = currentFileArena->file->currentLine->length - 1;
+	}
+
+	_updateCursor();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

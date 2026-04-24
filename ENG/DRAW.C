@@ -346,6 +346,14 @@ void dw_writeBuffer(unsigned short *buffer, const char *format, int x1, int y1, 
     }
 }
 
+void dw_charXY_color(unsigned short *buffer, char c, unsigned char x, unsigned char y, unsigned short color){
+    unsigned short screenPos;
+    unsigned short bgColor = (buffer[(y * VIDEO_COLS) + x] >> 12) & 0x0F;
+
+    screenPos = (y * VIDEO_COLS) + x;
+    buffer[screenPos] = c | ((bgColor << 4) | (color << 8));
+}
+
 void dw_charXY(unsigned short *buffer, char c, unsigned char x, unsigned char y){
     unsigned short screenPos;
     

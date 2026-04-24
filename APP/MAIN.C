@@ -36,8 +36,8 @@ int main(int argc, char *argv[]){
         if(isKeyDown(KEY_F1)) {v_set25Lines(); ed_renderEvent = true;}
         if(isKeyDown(KEY_F2)) {v_set50Lines(); ed_renderEvent = true;}
         if(isKeyDown(KEY_F3)) {v_set43Lines(); ed_renderEvent = true;}
-        if(isKeyDown(KEY_F12)){mem_vis_mem()};
-        
+        if(isKeyDown(KEY_F12)){mem_vis_mem();};
+
         if(isKeyDown(KEY_HOME)) ed_putCursorStart();
         if(isKeyDown(KEY_END)) ed_putCursorEnd();
         

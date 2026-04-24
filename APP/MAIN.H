@@ -19,5 +19,6 @@
 #include "..\ENG\STD.H"
 #include "..\ENG\TEST.H"
 #include "..\ENG\VIDEO.H"
+#include "..\ENG\VISMEM.H"
 
 #endif

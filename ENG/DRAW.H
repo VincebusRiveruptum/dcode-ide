@@ -47,6 +47,7 @@ void dw_rectangle(unsigned short *buffer, unsigned short x1, unsigned short y1, 
 void dw_writeBuffer(unsigned short *buffer, const char *format, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, ...);
 void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, struct File *file);
 
+void dw_charXY_color(unsigned short *buffer, char c, unsigned char x, unsigned char y, unsigned short color);
 void dw_charXY(unsigned short *buffer, char c, unsigned char x, unsigned char y);
 char dw_read(unsigned short *buffer, int x, int y);
 

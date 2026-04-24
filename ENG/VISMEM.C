@@ -26,7 +26,7 @@ void mem_vis_mem(){
     // lets divide by 100
 
     // Get arenas
-    logger("[mem_vis_mem]: Searching existing arenas");
+    logger("[mem_vis_mem]: Searching existing arenas!");
 
     do{
         farenaptr = &fileList[i];

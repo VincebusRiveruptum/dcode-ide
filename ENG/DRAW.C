@@ -48,12 +48,21 @@ unsigned char _keywordMap(char *word, char *previousWord){
 
     // Then we check if it's a keyword
     
-    // System keywords
+    // vars
     if (strcmp(word, "int") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "long") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "short") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "double") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "FILE") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "size_t") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "float") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "char") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "void") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "bool") == 0) return COLOR_LIGHT_RED;
+if (strcmp(word, "typedef") == 0) return COLOR_LIGHT_RED;
+if (strcmp(word, "unsigned") == 0) return COLOR_LIGHT_RED;
+
+    /* Control flow */
     if (strcmp(word, "if") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "else") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "while") == 0) return COLOR_LIGHT_RED;
@@ -135,6 +144,8 @@ unsigned char _keywordMap(char *word, char *previousWord){
     if (strcmp(word, "//") == 0) return COLOR_DARK_GRAY;
     if (strcmp(word, "/*") == 0) return COLOR_DARK_GRAY;
     if (strcmp(word, "*/") == 0) return COLOR_DARK_GRAY;
+    
+    if (strcmp(word, "renamon") == 0) return COLOR_LIGHT_YELLOW;
 
 
 
@@ -177,28 +188,28 @@ char _getBorderCharacter(BorderType borderType, RectangleSides side){
         case DRAW_BORDER_DOUBLE:
             switch(side){
                 case DW_SIDE_TOP_LEFT:
-                    return 'É';
+                    return 0xC9; //'É';
                 case DW_SIDE_TOP_RIGHT:
-                    return '»';
+                    return 0xBB;//'»';
                 case DW_SIDE_BOTTOM_LEFT:
-                    return 'È';
+                    return 0xC8;//'È';
                 case DW_SIDE_BOTTOM_RIGHT:
-                    return '¼';
+                    return 0xBC;//'¼';
                 case DW_SIDE_TOP:
-                    return 'Í';
+                    return 0xCD;//'Í';
                 case DW_SIDE_BOTTOM:
-                    return 'Í';
+                    return 0xCD; //'Í';
                 case DW_SIDE_LEFT:
-                    return 'º';
+                    return 0xBA; //'º';
                 case DW_SIDE_RIGHT:
-                    return 'º';
+                    return 0xBA; //'º';
                 case DW_SIDE_ALL:
-                    return '°';
+                    return 0xB0; //'°';
                 default:
-                    return '°';
+                    return 0xB0; //'°';
             }
         default:
-            return '°';
+            return 0xB0; //'°';
     }
 }
 
@@ -207,11 +218,11 @@ void dw_cls(
     unsigned short blank;
     int i;
 
-    blank = CHAR_SPACE | (COLOR_BLACK << 4 | COLOR_LIGHT_GRAY) << 8;
+    blank = 0x20 | ((COLOR_BLACK << 4 | COLOR_LIGHT_GRAY) << 8);
     for(i = 0; i < VIDEO_COLS * VIDEO_ROWS; i++)
         buffer[i] = blank;
 
-    ed_moveCursor(0, 0);
+    ed_putCursor(0, 0);
 }
 
 void dw_fill(
@@ -329,9 +340,26 @@ void dw_writeBuffer(unsigned short *buffer, const char *format, int x1, int y1, 
             } else {
                 // Fill remaining area with spaces if buffer ends
                 buffer[screenPos] = ' ' | ((backgroundColor << 4 | foregroundColor) << 8);
+                
             }
         }
     }
+}
+
+void dw_charXY_color(unsigned short *buffer, char c, unsigned char x, unsigned char y, unsigned short color){
+    unsigned short screenPos;
+    unsigned short bgColor = (buffer[(y * VIDEO_COLS) + x] >> 12) & 0x0F;
+
+    screenPos = (y * VIDEO_COLS) + x;
+    buffer[screenPos] = c | ((bgColor << 4) | (color << 8));
+}
+
+void dw_charXY(unsigned short *buffer, char c, unsigned char x, unsigned char y){
+    unsigned short screenPos;
+    
+    screenPos = (y * VIDEO_COLS) + x;
+    buffer[screenPos] = c | (buffer[screenPos] & 0xFF00);
+
 }
 
 void dw_char(unsigned short *buffer, char c){
@@ -339,9 +367,50 @@ void dw_char(unsigned short *buffer, char c){
     
     screenPos = (currentCursorY * VIDEO_COLS) + currentCursorX;
     buffer[screenPos] = c | (buffer[screenPos] & 0xFF00);
-    currentCursorX++;
+
 }
+
+char dw_read(unsigned short *buffer, int x, int y){
+    char c;
     
+    if(x < 0 && x >= VIDEO_COLS && y < 0 && y >= VIDEO_ROWS) return 0;
+
+    c = (buffer[(y * VIDEO_COLS) + x] & 0xFF);
+    
+    return c;
+}
+
+char dw_readForegroundColor(unsigned short *buffer, int x, int y){
+    char c;
+    
+    if(x < 0 && x >= VIDEO_COLS && y < 0 && y >= VIDEO_ROWS) return 0;
+    
+    c = ((buffer[(y * VIDEO_COLS) + x]) >> 8) & 0x0F;
+    
+    return c;
+}
+
+char dw_readBackgroundColor(unsigned short *buffer, int x, int y){
+    char c;
+    
+    if(x < 0 && x >= VIDEO_COLS && y < 0 && y >= VIDEO_ROWS) return 0;
+    
+    c = ((buffer[(y * VIDEO_COLS) + x]) >> 12) & 0x0F;
+    
+    return c;
+}
+
+void dw_writeColor(unsigned short *buffer, int x, int y, unsigned short foregroundColor, unsigned short backgroundColor){
+    unsigned short screenPos;
+    unsigned short bgColor = (buffer[(y * VIDEO_COLS) + x] >> 12) & 0x0F;
+    unsigned short fgColor = (buffer[(y * VIDEO_COLS) + x] >> 8) & 0x0F;
+
+    if(foregroundColor <= 0x0F) fgColor = foregroundColor;
+    if(backgroundColor <= 0x0F) bgColor = backgroundColor;
+
+    screenPos = (y * VIDEO_COLS) + x;
+    buffer[screenPos] = (buffer[screenPos] & 0x00FF) | (bgColor << 12) | (fgColor << 8);
+}
 
 /* This also will take care of reserved word coloring */
 void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, File *file){
@@ -357,8 +426,7 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
     
     int t;
     int j;
-    int spaceBetween = 0;
-    int lineCounterWidth = 6;
+    int spaceBetween = 0;    
     int lineCount = 0;
     char lineCounterBufferTemp[8] = {0};
     
@@ -375,6 +443,8 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
     /* Boundary check */
     if(x1 > x2 || y1 > y2) return;
 
+
+    /**/
     if(!file->lines || file->lines->length == 0) {
         /* Clear area if no lines */
         for(y = y1; y <= y2; y++){
@@ -430,7 +500,7 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                 /* If is line counter column */
                 if (screenX == x1){
                     /* TERRIBLE CODE I KNOW*/
-                    for(j=0; j < lineCounterWidth; j++){
+                    for(j=0; j < LINE_COUNTER_WIDTH; j++){
                         destBuffer[screenPos + j] = ' ' | ((COLOR_BLACK << 4 | COLOR_WHITE) << 8);
                     }
 
@@ -443,26 +513,26 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                     if (lineCount >= 99999) spaceBetween = 5;
 
                     for(j=0; j < (int)strlen(lineCounterBufferTemp); j++){
-                        destBuffer[screenPos + j + (lineCounterWidth - spaceBetween - 1)] = lineCounterBufferTemp[j] | ((COLOR_BLACK << 4 | COLOR_WHITE) << 8);
+                        destBuffer[screenPos + j + (LINE_COUNTER_WIDTH - spaceBetween - 1)] = lineCounterBufferTemp[j] | ((COLOR_BLACK << 4 | COLOR_WHITE) << 8);
                     }
                     
-                    screenX += lineCounterWidth;
+                    screenX += LINE_COUNTER_WIDTH;
                 }else{
                 //
                 // ============ LINE CONTENT ========================================================
                 //
                     /* After line counter column, we draw the rest of the line content */
-                    if(linePos < line->length){
-                        c = line->buffer[linePos];
+                    if(linePos + currentFileArena->file->scrollX < line->length){
+                        c = line->buffer[linePos + currentFileArena->file->scrollX];
 
                         // =========== SPECIAL KEYWORD COLORING=======================================
-                        if(&line->buffer[linePos] > csWordEnd){
+                        if(&line->buffer[linePos + currentFileArena->file->scrollX] > csWordEnd){
                             memcpy(previousWord, detectedWord, strlen(detectedWord));
                             previousWord[strlen(detectedWord)] = '\0';
 
                             memset(detectedWord, 0, 32);
                             
-                            csWordStart = &line->buffer[linePos];
+                            csWordStart = &line->buffer[linePos + currentFileArena->file->scrollX];
                             csWordEnd = csWordStart;
 
                             if(isMultilineComment == false){
@@ -472,11 +542,11 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                                
                             }
 
-                            if(line->buffer[linePos] == '*' && line->buffer[linePos + 1] == '/'){
+                            if(line->buffer[linePos + currentFileArena->file->scrollX ] == '*' && line->buffer[linePos + currentFileArena->file->scrollX + 1] == '/'){
                                 isMultilineComment = false;
                             }
                             
-                            if(line->buffer[linePos] == '/' && line->buffer[linePos + 1] == '/'){
+                            if(line->buffer[linePos + currentFileArena->file->scrollX] == '/' && line->buffer[linePos + currentFileArena->file->scrollX + 1] == '/'){
                                 isSingleLineComment = true;
                             }
                             
@@ -543,4 +613,5 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
         }
     }
 }
+
 

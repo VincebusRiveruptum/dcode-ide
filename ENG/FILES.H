@@ -7,7 +7,8 @@
 
 /* Const. ================================================================*/
 
-#define MAX_FILE_LINE_LENGTH 256
+#define MAX_FILE_LINE_LENGTH 384
+#define MAX_FILE_NAME 256
 
 /* Types =================================================================*/
 
@@ -24,14 +25,30 @@ typedef struct File {
     
     /* New line-based fields */
     List *lines;
+    List *deletedLines;
+
+    // Could be useful in the future
+    Node *currentLineNode;
     
+    Line *prevLine;
+    Line *currentLine;
+    Line *nextLine;
+
+    // Current line position chars
+    char prevChar;
+    char currentChar;
+    char nextChar;
+
     // This will be used for the editor to know if the previous line to the first visible was a comment
     // So the comment formmating will still function when scrolling down
     
     unsigned short scrollY;
     unsigned short scrollX;
 
+    // Indicates the current cursor line index
     unsigned short cursorLine;
+
+    // Indicates the current cursor column index
     unsigned short cursorCol;
 
     bool isModified;
@@ -50,6 +67,8 @@ extern FileArena fileList[MAX_ARENAS];
 
 extern FileArena *currentFileArena;
 
+extern bool endProgram;
+
 /* Protypes =============================================================*/
 
 void f_dumpToFile(char *filename);
@@ -64,6 +83,7 @@ size_t f_getFileName(char *filename);
 size_t f_getFileExtension(char *filename);
 
 void f_init();
+void f_newFile();
 bool f_openFile(char *filename);
 void f_saveFile();
 void f_triggerClose();

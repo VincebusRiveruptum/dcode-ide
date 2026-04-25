@@ -22,3 +22,5 @@ errors.txt
 **/*.err
 **/.DS_Store
 **/.ds_store
+books
+BOOKS

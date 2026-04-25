@@ -22,7 +22,7 @@ int main(int argc, char *argv[]){
     initKeyboard();
     t_initTests();
 
-    handleArguments(argc, argv);
+    ed_handleArguments(argc, argv);
 
     
     while(endProgram == false){

@@ -1,14 +1,11 @@
 
 #include "FILES.H"
+#include "CONFIG.H"
 
 FileArena fileList[MAX_ARENAS];
 MemoryArena *tmpPtrArena = NULL;
 FileArena *currentFileArena = NULL;
 bool endProgram = false;
-
-unsigned short settings.STATUSBAR_COLOR_BG = COLOR_LIGHT_GRAY;
-unsigned short settings.STATUSBAR_COLOR_TEXT = COLOR_BLACK;
-
 
 /* File arena managing and utlis ======================================================*/
 

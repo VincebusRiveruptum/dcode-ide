@@ -107,9 +107,6 @@
 extern struct Container *root;
 extern bool ed_renderEvent;
 
-extern unsigned short settings.STATUSBAR_COLOR_BG;
-extern unsigned short settings.STATUSBAR_COLOR_TEXT;
-
 /* Prototypes ==============================================*/
 
 void ed_initConfig(int argc, char *argv[]);

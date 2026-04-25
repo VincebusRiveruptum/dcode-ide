@@ -147,7 +147,7 @@ int _calculateTabStart(){
 
 void _updateCurrentCursorY(){
      // If the cursor is closer to the bottom
-    if(currentCursorY <=0 || currentFileArena->file->cursorLine < 0) currentCursorY = 0;
+    if(currentCursorY <=0) currentCursorY = 0;
     
     if( currentFileArena->file->cursorLine - currentFileArena->file->scrollY >= 0){
         currentCursorY = currentFileArena->file->cursorLine - currentFileArena->file->scrollY;
@@ -926,12 +926,12 @@ void ed_putCursorLastLine(){
 
 	currentFileArena->file->prevLine = 
 		currentFileArena->file->currentLineNode->prev 
-		? currentFileArena->file->currentLineNode->prev
+		? (Line*) currentFileArena->file->currentLineNode->prev->data
 		: NULL;
 
 	currentFileArena->file->nextLine = 
 		currentFileArena->file->currentLineNode->next
-		? currentFileArena->file->currentLineNode->next
+		? (Line*) currentFileArena->file->currentLineNode->next->data
 		: NULL;
 	
 	// If on the new line the previous position is larger than the new line length, then we do the following

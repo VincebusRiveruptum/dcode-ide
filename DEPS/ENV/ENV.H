@@ -12,7 +12,7 @@
 #include "TYPES.H"
 
 #define ENV_FILENAME ".env"
-#define CFG_FILENAME "config.cfg"
+#define CFG_FILENAME "default.cfg"
 
 Config *loadEnv();
 void displayConf(Config *conf);

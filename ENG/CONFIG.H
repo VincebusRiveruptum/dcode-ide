@@ -5,25 +5,25 @@
 
 typedef struct Settings{
     // EDITOR SETTING
-    bool DEBUG;
+    unsigned char DEBUG;
     unsigned int MAX_FILE_INSTANCE_SIZE;
     unsigned int MAX_FILE_INSTANCES_OPENED;
 
     unsigned int MAX_LINE_LENGTH;
 
-    bool AUTOIDENTING;
-    bool AUTOCLOSING;
-    bool AUTOBRACES;
+    unsigned char AUTOIDENTING;
+    unsigned char AUTOCLOSING;
+    unsigned char AUTOBRACES;
 
     char DEFAULT_EXTENSION[16];
-    bool AUTOSAVE;
-    bool MOUSE;
+    unsigned char AUTOSAVE;
+    unsigned char MOUSE;
     // VIDEO SETTINGS
     // 1 = default,   2= 43 lines, 3=50 lines
     unsigned char VIDEO_MODE;
     // CUSTOMIZATION
     unsigned char STATUSBAR_COLOR_BG;
-    unsigned char STATUSBAS_COLOR_TEXT;
+    unsigned char STATUSBAR_COLOR_TEXT;
 }Settings;
 
 extern Settings settings;

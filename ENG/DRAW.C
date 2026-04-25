@@ -188,28 +188,28 @@ char _getBorderCharacter(BorderType borderType, RectangleSides side){
         case DRAW_BORDER_DOUBLE:
             switch(side){
                 case DW_SIDE_TOP_LEFT:
-                    return 'É';
+                    return 0xC9; //'É';
                 case DW_SIDE_TOP_RIGHT:
-                    return '»';
+                    return 0xBB;//'»';
                 case DW_SIDE_BOTTOM_LEFT:
-                    return 'È';
+                    return 0xC8;//'È';
                 case DW_SIDE_BOTTOM_RIGHT:
-                    return '¼';
+                    return 0xBC;//'¼';
                 case DW_SIDE_TOP:
-                    return 'Í';
+                    return 0xCD;//'Í';
                 case DW_SIDE_BOTTOM:
-                    return 'Í';
+                    return 0xCD; //'Í';
                 case DW_SIDE_LEFT:
-                    return 'º';
+                    return 0xBA; //'º';
                 case DW_SIDE_RIGHT:
-                    return 'º';
+                    return 0xBA; //'º';
                 case DW_SIDE_ALL:
-                    return '°';
+                    return 0xB0; //'°';
                 default:
-                    return '°';
+                    return 0xB0; //'°';
             }
         default:
-            return '°';
+            return 0xB0; //'°';
     }
 }
 

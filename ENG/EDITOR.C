@@ -56,6 +56,7 @@ void ed_handleArguments(int argc, char *argv[]){
     ed_renderEvent = true;
 }
 
+
 int _get_tab_counts_until(int col){
     int i = 0, tabCount = 0;
 
@@ -67,6 +68,42 @@ int _get_tab_counts_until(int col){
     }
     
     return tabCount;
+}
+
+int _get_tab_counts_someline(Line *someLine, int col){
+    int i = 0, tabCount = 0;
+
+    if (!someLine) return 0;
+
+    while(i < col && i < someLine->length){
+        if(someLine->buffer[i] == CHAR_TAB) tabCount++;
+        i++; 
+    }
+    
+    return tabCount;
+}
+
+int _get_auto_close_pos(){
+    int tabCount = 0;
+    Node *travelingBackwards = currentFileArena->file->currentLineNode;
+
+    if(!travelingBackwards) return 0;
+    
+    while(travelingBackwards != NULL){
+        logger("[_get_auto_close_pos]: looping");
+        if( travelingBackwards->data &&
+            ((Line*)travelingBackwards->data)->buffer &&
+            ((Line*)travelingBackwards->data)->length){
+                
+            if(((Line*)travelingBackwards->data)->buffer[((Line *)travelingBackwards->data)->length-1] == '{'){
+                return _get_tab_counts_someline((Line*)travelingBackwards->data, ((Line *)travelingBackwards->data)->length);
+            }
+        }
+
+        travelingBackwards = travelingBackwards->prev;
+    }
+
+    return 0;
 }
 
 int _calculateVisualOffset(int col){
@@ -132,6 +169,21 @@ void _updateCurrentCursorX(){
     // Boundary check to keep cursor on screen if something goes wrong
     if(currentCursorX < LINE_COUNTER_WIDTH) currentCursorX = LINE_COUNTER_WIDTH;
     if(currentCursorX >= VIDEO_COLS) currentCursorX = VIDEO_COLS - 1;
+
+    currentFileArena->file->prevChar = 
+        currentFileArena->file->cursorCol > 0 
+        ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1]
+        : 0;
+
+    currentFileArena->file->currentChar = 
+        currentFileArena->file->cursorCol > 0 
+        ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol]
+        : 0;
+
+    currentFileArena->file->nextChar = 
+        currentFileArena->file->cursorCol < currentFileArena->file->currentLine->length
+        ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + 1]
+        : currentFileArena->file->currentLine->length;
 }
 
 void _ensureHorizontalScroll(){
@@ -532,10 +584,18 @@ void ed_newLine(){
     Node *currentLineNode, *newLineNode;
     Line *newLine;
     MemoryArena *arena;
+    bool isIndent = false;
+    bool isAutoClose = false;
+    int prevLineTabs = 0;
+    int autoClosePos = 0;
+    int autoIdentMovement = 0;
     
+
     arena = currentFileArena->arena;
 
     x = currentFileArena->file->cursorCol;
+
+    prevLineTabs = _get_tab_counts_until(currentFileArena->file->currentLine->length);
 
     // Creating the new line then zeroing
     // RECYCLING/NEW LINE LOGIC ========================================================================
@@ -579,21 +639,43 @@ void ed_newLine(){
     // ==============================
 
     // We copy the content from the current line in the current cursor position onwards to the now line
+    // We detect opening and closing of function
+        
+    autoClosePos = _get_auto_close_pos();
+
+    if(currentFileArena->file->prevChar == '{'){
+        isIndent = true;
+        autoIdentMovement = (int)isIndent + prevLineTabs;
+    }else if(currentFileArena->file->currentChar == '}'){
+        isAutoClose = true;
+        autoIdentMovement = autoClosePos;
+    }else{
+        autoIdentMovement = prevLineTabs;
+    }
+
+    logger("[ed_newLine]: AutoclosePos %d", autoClosePos);
+
     copyLen = 
         (x <= currentFileArena->file->currentLine->length)
         ?
-            currentFileArena->file->currentLine->length - x
+            currentFileArena->file->currentLine->length - x + autoIdentMovement
         :
             0
         ;
-            
-    memcpy(newLine->buffer, currentFileArena->file->currentLine->buffer + x, copyLen);
+        
+    memcpy(newLine->buffer + autoIdentMovement, currentFileArena->file->currentLine->buffer + x, copyLen);
     newLine->length = copyLen;
+
+    // Copy prev line tabs
+    if(autoIdentMovement > 0) memset(newLine->buffer , CHAR_TAB, autoIdentMovement);
+
+    if(isAutoClose == true){
+        memset(newLine->buffer , CHAR_TAB, autoClosePos);
+        newLine->buffer[autoClosePos] = '}';
+    }         
 
     // We clear the current line position onwards
     memset(currentFileArena->file->currentLine->buffer + x, '\0', MAX_FILE_LINE_LENGTH - x);
-    
-    // REMOVED 'buffer[x-1] = \n' assignment logic here as it caused char eating
     
     currentFileArena->file->currentLine->length = x;
 
@@ -609,7 +691,7 @@ void ed_newLine(){
         ;
 
     if(newLineNode->next) newLineNode->next->prev = newLineNode;
-
+ 
 
     currentFileArena->file->currentLineNode->next = newLineNode;
     currentFileArena->file->currentLineNode = newLineNode;
@@ -651,7 +733,7 @@ void ed_newLine(){
         currentCursorY++;
     }
 
-    currentFileArena->file->cursorCol = 0;
+    currentFileArena->file->cursorCol = 0 + autoIdentMovement;
     currentFileArena->file->scrollX = 0;
     currentFileArena->file->cursorLine++;
 

@@ -29,6 +29,12 @@ void ed_initConfig(int argc, char *argv[]){
     //f_defaultExtension
 
     // We will hardcode the default extension until i implement .ENV/CFG LOADING
+    if(!cfg_loadConfig()){
+        logger("[ed_initConfig]: Could not load config file!");
+        return ;
+    }
+    
+
     strcpy(f_defaultExtension, ".c");
 
     ed_statusbarBgColor = COLOR_LIGHT_GRAY;

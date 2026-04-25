@@ -2,6 +2,7 @@
 #define ENG_VIDEO_H
 
 #include "STD.H"
+#include "..\ENG\CONFIG.H"
 
 /* Global =================================================*/
 

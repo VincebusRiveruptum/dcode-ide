@@ -67,8 +67,6 @@ extern FileArena fileList[MAX_ARENAS];
 
 extern FileArena *currentFileArena;
 
-extern char f_defaultExtension[8];
-
 extern bool endProgram;
 
 /* Protypes =============================================================*/

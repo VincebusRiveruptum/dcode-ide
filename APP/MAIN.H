@@ -20,5 +20,6 @@
 #include "..\ENG\TEST.H"
 #include "..\ENG\VIDEO.H"
 #include "..\ENG\VISMEM.H"
+#include "..\ENG\CONFIG.H"
 
 #endif

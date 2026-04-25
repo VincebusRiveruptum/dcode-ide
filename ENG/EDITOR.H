@@ -107,8 +107,8 @@
 extern struct Container *root;
 extern bool ed_renderEvent;
 
-extern unsigned short ed_statusbarBgColor;
-extern unsigned short ed_statusbarFgColor;
+extern unsigned short settings.STATUSBAR_COLOR_BG;
+extern unsigned short settings.STATUSBAR_COLOR_TEXT;
 
 /* Prototypes ==============================================*/
 

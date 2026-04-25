@@ -11,9 +11,6 @@
 #include "EDITOR.H"
 #include "FILES.H"
 
-
-
-
 //unsigned char attrib = 0x07; // Default attribute: White on Black
 struct Container *root;
 
@@ -31,14 +28,9 @@ void ed_initConfig(int argc, char *argv[]){
     // We will hardcode the default extension until i implement .ENV/CFG LOADING
     if(!cfg_loadConfig()){
         logger("[ed_initConfig]: Could not load config file!");
+        // App exits
         return ;
     }
-    
-
-    strcpy(f_defaultExtension, ".c");
-
-    ed_statusbarBgColor = COLOR_LIGHT_GRAY;
-    ed_statusbarFgColor = COLOR_RED;
 
     logger("[ed_initConfig]: %d %s", argc, argv[1]);
     ed_handleArguments(argc, argv);

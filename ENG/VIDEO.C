@@ -7,10 +7,24 @@ unsigned short editormemptr[VIDEO_BUFFER_SIZE];
 char tempBuffer[VIDEO_BUFFER_SIZE];
 
 void v_init_video(){
-    VIDEO_ROWS = 25;
-    VIDEO_COLS = 80;
-
-    _set25Lines_asm();
+    switch(settings.VIDEO_MODE){
+        case 3:
+            VIDEO_ROWS = 50;
+            VIDEO_COLS = 80;
+             v_set50Lines();
+            break;
+        case 2:
+            VIDEO_ROWS = 43;
+            VIDEO_COLS = 80;
+            v_set43Lines();
+        case 1:
+        case 0:
+        default:
+            VIDEO_ROWS = 25;
+            VIDEO_COLS = 80;
+            v_set25Lines();
+            break;    
+    }
 
     textmemptr = (unsigned short *)0xB8000;
     dw_cls(textmemptr);

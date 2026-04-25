@@ -4,11 +4,10 @@
 FileArena fileList[MAX_ARENAS];
 MemoryArena *tmpPtrArena = NULL;
 FileArena *currentFileArena = NULL;
-char f_defaultExtension[8] = {'\0'};
 bool endProgram = false;
 
-unsigned short ed_statusbarBgColor = COLOR_LIGHT_GRAY;
-unsigned short ed_statusbarFgColor = COLOR_BLACK;
+unsigned short settings.STATUSBAR_COLOR_BG = COLOR_LIGHT_GRAY;
+unsigned short settings.STATUSBAR_COLOR_TEXT = COLOR_BLACK;
 
 
 /* File arena managing and utlis ======================================================*/
@@ -257,12 +256,12 @@ void f_newFile(){
 
     newFileCounter = f_checkAvailableName();
 
-    if(f_defaultExtension[0] == '\0'){
+    if(settings.DEFAULT_EXTENSION[0] == '\0'){
         logger("[f_newFile]: Editor has no default file extension configuration yet!.");
         return;
     }
 
-    sprintf(&tempName, "newfile%d%s", newFileCounter, f_defaultExtension);
+    sprintf(&tempName, "newfile%d%s", newFileCounter, settings.DEFAULT_EXTENSION);
     newArena = (MemoryArena *)mem_create_arena(tempName, MEM_ARENA_FILE, MEM_ARENA_512K);
 
     if(!newArena){
@@ -607,7 +606,7 @@ void f_triggerClose(){
     int len = 0;
 
     if(currentFileArena->file->isModified == true){
-        dw_writeBuffer(textmemptr, "File modified, save? Y/N ",0,VIDEO_ROWS - 1 ,26, VIDEO_ROWS - 1, ed_statusbarFgColor, ed_statusbarBgColor);
+        dw_writeBuffer(textmemptr, "File modified, save? Y/N ",0,VIDEO_ROWS - 1 ,26, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
         
         while(!(
             input == 'n' ||
@@ -626,17 +625,17 @@ void f_triggerClose(){
         ed_renderElements();
         
         if(f_isDefaultFileName() == true){
-            dw_writeBuffer(textmemptr, "File name: ",0,VIDEO_ROWS - 1, 10,VIDEO_ROWS - 1, ed_statusbarFgColor, ed_statusbarBgColor);
+            dw_writeBuffer(textmemptr, "File name: ",0,VIDEO_ROWS - 1, 10,VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
             
             while(len <= 3 || len > 12){
-                dw_writeBuffer(textmemptr, "",11,VIDEO_ROWS - 1, VIDEO_COLS - 1, VIDEO_ROWS - 1, ed_statusbarFgColor, ed_statusbarBgColor);
+                dw_writeBuffer(textmemptr, "",11,VIDEO_ROWS - 1, VIDEO_COLS - 1, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
                 filename = ed_scanf(11, VIDEO_ROWS - 1, 32);
                 
                 len = strlen(filename);
 
                 ed_renderElements();
                 if(len <= 3 || len > 12){
-                    dw_writeBuffer(textmemptr, "Invalid filename! Try again",0,VIDEO_ROWS - 1,30, VIDEO_ROWS - 1, ed_statusbarFgColor, ed_statusbarBgColor);
+                    dw_writeBuffer(textmemptr, "Invalid filename! Try again",0,VIDEO_ROWS - 1,30, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
                 }
             }
             

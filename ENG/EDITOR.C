@@ -22,6 +22,9 @@ unsigned char currentCursorY = 0;
 
 bool ed_renderEvent = false;
 
+time_t ed_globalAuxTimer = 0;
+char statusBarMessage[ED_STATUSBAR_WIDTH] = {'\0'};
+
 void ed_initConfig(int argc, char *argv[]){
     //f_defaultExtension
 
@@ -566,8 +569,10 @@ void ed_supr(){
     if (x < 0) x = 0;
     if (y < 0) y = 0;
 
-    node = getNodeByIndex(&file->lines, y);
+    node = file->currentLineNode;
     line = (Line *)node->data;
+    
+    if (x >= line->length) return;
     
     memcpy(line->buffer + x, line->buffer + x + 1, line->length - x);    
     line->length--;
@@ -906,7 +911,7 @@ void ed_putCursorLastLine(){
 			: lineJump;	
 	}
 	
-	newLineNode = getNodeByIndex(&currentFileArena->file->lines, currentFileArena->file->cursorLine);
+	newLineNode = currentFileArena->file->lines->lastNode;
 
 	if(!newLineNode){
 		logger("[ed_putCursorLastLine]: Error trying to obtain last line node.");
@@ -942,8 +947,37 @@ void ed_putCursorLastLine(){
 	_updateCursor();
 }
 
+void ed_triggerStatusBarMessage(const char *format,  ...){
+    va_list args;
+    ed_globalAuxTimer = time(&ed_globalAuxTimer);
 
+    
+    memset(statusBarMessage, '\0', ED_STATUSBAR_WIDTH - 1);
 
+    va_start(args, format);
+    vsprintf(statusBarMessage, format, args);
+    va_end(args);
+
+    return;
+}
+
+bool ed_checkStatusBarMessage(){
+    time_t endClock;
+
+    if(statusBarMessage[0] == '\0') return false;
+    if(ed_globalAuxTimer == 0) return false;
+
+    endClock = time(&endClock);
+
+    // 5 seconds of duration
+    if(difftime(ed_globalAuxTimer, endClock) == 5){
+        memset(statusBarMessage, '\0', ED_STATUSBAR_WIDTH - 1);
+        ed_globalAuxTimer = 0;
+        return true;
+    }
+    
+    return false;
+}
 
 
 

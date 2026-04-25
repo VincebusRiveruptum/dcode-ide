@@ -19,7 +19,7 @@ int main(int argc, char *argv[]){
     log_init();
     mem_init();
     v_init_video();
-    initKeyboard();
+    inp_initKeyboard();
     t_initTests();
 
     ed_handleArguments(argc, argv);
@@ -29,21 +29,21 @@ int main(int argc, char *argv[]){
 
         // ACTION KEYS HANDLING
         // This is uses ISR approach, not getch()
-        if(isKeyDown(KEY_ESC)) endProgram = true;
-        if(isKeyDown(KEY_F1)) v_set25Lines();
-        if(isKeyDown(KEY_F2)) v_set50Lines();
-        if(isKeyDown(KEY_F3)) v_set43Lines();
+        if(inp_isKeyDown(KEY_ESC)) endProgram = true;
+        if(inp_isKeyDown(KEY_F1)) v_set25Lines();
+        if(inp_isKeyDown(KEY_F2)) v_set50Lines();
+        if(inp_isKeyDown(KEY_F3)) v_set43Lines();
         
-        if(keysPressed(3, KEY_LCTRL, KEY_LSHIFT, KEY_S)) f_saveFile();
-        if(isKeyDown(KEY_SPACE)) ed_renderEvent = true;
+        if(inp_keysPressed(INP_TRIGGER_EDGE, 3, KEY_LCTRL, KEY_LSHIFT, KEY_S)) f_saveFile();
+        if(inp_isKeyDown(KEY_SPACE)) ed_renderEvent = true;
         
         // NEW FILE
-        if(keysPressed(2, KEY_LCTRL, KEY_N)){
+        if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_N)){
             logger("[main]: User created new file.");
         }
         
         // CLOSE FILE (Alt+F4)
-        if(keysPressed(2, KEY_LALT, KEY_F4)){
+        if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_F4)){
             logger("[main]: User closed file.");
             f_triggerClose();
         }
@@ -102,11 +102,11 @@ int main(int argc, char *argv[]){
             ed_renderEvent = false;
         }
 
-        updateKeyboard();
+        inp_updateKeyboard();
     }
 
     
-    closeKeyboard();
+    inp_closeKeyboard();
     v_set25Lines();
     dw_cls(textmemptr);
     mem_shutdown();

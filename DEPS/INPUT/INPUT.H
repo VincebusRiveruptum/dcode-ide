@@ -152,22 +152,29 @@ typedef unsigned char bool;
 #define CHAR_SPACE          0x20
 #define CHAR_ESCAPE         0x1B
 #define CHAR_DELETE         0x7F
+
+#define INP_TRIGGER_LEVEL   0
+#define INP_TRIGGER_EDGE    1
+
 /* PROTOTYPES ===========================================================*/
 
-void initKeyboard();
-void closeKeyboard();
-void updateKeyboard();
+void inp_initKeyboard();
+void inp_closeKeyboard();
+void inp_updateKeyboard();
 
-bool isKeyDown(unsigned char key);
-bool isKeyPressed(unsigned char key);
-bool isKeyReleased(unsigned char key);
-unsigned char keysPressed(int nKeys, ...);
+bool inp_isKeyDown(unsigned char key);
+bool inp_isKeyPressed(unsigned char key);
+bool inp_isKeyReleased(unsigned char key);
+unsigned char inp_keysPressed(int triggerType, int nKeys, ...);
+unsigned char inp_keysDown(int nKeys, ...);
 
 /* VARIABLES ============================================================*/
 
-extern volatile unsigned char keyboardTable[256];
-extern volatile unsigned char prevKeyboardTable[256];
-extern const unsigned char *keyboardMap[256];
-extern unsigned char scanCode;
+extern volatile unsigned char inp_state[256];
+extern volatile unsigned char inp_pressed[256];
+extern volatile unsigned char inp_released[256];
+extern volatile unsigned char inp_justPressed[256];
+extern const unsigned char *inp_keyboardMap[256];
+extern unsigned char inp_scanCode;
 
 #endif

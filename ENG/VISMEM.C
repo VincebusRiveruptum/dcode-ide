@@ -78,7 +78,7 @@ void mem_vis_mem(){
         }
     
         //Checks for end loop
-        if(isKeyDown(KEY_ESC)) endvis = true;
+        if(inp_isKeyDown(KEY_ESC)) endvis = true;
         if(!kbhit()){
             getch();
         }

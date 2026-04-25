@@ -20,7 +20,7 @@ int main(int argc, char *argv[]){
     log_init();
     mem_init();
     v_init_video();
-    initKeyboard();
+    inp_initKeyboard();
     
     logger("[main]: %d %s", argc, argv[1]);
     ed_initConfig(argc, argv);
@@ -32,26 +32,26 @@ int main(int argc, char *argv[]){
 
         // ACTION KEYS HANDLING
         // This is uses ISR approach, not getch()
-        if(isKeyDown(KEY_ESC)) f_triggerClose();
-        if(isKeyDown(KEY_F1)) {v_set25Lines(); ed_renderEvent = true;}
-        if(isKeyDown(KEY_F2)) {v_set50Lines(); ed_renderEvent = true;}
-        if(isKeyDown(KEY_F3)) {v_set43Lines(); ed_renderEvent = true;}
-        if(isKeyDown(KEY_F12)){mem_vis_mem();};
+        if(inp_isKeyDown(KEY_ESC)) f_triggerClose();
+        if(inp_isKeyDown(KEY_F1)) {v_set25Lines(); ed_renderEvent = true;}
+        if(inp_isKeyDown(KEY_F2)) {v_set50Lines(); ed_renderEvent = true;}
+        if(inp_isKeyDown(KEY_F3)) {v_set43Lines(); ed_renderEvent = true;}
+        if(inp_isKeyDown(KEY_F12)){mem_vis_mem();};
 
-        if(isKeyDown(KEY_HOME)) ed_putCursorStart();
-        if(isKeyDown(KEY_END)) ed_putCursorEnd();
+        if(inp_isKeyDown(KEY_HOME)) ed_putCursorStart();
+        if(inp_isKeyDown(KEY_END)) ed_putCursorEnd();
         
-        if(isKeyDown(KEY_PAGEUP)) ed_putCursorFistLine();
-        if(isKeyDown(KEY_PAGEDOWN)) ed_putCursorLastLine();
+        if(inp_isKeyDown(KEY_PAGEUP)) ed_putCursorFistLine();
+        if(inp_isKeyDown(KEY_PAGEDOWN)) ed_putCursorLastLine();
         
-        if(keysPressed(3, KEY_LCTRL, KEY_LSHIFT, KEY_S)) f_saveFile();
-        if(isKeyDown(KEY_SPACE)) ed_renderEvent = true;
+        if(inp_keysPressed(INP_TRIGGER_EDGE, 3, KEY_LCTRL, KEY_LSHIFT, KEY_S)) f_saveFile();
+        if(inp_isKeyDown(KEY_SPACE)) ed_renderEvent = true;
         
-        if(isKeyReleased(KEY_DELETE)) ed_supr();
+        if(inp_isKeyPressed(KEY_DELETE)) ed_supr();
         
         
         // NEW FILE
-        if(keysPressed(2, KEY_LCTRL, KEY_N)){
+        if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_N)){
             f_newFile();
             logger("[main]: User created %s ,a new file.", currentFileArena->file->name);
         }
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]){
 
         // Hice mi propio editor, ke wea!!
         // CLOSE FILE (Alt+F4)
-        if(keysPressed(2, KEY_LALT, KEY_F4)){
+        if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_F4)){
             logger("[main]: User closed file.");
             f_triggerClose();
         }
@@ -120,6 +120,11 @@ int main(int argc, char *argv[]){
         //dw_writeBuffer(textmemptr, "Modified : %d", 0, VIDEO_ROWS - 1, 60, VIDEO_ROWS - 1, COLOR_BLACK, COLOR_LIGHT_GRAY, currentFileArena->file->isModified);
         dw_writeBuffer(textmemptr, "Line %d, Col %d %c", 0, VIDEO_ROWS - 1, 39, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, currentFileArena->file->cursorLine + 1, currentFileArena->file->cursorCol + 1, 179, currentFileArena->file->currentLine->length);
         dw_writeBuffer(textmemptr, " %s", 40, VIDEO_ROWS - 1, VIDEO_COLS, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, currentFileArena->file->name);
+
+        //if(isStatusbarMessage == true && (tempTick < tempTick + time_calcSecs(5))){
+        if(ed_checkStatusBarMessage() == true){
+            dw_writeBuffer(textmemptr, "%s", 0, VIDEO_ROWS - 1, 39, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, currentFileArena->file->cursorLine + 1, currentFileArena->file->cursorCol + 1, 179, statusBarMessage);            
+        }
         
         //t_drawDebugger();
         ed_updateCursor();
@@ -129,11 +134,11 @@ int main(int argc, char *argv[]){
             ed_renderEvent = false;
         }
 
-        updateKeyboard();
+        inp_updateKeyboard();
     }
 
     
-    closeKeyboard();
+    inp_closeKeyboard();
     dw_cls(textmemptr);
     v_set25Lines();
     mem_shutdown();

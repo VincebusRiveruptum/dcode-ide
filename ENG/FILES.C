@@ -222,7 +222,7 @@ size_t _copyLines(FileArena *old, FileArena *new){
 
     new->file->lines = NULL;
     
-    currentNode = getNodeByIndex(&old->file->lines, 0);
+    currentNode = old->file->lines->firstNode;
 
     while(currentNode != NULL){
         oldLine = (Line *)currentNode->data;
@@ -548,7 +548,7 @@ void f_saveFile(){
     newFileArena->file->isActive = oldFileArena->file->isActive;
     
     // We are going to travel the old file lines and copy them to the new file buffer
-    currentNode = getNodeByIndex(&oldFileArena->file->lines, 0);
+    currentNode = oldFileArena->file->lines->firstNode;
     lengthSum = _copyLines(oldFileArena, newFileArena);
 
     newFileArena->file->buffer = (char*)mem_arena_alloc(newArena, NULL, sizeof(char) * (lengthSum + 1));

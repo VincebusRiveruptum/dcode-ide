@@ -949,7 +949,8 @@ void ed_putCursorLastLine(){
 
 void ed_triggerStatusBarMessage(const char *format,  ...){
     va_list args;
-    ed_globalAuxTimer = time(&ed_globalAuxTimer);
+
+    time(&ed_globalAuxTimer);
 
     
     memset(statusBarMessage, '\0', ED_STATUSBAR_WIDTH - 1);
@@ -957,6 +958,8 @@ void ed_triggerStatusBarMessage(const char *format,  ...){
     va_start(args, format);
     vsprintf(statusBarMessage, format, args);
     va_end(args);
+
+    logger("[ed_triggerStatusBarMessage]: %s", statusBarMessage);
 
     return;
 }
@@ -967,16 +970,16 @@ bool ed_checkStatusBarMessage(){
     if(statusBarMessage[0] == '\0') return false;
     if(ed_globalAuxTimer == 0) return false;
 
-    endClock = time(&endClock);
+    time(&endClock);
 
     // 5 seconds of duration
-    if(difftime(ed_globalAuxTimer, endClock) == 5){
+    if(difftime(endClock, ed_globalAuxTimer) > 5){
         memset(statusBarMessage, '\0', ED_STATUSBAR_WIDTH - 1);
         ed_globalAuxTimer = 0;
-        return true;
-    }
+        return false;
+    }  
     
-    return false;
+    return true;
 }
 
 

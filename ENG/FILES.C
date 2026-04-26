@@ -343,6 +343,7 @@ void f_newFile(){
     newFileArena->file->isActive = false;
 
     currentFileArena = f_addFileArena(newFileArena);
+    ed_triggerStatusBarMessage("Created a new file.");
 
     ed_resetCursor();
     return;

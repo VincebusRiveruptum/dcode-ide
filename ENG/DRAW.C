@@ -41,17 +41,8 @@ bool _isWordEnd(char *csWordEnd){
 }
 
 unsigned char _keywordMap(char *word, char *previousWord){
-    int ivalue;
-    float fvalue;
-    short hvalue;
-    long lvalue;
-    char *endptr = word;
-    
     if(!word) return 0;
 
-    while(*endptr != '\0'){
-        endptr++;
-    }
 
     if(strcmp(previousWord, "#include") == 0){
         return COLOR_LIGHT_GREEN;
@@ -70,8 +61,8 @@ unsigned char _keywordMap(char *word, char *previousWord){
     if (strcmp(word, "char") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "void") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "bool") == 0) return COLOR_LIGHT_RED;
-if (strcmp(word, "typedef") == 0) return COLOR_LIGHT_RED;
-if (strcmp(word, "unsigned") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "typedef") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "unsigned") == 0) return COLOR_LIGHT_RED;
 
     /* Control flow */
     if (strcmp(word, "if") == 0) return COLOR_LIGHT_RED;
@@ -112,19 +103,23 @@ if (strcmp(word, "unsigned") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "<") == 0) return COLOR_LIGHT_RED;
     
     // Operators
-    if (strcmp(word, "+") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "-") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "*") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "/") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "%") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "=") == 0) return COLOR_LIGHT_RED;
+    if (*word == '+') return COLOR_LIGHT_RED;
+    if (*word == '-') return COLOR_LIGHT_RED;
+    if (*word == '*') return COLOR_LIGHT_RED;
+    if (*word == '/') return COLOR_LIGHT_RED;
+    if (*word == '%') return COLOR_LIGHT_RED;
+    if (*word == '=') return COLOR_LIGHT_RED;
+    if (*word == '|') return COLOR_LIGHT_RED;
+    if (*word == '&') return COLOR_LIGHT_RED;
+    if (*word == '^') return COLOR_LIGHT_RED;
+    if (*word == '!') return COLOR_LIGHT_RED;
+    if (*word == '~') return COLOR_LIGHT_RED;
+    
+    if (*word == '{') return COLOR_LIGHT_YELLOW;
+    if (*word == '}') return COLOR_LIGHT_YELLOW;
+    
     if (strcmp(word, ">>") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "<<") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "|") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "&") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "^") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "!") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "~") == 0) return COLOR_LIGHT_RED;
     
     // Logical operators
     if (strcmp(word, "&&") == 0) return COLOR_LIGHT_RED;
@@ -140,7 +135,7 @@ if (strcmp(word, "unsigned") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "&=") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "|=") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "^=") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "<<=") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "<<") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, ">>") == 0) return COLOR_LIGHT_RED;
     
     // Boolean values
@@ -149,8 +144,8 @@ if (strcmp(word, "unsigned") == 0) return COLOR_LIGHT_RED;
     
     // Null
     if (strcmp(word, "NULL") == 0) return COLOR_LIGHT_BLUE;
-    if (strcmp(word, "0") == 0) return COLOR_LIGHT_BLUE;
-    
+    if (*word == '0') return COLOR_LIGHT_BLUE;
+   
     // Comments
     if (strcmp(word, "//") == 0) return COLOR_DARK_GRAY;
     if (strcmp(word, "/*") == 0) return COLOR_DARK_GRAY;
@@ -158,16 +153,6 @@ if (strcmp(word, "unsigned") == 0) return COLOR_LIGHT_RED;
     
     if (strcmp(word, "renamon") == 0) return COLOR_LIGHT_YELLOW;
 
-
-
-    // We first check if it's a value
-    ivalue = (int)strtod(word, &endptr);
-    
-    /* 
-    if(endptr != word && errno != ERANGE) {
-        return COLOR_LIGHT_BLUE;
-    }
-    */
     return 0;
 }
 

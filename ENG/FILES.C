@@ -343,7 +343,7 @@ void f_newFile(){
     newFileArena->file->isActive = false;
 
     currentFileArena = f_addFileArena(newFileArena);
-    ed_triggerStatusBarMessage("Created a new file.");
+    ed_statusBarMessage("Created a new file.");
 
     ed_resetCursor();
     return;
@@ -472,6 +472,8 @@ bool f_openFile(char *filename){
         : 0;
 
     fclose(fp);
+
+    ed_statusBarMessage("Opened %s succesfully.", currentFileArena->file->name);
     return true;
 }
 
@@ -593,6 +595,7 @@ void f_saveFile(){
     newFileArena->file->isModified = false;
     sprintf(newFileArena->arena->name, "%s", newFileArena->file->name + f_getFileName(newFileArena->file->name));
 
+    ed_statusBarMessage("File %s saved successfully.", newFileArena->file->name);
     logger("[f_saveFile]: File %s saved successfully", newFileArena->file->name);
 }
 

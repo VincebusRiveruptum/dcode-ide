@@ -112,17 +112,9 @@ int main(int argc, char *argv[]){
                     }
                 }
             }
-        // Cursor coordinates for testing
 
-        // This is kinda a statusbar
-        // The line and column are relative and assuming that the text area is full screen, in the future they will be resizable so
-        
-        if(ed_checkStatusBarMessage() == true){
-            dw_writeBuffer(textmemptr, "%s", 0, VIDEO_ROWS - 1, ED_STATUSBAR_WIDTH-1, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, statusBarMessage);            
-        }else{
-            dw_writeBuffer(textmemptr, "Line %d, Col %d %c", 0, VIDEO_ROWS - 1, 39, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, currentFileArena->file->cursorLine + 1, currentFileArena->file->cursorCol + 1, 179, currentFileArena->file->currentLine->length);
-            dw_writeBuffer(textmemptr, " %s", 40, VIDEO_ROWS - 1, VIDEO_COLS, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, currentFileArena->file->name);
-        }
+        // Draw statusbar
+        ed_statusBar();
         
         //t_drawDebugger();
         ed_updateCursor();
@@ -144,6 +136,9 @@ int main(int argc, char *argv[]){
     printf("96 Tears...\n");
     return 0;
 }
+
+
+
 
 
 

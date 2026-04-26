@@ -2,28 +2,39 @@
 #include "DRAW.H"
 // Private functions
 
-
+// SENTENCE - WORD 
 // tHIS WILL DETECT THE COMMENT ENDS IN THE SINGLE LINE
 
 // Three posible scenarios
+unsigned char _checkWordType(char *reservedWord){
+    if(reservedWord[0] == '/' && reservedWord[1] == '/' ) return DW_RESWORD_SINGLE_LINE_COMMENT;       // INCLUDE
+    if(reservedWord[0] == '"' && reservedWord[strlen(reservedWord) - 1] == '"' ) return DW_RESWORD_STRING;       // INCLUDE
+    if(reservedWord[0] == '#' ) return DW_RESWORD_INCLUDE;       // INCLUDE
+    if(reservedWord[0] == '\0') return DW_RESWORD_NONE;
 
-bool _isWordEnd(char *csWordEnd, char *previousWord){
+    return DW_RESWORD_NONE;
+}
+bool _isWordEnd(char *csWordEnd){
 
     if (
         *csWordEnd != ' ' &&
+        *csWordEnd != '\t' &&
         *csWordEnd != '\0' &&
         *csWordEnd != '\n' &&
         *csWordEnd != '\r' &&
-        *csWordEnd != ',' &&
-        *csWordEnd != '.' &&
-        *csWordEnd != ';' &&
-        *csWordEnd != ':' &&
+        
+        // DEPENDS
         *csWordEnd != '(' &&
         *csWordEnd != ')' &&
         *csWordEnd != '[' &&
         *csWordEnd != ']' &&
         *csWordEnd != '{' &&
-        *csWordEnd != '}'
+        *csWordEnd != '}' &&
+        //*csWordEnd != '\'' &&
+        //*csWordEnd != ',' &&
+        //*csWordEnd != '.' &&
+        *csWordEnd != ';' &&
+        *csWordEnd != ':' //&&
     )    return true;
 
     return false;
@@ -41,7 +52,7 @@ unsigned char _keywordMap(char *word, char *previousWord){
     while(*endptr != '\0'){
         endptr++;
     }
-    
+
     if(strcmp(previousWord, "#include") == 0){
         return COLOR_LIGHT_GREEN;
     }
@@ -422,7 +433,7 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
     int screenX;
     int screenPos;
     char c;
-    
+    bool isSentence=false;
     
     int t;
     int j;
@@ -433,13 +444,14 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
     // special word detection stuff
     char *csWordStart;
     char *csWordEnd;        // current character special word
+    char *csStringEnd;        // current character special word
     char detectedWord[32] = {0};
     char previousWord[32] = {0};
-    unsigned char specialWordColor = 0;
+    unsigned char specialWordColor = 0;   
 
     bool isMultilineComment = false;
     bool isSingleLineComment = false;   
-
+    bool isString = false;
     /* Boundary check */
     if(x1 > x2 || y1 > y2) return;
 
@@ -488,7 +500,9 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
             spaceBetween = 0;
             csWordStart = 0;
             csWordEnd = 0;
+            csStringEnd=NULL;
             isSingleLineComment = false;
+            isString=false;
             
             while(screenX <= x2){
                 //
@@ -522,47 +536,63 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                 // ============ LINE CONTENT ========================================================
                 //
                     /* After line counter column, we draw the rest of the line content */
-                    if(linePos + currentFileArena->file->scrollX < line->length){
-                        c = line->buffer[linePos + currentFileArena->file->scrollX];
+                    if(linePos + file->scrollX < line->length){
+                        c = line->buffer[linePos + file->scrollX];
 
                         // =========== SPECIAL KEYWORD COLORING=======================================
-                        if(&line->buffer[linePos + currentFileArena->file->scrollX] > csWordEnd){
+                        if(&line->buffer[linePos + file->scrollX] > csWordEnd){
+                            memset(previousWord,'\0', 32);
                             memcpy(previousWord, detectedWord, strlen(detectedWord));
-                            previousWord[strlen(detectedWord)] = '\0';
+                            memset(detectedWord, '\0', 32);
 
-                            memset(detectedWord, 0, 32);
-                            
-                            csWordStart = &line->buffer[linePos + currentFileArena->file->scrollX];
+                            csWordStart = &line->buffer[linePos + file->scrollX];
                             csWordEnd = csWordStart;
 
                             if(isMultilineComment == false){
                                 if(*csWordStart == '/' && *(csWordStart + 1) == '*') isMultilineComment = true;
-
-                                // If it is the first line, we set the isFirstLineComment flag
-                               
                             }
 
-                            if(line->buffer[linePos + currentFileArena->file->scrollX ] == '*' && line->buffer[linePos + currentFileArena->file->scrollX + 1] == '/'){
+                            if(line->buffer[linePos + file->scrollX ] == '*' && line->buffer[linePos + file->scrollX + 1] == '/'){
                                 isMultilineComment = false;
                             }
                             
-                            if(line->buffer[linePos + currentFileArena->file->scrollX] == '/' && line->buffer[linePos + currentFileArena->file->scrollX + 1] == '/'){
-                                isSingleLineComment = true;
-                            }
-                            
                             // There is no comment in the current line
-                            if(isMultilineComment == false && isSingleLineComment == false){
-                                while( _isWordEnd(csWordEnd, previousWord) == true){
-                                    if(csWordEnd - csWordStart >= 32){
-                                        break;
-                                    }
-                                    csWordEnd++;
+                            if(isMultilineComment == false /*&& isSingleLineComment == false*/){
+
+                                if(!csStringEnd){
+                                    isString = (*csWordEnd == '"') ? true : false;
                                 }
-                                memcpy(detectedWord, csWordStart, csWordEnd - csWordStart);
-                                
-                                detectedWord[csWordEnd - csWordStart] = '\0';
-                                
-                                specialWordColor = _keywordMap(detectedWord, previousWord);
+
+                                if(isString == true){
+                                    // We get where the string is supposed to end, this will run  just once.
+                                    if(!csStringEnd){
+                                        csStringEnd = csWordEnd;
+                                        do{
+                                            ++csStringEnd;       
+                                        }while(*(csStringEnd) != '"' && *(csStringEnd) != '\0');
+                                    }
+                                    // If the character is under the addres where the string ends, then we treat the character
+                                    // as string
+
+                                    if(csWordEnd < csStringEnd){
+                                        specialWordColor = COLOR_LIGHT_YELLOW;
+                                    }else{
+                                        csStringEnd = NULL;
+                                        isString=false;
+                                    }
+
+                                }else{
+                                    while( _isWordEnd(csWordEnd) == true){
+                                        csWordEnd++;
+                                    }
+                                    memcpy(detectedWord, csWordStart, csWordEnd - csWordStart);
+                                    
+                                    detectedWord[csWordEnd - csWordStart] = '\0';
+                                    
+                                    if(_checkWordType(detectedWord) == DW_RESWORD_SINGLE_LINE_COMMENT) isSingleLineComment = true;
+                                    
+                                    specialWordColor = _keywordMap(detectedWord, previousWord);
+                                }
                             }
                             
                             if(isMultilineComment || isSingleLineComment){
@@ -613,5 +643,9 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
         }
     }
 }
+
+
+
+
 
 

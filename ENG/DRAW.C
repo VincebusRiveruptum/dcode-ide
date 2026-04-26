@@ -63,10 +63,11 @@ unsigned char _isEscapeChar(char *c, bool *isIdentifier){
             *(c - 1) != 'f' &&
             *(c - 1) != 'x' &&
             *(c - 1) != 'o' &&
+            *(c - 1) != 's' &&
             *(c - 1) != 'l'
         ) {
             *isIdentifier = false;
-            return COLOR_LIGHT_YELLOW;
+            return COLOR_BROWN;
         }
         return COLOR_BROWN;
     }
@@ -74,18 +75,6 @@ unsigned char _isEscapeChar(char *c, bool *isIdentifier){
     return 0;
 }
 
-unsigned char _checkWordType(char *reservedWord){
-    if(isupper(reservedWord[0]) && isupper(reservedWord[1])){
-        return DW_RESWORD_CONSTANT;       // CONSTANT
-    } 
-    if(reservedWord[0] == '/' && reservedWord[1] == '/' ) return DW_RESWORD_SINGLE_LINE_COMMENT;       // INCLUDE
-    if(reservedWord[0] == '"' && reservedWord[strlen(reservedWord) - 1] == '"' ) return DW_RESWORD_STRING;       // INCLUDE
-    if(reservedWord[0] == '\'' && reservedWord[strlen(reservedWord) - 1] == '\'' ) return DW_RESWORD_CHAR;       // INCLUDE
-    if(reservedWord[0] == '#' && reservedWord[1] == 'i' ) return DW_RESWORD_INCLUDE;       // INCLUDE
-    if(reservedWord[0] == '\0') return DW_RESWORD_NONE;
-
-    return DW_RESWORD_NONE;
-}
 bool _isWordEnd(char *csWordEnd){
 
     if (
@@ -157,22 +146,30 @@ bool _isExpression(char *csWordEnd){
     }
 }
 
+unsigned char _checkWordType(char *reservedWord){
+    if(isupper(reservedWord[0]) && isupper(reservedWord[1])){
+        return DW_RESWORD_CONSTANT;       // CONSTANT
+    } 
+    if(reservedWord[0] == '/' && reservedWord[1] == '/' ) return DW_RESWORD_SINGLE_LINE_COMMENT;       // INCLUDE
+    if(reservedWord[0] == '"' && reservedWord[strlen(reservedWord) - 1] == '"' ) return DW_RESWORD_STRING;       // INCLUDE
+    if(reservedWord[0] == '\'' && reservedWord[strlen(reservedWord) - 1] == '\'' ) return DW_RESWORD_CHAR;       // INCLUDE
+    if(reservedWord[0] == '#' && reservedWord[1] == 'i' ) return DW_RESWORD_INCLUDE;       // INCLUDE
+    if(reservedWord[0] == '#' && reservedWord[1] == 'd' ) return DW_RESWORD_DEFINE;       // INCLUDE
+    if(reservedWord[0] == '\0') return DW_RESWORD_NONE;
+
+    return DW_RESWORD_NONE;
+}
+
 // THIS DETECTS WORDS THAT ARE MORE THAN ONE CHARACTER
-unsigned char _keywordMap(char *word, char *previousWord){
+unsigned char _keywordMap(char *word, unsigned char previousWordType){
     if(!word) return 0;
 
     // CONST
     if(isupper(*word) && isupper(*(word + 1))) return COLOR_LIGHT_MAGENTA;
 
     // #define CONST
-    if( //*previousWord == '#' &&
-         strcmp(previousWord, "#define") == 0){
-        return COLOR_LIGHT_MAGENTA;
-    }
- 
-    if(strcmp(previousWord, "#include") == 0){
-        return COLOR_LIGHT_GREEN;
-    }
+    if( previousWordType == DW_RESWORD_DEFINE) return COLOR_LIGHT_CYAN;
+    if( previousWordType == DW_RESWORD_INCLUDE)  return COLOR_LIGHT_YELLOW;
 
     // Then we check if it's a keyword
     
@@ -229,6 +226,8 @@ unsigned char _keywordMap(char *word, char *previousWord){
     if (strcmp(word, "goto") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "continue") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "typedef") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "extern") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "volatile") == 0) return COLOR_LIGHT_RED;
     
     // Preprocessor directives
     /*
@@ -247,7 +246,7 @@ unsigned char _keywordMap(char *word, char *previousWord){
     if (strcmp(word, "#include_next") == 0) return COLOR_LIGHT_GREEN;
     */
     if (strcmp(word, "#warning") == 0) return COLOR_LIGHT_YELLOW;
-    if (*word == '#') return COLOR_LIGHT_GREEN;     // CHEAPER
+    //if (*word == '#') return COLOR_LIGHT_GRAY;     // CHEAPER
     
     // Boolean values
     if (strcmp(word, "true") == 0) return COLOR_LIGHT_BLUE;
@@ -541,6 +540,7 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
     char *csWordStart;
     char *csWordEnd;        // current character special word
     char *csStringEnd;        // current character special word
+    char *csWordEndAux;        // marker of detected word offset for special cases, 
     char detectedWord[32] = {0};
     char previousWord[32] = {0};
     unsigned char specialWordColor = 0;   
@@ -599,8 +599,9 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
             linePos = 0;
             screenX = x1;
             spaceBetween = 0;
-            csWordStart = 0;
-            csWordEnd = 0;
+            csWordStart = NULL;
+            csWordEnd = NULL;
+            csWordEndAux=NULL;
             csStringEnd=NULL;
             isSingleLineComment = false;
             isString=false;
@@ -674,7 +675,7 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                                 stringEscapeCharColor = _isEscapeChar(csWordEnd, &isIdentifier);
                                 
                                 if(isString == true && stringEscapeCharColor){
-                                    specialWordColor = COLOR_LIGHT_RED;
+                                    specialWordColor = stringEscapeCharColor;
                                 }else if(isString == true){
                                     // We get where the string is supposed to end, this will run  just once.
                                     if(!csStringEnd){
@@ -698,31 +699,37 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                                     // DETECTS SINGLE CHARACTER KEYWORDS SUCH AS EXPRESSIONS
                                     if(_isExpression(csWordEnd) && !(prevDetectedWordType == DW_RESWORD_INCLUDE)){
                                         specialWordColor = COLOR_LIGHT_RED;
-                                    }else{    
-                                       while( _isWordEnd(csWordEnd) == true){
+                                    }else{  
+                                        csWordEndAux = csWordEnd;
+                                        while( _isWordEnd(csWordEnd) == true){                                            
                                             csWordEnd++;
                                         }
                                         memcpy(detectedWord, csWordStart, csWordEnd - csWordStart);
                                         
                                         detectedWord[csWordEnd - csWordStart] = '\0';
                                         detectedWordType = _checkWordType(detectedWord);
+                                                   
+                                        switch(detectedWordType){
+                                            case DW_RESWORD_CHAR:
+                                                specialWordColor = COLOR_LIGHT_BLUE;
+                                                break;
+                                            case DW_RESWORD_SINGLE_LINE_COMMENT:
+                                                isSingleLineComment = true;
+                                                break;
+                                            case DW_RESWORD_DEFINE:
+                                            case DW_RESWORD_INCLUDE:
+                                                specialWordColor = (*csWordEndAux == '#') ? COLOR_LIGHT_GRAY : COLOR_LIGHT_RED;
+
+                                                // We reset the aux pointer as we needed it just once for getting the first character of the detected word
+                                                csWordEndAux = NULL;
+                                                break;
+                                            case DW_RESWORD_CONSTANT:
+                                            default:
+                                                specialWordColor = _keywordMap(detectedWord, prevDetectedWordType);
+                                                break;
                                 
-                                        if(prevDetectedWordType == DW_RESWORD_INCLUDE){
-                                            specialWordColor = COLOR_LIGHT_GREEN;
-                                        }else{
-                                            switch(detectedWordType){
-                                                case DW_RESWORD_CHAR:
-                                                    specialWordColor = COLOR_LIGHT_BLUE;
-                                                    break;
-                                                case DW_RESWORD_SINGLE_LINE_COMMENT:
-                                                    isSingleLineComment = true;
-                                                    break;
-                                                case DW_RESWORD_CONSTANT:
-                                                default:
-                                                    specialWordColor = _keywordMap(detectedWord, previousWord);
-                                                    break;
-                                            }
                                         }
+                                    
                                     }
                                 }
                             }

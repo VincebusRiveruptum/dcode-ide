@@ -24,10 +24,11 @@
 
 #define LINE_COUNTER_WIDTH 6
 
-#define DW_RESWORD_CONSTANT 5
-#define DW_RESWORD_SINGLE_LINE_COMMENT 4
-#define DW_RESWORD_STRING 3
-#define DW_RESWORD_CHAR 2
+#define DW_RESWORD_CONSTANT 6
+#define DW_RESWORD_SINGLE_LINE_COMMENT 5
+#define DW_RESWORD_STRING 4
+#define DW_RESWORD_CHAR 3
+#define DW_RESWORD_DEFINE 2
 #define DW_RESWORD_INCLUDE 1
 #define DW_RESWORD_NONE 0
 
@@ -67,3 +68,12 @@ extern unsigned char currentCursorX;
 extern unsigned char currentCursorY;
 
 #endif
+
+
+
+
+
+
+
+
+

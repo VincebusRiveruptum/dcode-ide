@@ -6,11 +6,82 @@
 // tHIS WILL DETECT THE COMMENT ENDS IN THE SINGLE LINE
 
 // Three posible scenarios
+// TERRIBLE I KNOW BUT WORKS
+unsigned char _isEscapeChar(char *c, bool *isIdentifier){
+    bool isEscapeChar = false;
+
+    // ESCAPE CHAR DETECTION
+    if(*(c) == '\\' || 
+        (*c) == 'a' ||
+        (*c) == 'b' ||
+        (*c) == 'e' ||
+        (*c) == 'f' ||
+        (*c) == 'n' ||
+        (*c) == 'r' ||
+        (*c) == 't' ||
+        (*c) == 'v' ||
+        (*c) == '\''||
+        (*c) == '"' ||
+        (*c) == '?' ||
+        (*c) == '0'
+    ){
+        if((*c) == '\\'){
+            switch(*(c + 1)){
+                case 'a':
+                case 'b':
+                case 'e':
+                case 'f':
+                case 'n':
+                case 'r':
+                case 't':
+                case 'v':
+                case '\'':
+                case '"':
+                case '?':
+                case '0':
+                    isEscapeChar = true;
+                    break;
+            }
+        }else{
+            if(*(c - 1 ) == '\\') isEscapeChar = true;
+        }
+
+        return isEscapeChar ? COLOR_LIGHT_RED : 0;
+    };
+
+    // string parameter identifier detection
+    if(*(c) == '%'){
+        *isIdentifier = true;
+        return COLOR_BROWN;
+    }
+
+    if(*isIdentifier == true){
+        if(
+            *(c - 1) != 'd' &&
+            *(c - 1) != 'C' &&
+            *(c - 1) != 'n' &&
+            *(c - 1) != 'f' &&
+            *(c - 1) != 'x' &&
+            *(c - 1) != 'o' &&
+            *(c - 1) != 'l'
+        ) {
+            *isIdentifier = false;
+            return COLOR_LIGHT_YELLOW;
+        }
+        return COLOR_BROWN;
+    }
+
+    return 0;
+}
+
 unsigned char _checkWordType(char *reservedWord){
+    if(isupper(reservedWord[0]) && isupper(reservedWord[1])){
+        return DW_RESWORD_CONSTANT;       // CONSTANT
+    } 
     if(reservedWord[0] == '/' && reservedWord[1] == '/' ) return DW_RESWORD_SINGLE_LINE_COMMENT;       // INCLUDE
     if(reservedWord[0] == '"' && reservedWord[strlen(reservedWord) - 1] == '"' ) return DW_RESWORD_STRING;       // INCLUDE
     if(reservedWord[0] == '\'' && reservedWord[strlen(reservedWord) - 1] == '\'' ) return DW_RESWORD_CHAR;       // INCLUDE
-    if(reservedWord[0] == '#' ) return DW_RESWORD_INCLUDE;       // INCLUDE
+    if(reservedWord[0] == '#' && reservedWord[1] == 'i' ) return DW_RESWORD_INCLUDE;       // INCLUDE
     if(reservedWord[0] == '\0') return DW_RESWORD_NONE;
 
     return DW_RESWORD_NONE;
@@ -90,7 +161,15 @@ bool _isExpression(char *csWordEnd){
 unsigned char _keywordMap(char *word, char *previousWord){
     if(!word) return 0;
 
+    // CONST
+    if(isupper(*word) && isupper(*(word + 1))) return COLOR_LIGHT_MAGENTA;
 
+    // #define CONST
+    if( //*previousWord == '#' &&
+         strcmp(previousWord, "#define") == 0){
+        return COLOR_LIGHT_MAGENTA;
+    }
+ 
     if(strcmp(previousWord, "#include") == 0){
         return COLOR_LIGHT_GREEN;
     }
@@ -471,7 +550,8 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
     bool isMultilineComment = false;
     bool isSingleLineComment = false;   
     bool isString = false;
-
+    bool isIdentifier=false;
+    unsigned char stringEscapeCharColor = 0;
 
     /* Boundary check */
     if(x1 > x2 || y1 > y2) return;
@@ -524,9 +604,10 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
             csStringEnd=NULL;
             isSingleLineComment = false;
             isString=false;
+            stringEscapeCharColor = 0;
             prevDetectedWordType = DW_RESWORD_NONE;
             detectedWordType = DW_RESWORD_NONE;
-
+            isIdentifier=false;
             while(screenX <= x2){
                 //
                 // ============ LINE COUNTER COLUMN ===============================================
@@ -589,7 +670,12 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                                     isString = (*csWordEnd == '"') && !(prevDetectedWordType == DW_RESWORD_INCLUDE) ? true : false;
                                 }
 
-                                if(isString == true){
+                                // EXCAPE CHAR DETECTION INSIDE STRING
+                                stringEscapeCharColor = _isEscapeChar(csWordEnd, &isIdentifier);
+                                
+                                if(isString == true && stringEscapeCharColor){
+                                    specialWordColor = COLOR_LIGHT_RED;
+                                }else if(isString == true){
                                     // We get where the string is supposed to end, this will run  just once.
                                     if(!csStringEnd){
                                         csStringEnd = csWordEnd;
@@ -609,7 +695,6 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
 
                                 /* GENERIC DETECTION METHOD (SIMPLE )*/
                                 }else{
-
                                     // DETECTS SINGLE CHARACTER KEYWORDS SUCH AS EXPRESSIONS
                                     if(_isExpression(csWordEnd) && !(prevDetectedWordType == DW_RESWORD_INCLUDE)){
                                         specialWordColor = COLOR_LIGHT_RED;
@@ -627,14 +712,15 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                                         }else{
                                             switch(detectedWordType){
                                                 case DW_RESWORD_CHAR:
-                                                specialWordColor = COLOR_LIGHT_BLUE;
-                                                break;
+                                                    specialWordColor = COLOR_LIGHT_BLUE;
+                                                    break;
                                                 case DW_RESWORD_SINGLE_LINE_COMMENT:
-                                                isSingleLineComment = true;
-                                                break;
+                                                    isSingleLineComment = true;
+                                                    break;
+                                                case DW_RESWORD_CONSTANT:
                                                 default:
-                                                specialWordColor = _keywordMap(detectedWord, previousWord);
-                                                break;
+                                                    specialWordColor = _keywordMap(detectedWord, previousWord);
+                                                    break;
                                             }
                                         }
                                     }

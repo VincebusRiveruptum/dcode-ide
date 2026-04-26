@@ -155,6 +155,7 @@ unsigned char _checkWordType(char *reservedWord){
     if(reservedWord[0] == '\'' && reservedWord[strlen(reservedWord) - 1] == '\'' ) return DW_RESWORD_CHAR;       // INCLUDE
     if(reservedWord[0] == '#' && reservedWord[1] == 'i' ) return DW_RESWORD_INCLUDE;       // INCLUDE
     if(reservedWord[0] == '#' && reservedWord[1] == 'd' ) return DW_RESWORD_DEFINE;       // INCLUDE
+    if(reservedWord[0] == '#' && reservedWord[1] == 'e' ) return DW_RESWORD_DEFINE;       // INCLUDE
     if(reservedWord[0] == '\0') return DW_RESWORD_NONE;
 
     return DW_RESWORD_NONE;
@@ -245,6 +246,8 @@ unsigned char _keywordMap(char *word, unsigned char previousWordType){
     if (strcmp(word, "#pragma") == 0) return COLOR_LIGHT_GREEN;
     if (strcmp(word, "#include_next") == 0) return COLOR_LIGHT_GREEN;
     */
+    if (strcmp(word, "define") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "include") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "#warning") == 0) return COLOR_LIGHT_YELLOW;
     //if (*word == '#') return COLOR_LIGHT_GRAY;     // CHEAPER
     
@@ -527,11 +530,11 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
     int linePos;
     int screenX;
     int screenPos;
-    char c;
+    char *c;
     bool isSentence=false;
     
     int t;
-    int j;
+    int j,w;
     int spaceBetween = 0;    
     int lineCount = 0;
     char lineCounterBufferTemp[8] = {0};
@@ -540,8 +543,8 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
     char *csWordStart;
     char *csWordEnd;        // current character special word
     char *csStringEnd;        // current character special word
-    char *csWordEndAux;        // marker of detected word offset for special cases, 
     char detectedWord[32] = {0};
+    char auxWordBuffer[32] = {0};
     char previousWord[32] = {0};
     unsigned char specialWordColor = 0;   
     unsigned char detectedWordType = DW_RESWORD_NONE;
@@ -601,7 +604,6 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
             spaceBetween = 0;
             csWordStart = NULL;
             csWordEnd = NULL;
-            csWordEndAux=NULL;
             csStringEnd=NULL;
             isSingleLineComment = false;
             isString=false;
@@ -642,18 +644,19 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                 //
                     /* After line counter column, we draw the rest of the line content */
                     if(linePos + file->scrollX < line->length){
-                        c = line->buffer[linePos + file->scrollX];
+                        c = &line->buffer[linePos + file->scrollX];
 
                         // =========== SPECIAL KEYWORD COLORING=======================================
-                        if(&line->buffer[linePos + file->scrollX] > csWordEnd){
+                        if(c > csWordEnd){
                             memset(previousWord,'\0', 32);
                             memcpy(previousWord, detectedWord, strlen(detectedWord));
                             memset(detectedWord, '\0', 32);
+                            memset(auxWordBuffer, '\0', 32);
 
-                            csWordStart = &line->buffer[linePos + file->scrollX];
+                            csWordStart = c;
                             csWordEnd = csWordStart;
                             prevDetectedWordType = detectedWordType;
-                            detectedWordType - DW_RESWORD_NONE;
+                            detectedWordType = DW_RESWORD_NONE;
 
                             if(isMultilineComment == false){
                                 if(*csWordStart == '/' && *(csWordStart + 1) == '*') isMultilineComment = true;
@@ -700,7 +703,6 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                                     if(_isExpression(csWordEnd) && !(prevDetectedWordType == DW_RESWORD_INCLUDE)){
                                         specialWordColor = COLOR_LIGHT_RED;
                                     }else{  
-                                        csWordEndAux = csWordEnd;
                                         while( _isWordEnd(csWordEnd) == true){                                            
                                             csWordEnd++;
                                         }
@@ -718,11 +720,9 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                                                 break;
                                             case DW_RESWORD_DEFINE:
                                             case DW_RESWORD_INCLUDE:
-                                                specialWordColor = (*csWordEndAux == '#') ? COLOR_LIGHT_GRAY : COLOR_LIGHT_RED;
-
-                                                // We reset the aux pointer as we needed it just once for getting the first character of the detected word
-                                                csWordEndAux = NULL;
+                                                specialWordColor = COLOR_LIGHT_RED;
                                                 break;
+
                                             case DW_RESWORD_CONSTANT:
                                             default:
                                                 specialWordColor = _keywordMap(detectedWord, prevDetectedWordType);
@@ -746,7 +746,7 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                         // If not, we just print the character with the default color
                                                 
                         
-                        if(c == '\t'){
+                        if(*c == '\t'){
                             for(t=0; t < 4 && screenX <= x2; t++){
                                 destBuffer[(y * VIDEO_COLS) + screenX] = ' ' | ((backgroundColor << 4 | foregroundColor) << 8);
                                 screenX++;
@@ -755,13 +755,13 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                             /* Subtract one because screenX is incremented in the loop logic below or will be incremented in next iteration */
                             /* Actually we just continue and screenX is already at the next position */
                             continue; 
-                        } else if (c == '\r' || c == '\n') {
+                        } else if (*c == '\r' || *c == '\n') {
                             /* Skip these as we are already on a new line */
                             linePos++;
                             continue;
                         } else {
 
-                            destBuffer[screenPos] = c | ((backgroundColor << 4 | (specialWordColor ? specialWordColor : foregroundColor)) << 8);
+                            destBuffer[screenPos] = *c | ((backgroundColor << 4 | (specialWordColor ? specialWordColor : foregroundColor)) << 8);
                             screenX++;
                             linePos++;
                         }

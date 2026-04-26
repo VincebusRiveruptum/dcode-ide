@@ -9,6 +9,7 @@
 unsigned char _checkWordType(char *reservedWord){
     if(reservedWord[0] == '/' && reservedWord[1] == '/' ) return DW_RESWORD_SINGLE_LINE_COMMENT;       // INCLUDE
     if(reservedWord[0] == '"' && reservedWord[strlen(reservedWord) - 1] == '"' ) return DW_RESWORD_STRING;       // INCLUDE
+    if(reservedWord[0] == '\'' && reservedWord[strlen(reservedWord) - 1] == '\'' ) return DW_RESWORD_CHAR;       // INCLUDE
     if(reservedWord[0] == '#' ) return DW_RESWORD_INCLUDE;       // INCLUDE
     if(reservedWord[0] == '\0') return DW_RESWORD_NONE;
 
@@ -40,6 +41,52 @@ bool _isWordEnd(char *csWordEnd){
     return false;
 }
 
+bool _isExpression(char *csWordEnd){
+    char c = *csWordEnd;
+    char n = *(csWordEnd + 1);
+
+    switch(c) {
+        case '+':
+        case '-':
+        case '%':
+        case '~':
+        case '^':
+        case '=':
+        case '!':
+        case '<':
+        case '>':
+        case '&':
+        case '|':
+        case '?':
+        case ':':
+        case '.':
+        case ',':
+        case ';':
+        case '(':
+        case ')':
+        case '[':
+        case ']':
+        case '{':
+        case '}':
+            return true;
+
+        /* Operators that need lookahead to avoid comment delimiters */
+        case '*':
+            /* Avoid coloring * in */
+            if (n == '/') return false;
+            return true;
+
+        case '/':
+            /* Avoid coloring / in // or /* */
+            if (n == '/' || n == '*') return false;
+            return true;
+
+        default:
+            return false;
+    }
+}
+
+// THIS DETECTS WORDS THAT ARE MORE THAN ONE CHARACTER
 unsigned char _keywordMap(char *word, char *previousWord){
     if(!word) return 0;
 
@@ -63,6 +110,7 @@ unsigned char _keywordMap(char *word, char *previousWord){
     if (strcmp(word, "bool") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "typedef") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "unsigned") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "const") == 0) return COLOR_LIGHT_RED;
 
     /* Control flow */
     if (strcmp(word, "if") == 0) return COLOR_LIGHT_RED;
@@ -78,7 +126,8 @@ unsigned char _keywordMap(char *word, char *previousWord){
     if (strcmp(word, "goto") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "continue") == 0) return COLOR_LIGHT_RED;
     
-        // Preprocessor directives
+    // Preprocessor directives
+    /*
     if (strcmp(word, "#include") == 0) return COLOR_LIGHT_GREEN;
     if (strcmp(word, "#define") == 0) return COLOR_LIGHT_GREEN;
     if (strcmp(word, "#ifdef") == 0) return COLOR_LIGHT_GREEN;
@@ -91,9 +140,12 @@ unsigned char _keywordMap(char *word, char *previousWord){
     if (strcmp(word, "#error") == 0) return COLOR_LIGHT_GREEN;
     if (strcmp(word, "#line") == 0) return COLOR_LIGHT_GREEN;
     if (strcmp(word, "#pragma") == 0) return COLOR_LIGHT_GREEN;
-    if (strcmp(word, "#warning") == 0) return COLOR_LIGHT_YELLOW;
     if (strcmp(word, "#include_next") == 0) return COLOR_LIGHT_GREEN;
+    */
+    if (strcmp(word, "#warning") == 0) return COLOR_LIGHT_YELLOW;
+    if (*word == '#') return COLOR_LIGHT_GREEN;     // CHEAPER
     
+    /*
     // Expressions
     if (strcmp(word, "==") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "!=") == 0) return COLOR_LIGHT_RED;
@@ -105,7 +157,7 @@ unsigned char _keywordMap(char *word, char *previousWord){
     // Operators
     if (*word == '+') return COLOR_LIGHT_RED;
     if (*word == '-') return COLOR_LIGHT_RED;
-    if (*word == '*') return COLOR_LIGHT_RED;
+    if (strcmp(word,'*') == 0) return COLOR_LIGHT_RED;
     if (*word == '/') return COLOR_LIGHT_RED;
     if (*word == '%') return COLOR_LIGHT_RED;
     if (*word == '=') return COLOR_LIGHT_RED;
@@ -137,7 +189,8 @@ unsigned char _keywordMap(char *word, char *previousWord){
     if (strcmp(word, "^=") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "<<") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, ">>") == 0) return COLOR_LIGHT_RED;
-    
+    */
+
     // Boolean values
     if (strcmp(word, "true") == 0) return COLOR_LIGHT_BLUE;
     if (strcmp(word, "false") == 0) return COLOR_LIGHT_BLUE;
@@ -552,6 +605,7 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                             // There is no comment in the current line
                             if(isMultilineComment == false /*&& isSingleLineComment == false*/){
 
+                                /* STRING DETECTION METHOD*/
                                 if(!csStringEnd){
                                     isString = (*csWordEnd == '"') && !(prevDetectedWordType == DW_RESWORD_INCLUDE) ? true : false;
                                 }
@@ -574,17 +628,33 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                                         isString=false;
                                     }
 
+                                /* GENERIC DETECTION METHOD (SIMPLE )*/
                                 }else{
-                                    while( _isWordEnd(csWordEnd) == true){
-                                        csWordEnd++;
+
+                                    // DETECTS SINGLE CHARACTER KEYWORDS SUCH AS EXPRESSIONS
+                                    if(_isExpression(csWordEnd)){
+                                        specialWordColor = COLOR_LIGHT_RED;
+                                    }else{    
+                                       while( _isWordEnd(csWordEnd) == true){
+                                            csWordEnd++;
+                                        }
+                                        memcpy(detectedWord, csWordStart, csWordEnd - csWordStart);
+                                        
+                                        detectedWord[csWordEnd - csWordStart] = '\0';
+                                        detectedWordType = _checkWordType(detectedWord);
+                                
+                                        switch(detectedWordType){
+                                            case DW_RESWORD_CHAR:
+                                                specialWordColor = COLOR_LIGHT_BLUE;
+                                                break;
+                                            case DW_RESWORD_SINGLE_LINE_COMMENT:
+                                                isSingleLineComment = true;
+                                                break;
+                                            default:
+                                                specialWordColor = _keywordMap(detectedWord, previousWord);
+                                                break;
+                                        }
                                     }
-                                    memcpy(detectedWord, csWordStart, csWordEnd - csWordStart);
-                                    
-                                    detectedWord[csWordEnd - csWordStart] = '\0';
-                                    
-                                    if((detectedWordType = _checkWordType(detectedWord)) == DW_RESWORD_SINGLE_LINE_COMMENT) isSingleLineComment = true;
-                                    
-                                    specialWordColor = _keywordMap(detectedWord, previousWord);
                                 }
                             }
                             

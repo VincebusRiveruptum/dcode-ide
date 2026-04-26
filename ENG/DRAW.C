@@ -448,10 +448,14 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
     char detectedWord[32] = {0};
     char previousWord[32] = {0};
     unsigned char specialWordColor = 0;   
+    unsigned char detectedWordType = DW_RESWORD_NONE;
+    unsigned char prevDetectedWordType = DW_RESWORD_NONE;
 
     bool isMultilineComment = false;
     bool isSingleLineComment = false;   
     bool isString = false;
+
+
     /* Boundary check */
     if(x1 > x2 || y1 > y2) return;
 
@@ -503,7 +507,9 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
             csStringEnd=NULL;
             isSingleLineComment = false;
             isString=false;
-            
+            prevDetectedWordType = DW_RESWORD_NONE;
+            detectedWordType = DW_RESWORD_NONE;
+
             while(screenX <= x2){
                 //
                 // ============ LINE COUNTER COLUMN ===============================================
@@ -547,6 +553,8 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
 
                             csWordStart = &line->buffer[linePos + file->scrollX];
                             csWordEnd = csWordStart;
+                            prevDetectedWordType = detectedWordType;
+                            detectedWordType - DW_RESWORD_NONE;
 
                             if(isMultilineComment == false){
                                 if(*csWordStart == '/' && *(csWordStart + 1) == '*') isMultilineComment = true;
@@ -560,7 +568,7 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                             if(isMultilineComment == false /*&& isSingleLineComment == false*/){
 
                                 if(!csStringEnd){
-                                    isString = (*csWordEnd == '"') ? true : false;
+                                    isString = (*csWordEnd == '"') && !(prevDetectedWordType == DW_RESWORD_INCLUDE) ? true : false;
                                 }
 
                                 if(isString == true){
@@ -589,7 +597,7 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                                     
                                     detectedWord[csWordEnd - csWordStart] = '\0';
                                     
-                                    if(_checkWordType(detectedWord) == DW_RESWORD_SINGLE_LINE_COMMENT) isSingleLineComment = true;
+                                    if((detectedWordType = _checkWordType(detectedWord)) == DW_RESWORD_SINGLE_LINE_COMMENT) isSingleLineComment = true;
                                     
                                     specialWordColor = _keywordMap(detectedWord, previousWord);
                                 }

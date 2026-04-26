@@ -98,20 +98,44 @@ unsigned char _keywordMap(char *word, char *previousWord){
     // Then we check if it's a keyword
     
     // vars
-    if (strcmp(word, "int") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "long") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "short") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "double") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "FILE") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "size_t") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "float") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "char") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "void") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "bool") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "typedef") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "unsigned") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "const") == 0) return COLOR_LIGHT_RED;
-
+    if (strcmp(word, "int") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "long") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "short") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "float") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "double") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "char") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "void") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "bool") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "unsigned") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "const") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "enum") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "struct") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "union") == 0) return COLOR_LIGHT_CYAN;
+    
+    // Known STD types
+    if (strcmp(word, "FILE") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "ptrdiff_t") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "wchar_t") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "size_t") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "clock_t") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "time_t") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "tm") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "fpos_t") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "div_t") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "ldiv_t") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "sig_atomic_t") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "jmp_buf") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "va_list") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "lconv") == 0) return COLOR_LIGHT_CYAN;
+    
+    // known DOS.H types
+    if (strcmp(word, "REGS") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "WORDREGS") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "BYTEREGS") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "SREGS") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "REGPACK") == 0) return COLOR_LIGHT_CYAN;
+    if (strcmp(word, "asm") == 0) return COLOR_LIGHT_CYAN;
+    
     /* Control flow */
     if (strcmp(word, "if") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "else") == 0) return COLOR_LIGHT_RED;
@@ -125,6 +149,7 @@ unsigned char _keywordMap(char *word, char *previousWord){
     if (strcmp(word, "default") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "goto") == 0) return COLOR_LIGHT_RED;
     if (strcmp(word, "continue") == 0) return COLOR_LIGHT_RED;
+    if (strcmp(word, "typedef") == 0) return COLOR_LIGHT_RED;
     
     // Preprocessor directives
     /*
@@ -145,52 +170,6 @@ unsigned char _keywordMap(char *word, char *previousWord){
     if (strcmp(word, "#warning") == 0) return COLOR_LIGHT_YELLOW;
     if (*word == '#') return COLOR_LIGHT_GREEN;     // CHEAPER
     
-    /*
-    // Expressions
-    if (strcmp(word, "==") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "!=") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, ">=") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "<=") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, ">") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "<") == 0) return COLOR_LIGHT_RED;
-    
-    // Operators
-    if (*word == '+') return COLOR_LIGHT_RED;
-    if (*word == '-') return COLOR_LIGHT_RED;
-    if (strcmp(word,'*') == 0) return COLOR_LIGHT_RED;
-    if (*word == '/') return COLOR_LIGHT_RED;
-    if (*word == '%') return COLOR_LIGHT_RED;
-    if (*word == '=') return COLOR_LIGHT_RED;
-    if (*word == '|') return COLOR_LIGHT_RED;
-    if (*word == '&') return COLOR_LIGHT_RED;
-    if (*word == '^') return COLOR_LIGHT_RED;
-    if (*word == '!') return COLOR_LIGHT_RED;
-    if (*word == '~') return COLOR_LIGHT_RED;
-    
-    if (*word == '{') return COLOR_LIGHT_YELLOW;
-    if (*word == '}') return COLOR_LIGHT_YELLOW;
-    
-    if (strcmp(word, ">>") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "<<") == 0) return COLOR_LIGHT_RED;
-    
-    // Logical operators
-    if (strcmp(word, "&&") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "||") == 0) return COLOR_LIGHT_RED;
-    
-    // Assignment operators
-    if (strcmp(word, "=") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "+=") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "-=") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "*=") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "/=") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "%=") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "&=") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "|=") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "^=") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, "<<") == 0) return COLOR_LIGHT_RED;
-    if (strcmp(word, ">>") == 0) return COLOR_LIGHT_RED;
-    */
-
     // Boolean values
     if (strcmp(word, "true") == 0) return COLOR_LIGHT_BLUE;
     if (strcmp(word, "false") == 0) return COLOR_LIGHT_BLUE;
@@ -632,7 +611,7 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                                 }else{
 
                                     // DETECTS SINGLE CHARACTER KEYWORDS SUCH AS EXPRESSIONS
-                                    if(_isExpression(csWordEnd)){
+                                    if(_isExpression(csWordEnd) && !(prevDetectedWordType == DW_RESWORD_INCLUDE)){
                                         specialWordColor = COLOR_LIGHT_RED;
                                     }else{    
                                        while( _isWordEnd(csWordEnd) == true){
@@ -643,16 +622,20 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                                         detectedWord[csWordEnd - csWordStart] = '\0';
                                         detectedWordType = _checkWordType(detectedWord);
                                 
-                                        switch(detectedWordType){
-                                            case DW_RESWORD_CHAR:
+                                        if(prevDetectedWordType == DW_RESWORD_INCLUDE){
+                                            specialWordColor = COLOR_LIGHT_GREEN;
+                                        }else{
+                                            switch(detectedWordType){
+                                                case DW_RESWORD_CHAR:
                                                 specialWordColor = COLOR_LIGHT_BLUE;
                                                 break;
-                                            case DW_RESWORD_SINGLE_LINE_COMMENT:
+                                                case DW_RESWORD_SINGLE_LINE_COMMENT:
                                                 isSingleLineComment = true;
                                                 break;
-                                            default:
+                                                default:
                                                 specialWordColor = _keywordMap(detectedWord, previousWord);
                                                 break;
+                                            }
                                         }
                                     }
                                 }

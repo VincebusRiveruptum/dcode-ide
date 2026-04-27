@@ -14,6 +14,8 @@ typedef struct Settings{
     unsigned char AUTOIDENTING;
     unsigned char AUTOCLOSING;
     unsigned char AUTOBRACES;
+    unsigned char TAB_INDICATOR;
+    unsigned char TAB_SPACE_INDICATOR;
 
     char DEFAULT_EXTENSION[16];
     unsigned char AUTOSAVE;

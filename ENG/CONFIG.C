@@ -24,6 +24,8 @@ bool cfg_loadConfig(){
     settings.AUTOIDENTING                   = (unsigned char)getEnvInt("AUTOIDENTING", 1);
     settings.AUTOCLOSING                    = (unsigned char)getEnvInt("AUTOCLOSING", 1);
     settings.AUTOBRACES                     = (unsigned char)getEnvInt("AUTOBRACES", 1);
+    settings.TAB_INDICATOR                  = (unsigned char)getEnvInt("TAB_INDICATOR", 0);
+    settings.TAB_SPACE_INDICATOR            = (unsigned char)getEnvInt("TAB_SPACE_INDICATOR", 0);
     
     memset(settings.DEFAULT_EXTENSION, '\0', 16);
     ext = (char*) getEnv("DEFAULT_EXTENSION");

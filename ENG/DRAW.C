@@ -744,11 +744,12 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                         // If the word is actually  mapped and has its own color, we use that
                         
                         // If not, we just print the character with the default color
-                                                
+                                                          
                         
                         if(*c == '\t'){
+                            /// UGLYT TEST
                             for(t=0; t < 4 && screenX <= x2; t++){
-                                destBuffer[(y * VIDEO_COLS) + screenX] = ' ' | ((backgroundColor << 4 | foregroundColor) << 8);
+                                destBuffer[(y * VIDEO_COLS) + screenX] = ((t==3 && settings.TAB_INDICATOR == true) ? 179 : ' ') | (backgroundColor << 4 | ((t==3 && settings.TAB_INDICATOR == true) ? COLOR_DARK_GRAY : foregroundColor) << 8);
                                 screenX++;
                             }
                             linePos++;
@@ -782,6 +783,7 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
         }
     }
 }
+
 
 
 

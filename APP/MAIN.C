@@ -32,7 +32,7 @@ int main(int argc, char *argv[]){
 
         // ACTION KEYS HANDLING
         // This is uses ISR approach, not getch()
-        if(inp_isKeyDown(KEY_ESC)) f_triggerClose();
+        if(inp_isKeyPressed(KEY_ESC)) f_triggerClose();
         if(inp_isKeyDown(KEY_F1)) {v_set25Lines(); ed_renderEvent = true;}
         if(inp_isKeyDown(KEY_F2)) {v_set50Lines(); ed_renderEvent = true;}
         if(inp_isKeyDown(KEY_F3)) {v_set43Lines(); ed_renderEvent = true;}

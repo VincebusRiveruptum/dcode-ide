@@ -605,6 +605,8 @@ void f_triggerClose(){
     char input;
     char *filename;
     int len = 0;
+    bool esc;
+    int status;
 
     if(currentFileArena->file->isModified == true){
         dw_writeBuffer(textmemptr, "File modified, save? Y/N ",0,VIDEO_ROWS - 1 ,26, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
@@ -613,25 +615,31 @@ void f_triggerClose(){
             input == 'n' ||
             input == 'N' ||
             input == 'y' ||
-            input == 'Y'
+            input == 'Y' ||
+            (esc = inp_isKeyPressed(KEY_ESC) == true) 
+
         )){
             input = getch();
         }
+
+        if(esc == true) return;
 
         if(input == 'n' || input == 'N'){
             endProgram = true;
             return;
         } 
-            
+        
         ed_renderElements();
         
         if(f_isDefaultFileName() == true){
             dw_writeBuffer(textmemptr, "File name: ",0,VIDEO_ROWS - 1, 10,VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
             
-            while(len <= 3 || len > 12){
+            while((len <= 3 || len > 12)){
                 dw_writeBuffer(textmemptr, "",11,VIDEO_ROWS - 1, VIDEO_COLS - 1, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
                 filename = ed_scanf(11, VIDEO_ROWS - 1, 32);
                 
+                if(filename == NULL) return;
+
                 len = strlen(filename);
 
                 ed_renderElements();
@@ -639,7 +647,7 @@ void f_triggerClose(){
                     dw_writeBuffer(textmemptr, "Invalid filename! Try again",0,VIDEO_ROWS - 1,30, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
                 }
             }
-            
+            if(esc == true) return;
             strcpy(currentFileArena->file->name, filename);
         }
     }

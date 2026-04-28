@@ -749,14 +749,15 @@ void ed_newLine(){
 char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
     int i = 0, j = 0, lenbuff = 0;
     char c = 0;
-    
+    bool esc = false;
+
     static char buffer[MAX_FILE_LINE_LENGTH];
 
     memset(buffer, '\0', MAX_FILE_LINE_LENGTH);
 
     ed_putCursor(x,y);    
 
-    while(c != CHAR_ENTER){
+    while(c != CHAR_ENTER && !(esc = inp_isKeyPressed(KEY_ESC) == true)){
         c = getch();
 
         if(c == 0 || (unsigned char)c == 0xE0){
@@ -823,6 +824,10 @@ char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
             }
         }
     }
+    
+    ed_putCursor(currentCursorX,currentCursorY);    
+
+    if (esc == true) return NULL;
 
     return buffer;
 }

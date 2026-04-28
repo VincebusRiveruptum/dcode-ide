@@ -729,7 +729,6 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
                                                 break;
                                 
                                         }
-                                    
                                     }
                                 }
                             }
@@ -783,6 +782,7 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
         }
     }
 }
+
 
 
 

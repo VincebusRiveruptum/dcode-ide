@@ -510,8 +510,8 @@ void dw_writeColor(unsigned short *buffer, int x, int y, unsigned short foregrou
     buffer[screenPos] = (buffer[screenPos] & 0x00FF) | (bgColor << 12) | (fgColor << 8);
 }
 
-/* This also will take care of reserved word coloring */
-void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, File *file){
+
+void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, File *file){
 
     int x, y;
     Node *currentNode = NULL;
@@ -773,6 +773,143 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
 }
 
 
+// SIMPLER
+void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, File *file){
+
+    int x, y;
+    Node *currentNode = NULL;
+    Line *line;
+    int linePos;
+    int screenX;
+    int screenPos;
+    char *c;
+    int j,t;
+    int spaceBetween = 0;    
+    int lineCount = 0;
+    char lineCounterBufferTemp[8] = {0};
+    unsigned char specialWordColor = COLOR_LIGHT_GRAY;   
+    /* Boundary check */
+    if(x1 > x2 || y1 > y2) return;
+
+
+    /**/
+    if(!file->lines || file->lines->length == 0) {
+        /* Clear area if no lines */
+        for(y = y1; y <= y2; y++){
+            for(x = x1; x <= x2; x++){
+                destBuffer[(y * VIDEO_COLS) + x] = ' ' | ((backgroundColor << 4 | foregroundColor) << 8);
+            }
+        }
+        return;
+    }
+    /*
+
+    OK, AI had to help me with this part, but it's still WIP
+    Pre-scan multiline comments and find current node
+    
+    */
+    currentNode = file->lines->firstNode;
+    lineCount = 0;
+    while(lineCount < file->scrollY && currentNode) {
+        currentNode = currentNode->next;
+        lineCount++;
+    }
+
+    /* End pre-scan */
+    
+    for(y = y1; y <= y2; y++){
+        if(currentNode){
+            line = (Line *)currentNode->data;
+            linePos = 0;
+            screenX = x1;
+
+            while(screenX <= x2){
+                //
+                // ============ LINE COUNTER COLUMN ===============================================
+                //
+                
+                screenPos = (y * VIDEO_COLS) + screenX;
+                
+                /* If is line counter column */
+                if (screenX == x1){
+                    /* TERRIBLE CODE I KNOW*/
+                    for(j=0; j < LINE_COUNTER_WIDTH; j++){
+                        destBuffer[screenPos + j] = ' ' | ((COLOR_BLACK << 4 | COLOR_WHITE) << 8);
+                    }
+
+                    sprintf(lineCounterBufferTemp, "%d", lineCount + 1);
+                    
+                    if (lineCount >= 9) spaceBetween = 1;
+                    if (lineCount >= 99) spaceBetween = 2;
+                    if (lineCount >= 999) spaceBetween = 3;
+                    if (lineCount >= 9999) spaceBetween = 4;
+                    if (lineCount >= 99999) spaceBetween = 5;
+
+                    for(j=0; j < (int)strlen(lineCounterBufferTemp); j++){
+                        destBuffer[screenPos + j + (LINE_COUNTER_WIDTH - spaceBetween - 1)] = lineCounterBufferTemp[j] | ((COLOR_BLACK << 4 | COLOR_WHITE) << 8);
+                    }
+                    
+                    screenX += LINE_COUNTER_WIDTH;
+                }else{
+                //
+                // ============ LINE CONTENT ========================================================
+                //
+                    /* After line counter column, we draw the rest of the line content */
+                    if(linePos + file->scrollX < line->length){
+                        c = &line->buffer[linePos + file->scrollX];                
+                        
+                        if(*c == '\t'){
+                            /// UGLYT TEST
+                            for(t=0; t < 4 && screenX <= x2; t++){
+                                destBuffer[(y * VIDEO_COLS) + screenX] = ((t==3 && settings.TAB_INDICATOR == true) ? 179 : ' ') | (backgroundColor << 4 | ((t==3 && settings.TAB_INDICATOR == true) ? COLOR_DARK_GRAY : foregroundColor) << 8);
+                                screenX++;
+                            }
+                            linePos++;
+                            /* Subtract one because screenX is incremented in the loop logic below or will be incremented in next iteration */
+                            /* Actually we just continue and screenX is already at the next position */
+                            continue; 
+                        } else if (*c == '\r' || *c == '\n') {
+                            /* Skip these as we are already on a new line */
+                            linePos++;
+                            continue;
+                        } else {
+
+                            destBuffer[screenPos] = *c | ((backgroundColor << 4 | (specialWordColor ? specialWordColor : foregroundColor)) << 8);
+                            screenX++;
+                            linePos++;
+                        }
+                    } else {
+                        destBuffer[screenPos] = ' ' | ((backgroundColor << 4 | foregroundColor) << 8);
+                        screenX++;
+                    }
+                }
+                
+            }
+            currentNode = currentNode->next;
+            lineCount++;
+        } else {
+            /* Fill remaining lines with spaces */
+            for(x = x1; x <= x2; x++){
+                destBuffer[(y * VIDEO_COLS) + x] = ' ' | ((backgroundColor << 4 | foregroundColor) << 8);
+            }
+        }
+    }
+}
+/* This also will take care of reserved word coloring */
+void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, File *file){
+    switch(file->ext){
+        case FILE_EXTENSION_C:
+            dw_c_formatter(destBuffer, x1,y1,x2,y2,foregroundColor,backgroundColor,file);
+            break;
+        case FILE_EXTENSION_PYTHON:
+        case FILE_EXTENSION_JS:
+        case FILE_EXTENSION_TXT:
+        default:
+            dw_txt_formatter(destBuffer, x1,y1,x2,y2,foregroundColor,backgroundColor,file);
+    }
+
+    return;
+}
 
 
 

@@ -669,7 +669,7 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
                                     isString = (*csWordEnd == '"') && !(prevDetectedWordType == DW_RESWORD_INCLUDE) ? true : false;
                                 }
 
-                                // EXCAPE CHAR DETECTION INSIDE STRING
+                                // EXCAPE CHAR DETECTION INSIDE STRING DOUBLE QUOTES 
                                 stringEscapeCharColor = _isEscapeChar(csWordEnd, &isIdentifier);
                                 
                                 if(isString == true && stringEscapeCharColor){
@@ -692,15 +692,18 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
                                         isString=false;
                                     }
 
-                                /* GENERIC DETECTION METHOD (SIMPLE )*/
+                                // FULL #INLUCDE HANDLING (YELLOWING OF THE SECOND PART OF THE #INCLUDE SENTENCE)
                                 }else if(prevDetectedWordType == DW_RESWORD_INCLUDE){
-                                    detectedWordType = DW_RESWORD_INCLUDE;
+                                    detectedWordType = (*csWordEnd == '"' || *csWordEnd == '>') ? 0 : detectedWordType = DW_RESWORD_INCLUDE;
                                     specialWordColor = COLOR_LIGHT_YELLOW;   
+
+                                // MATH EXPRESSIONS, SYNTAX AND CONTROL CHARACTERS RED COLORING
                                 }else if(
                                     (_isExpression(csWordEnd) ||
                                     _isComment(csWordEnd)) && 
                                     !(prevDetectedWordType == DW_RESWORD_INCLUDE)){
-                                    specialWordColor = COLOR_LIGHT_RED;
+                                        specialWordColor = COLOR_LIGHT_RED;
+                                /* KEYWORD DETECTION METHOD (SIMPLE )*/
                                 }else{
                                     // DETECTS SINGLE CHARACTER KEYWORDS SUCH AS EXPRESSIONS
                                     while( _isWordEnd(csWordEnd) == true){                                            

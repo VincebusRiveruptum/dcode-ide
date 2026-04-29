@@ -75,32 +75,6 @@ unsigned char _isEscapeChar(char *c, bool *isIdentifier){
     return 0;
 }
 
-bool _isWordEnd(char *csWordEnd){
-
-    if (
-        *csWordEnd != ' ' &&
-        *csWordEnd != '\t' &&
-        *csWordEnd != '\0' &&
-        *csWordEnd != '\n' &&
-        *csWordEnd != '\r' &&
-        
-        // DEPENDS
-        *csWordEnd != '(' &&
-        *csWordEnd != ')' &&
-        *csWordEnd != '[' &&
-        *csWordEnd != ']' &&
-        *csWordEnd != '{' &&
-        *csWordEnd != '}' &&
-        //*csWordEnd != '\'' &&
-        //*csWordEnd != ',' &&
-        //*csWordEnd != '.' &&
-        *csWordEnd != ';' &&
-        *csWordEnd != ':' //&&
-    )    return true;
-
-    return false;
-}
-
 bool _isExpression(char *csWordEnd){
     char c = *csWordEnd;
     char n = *(csWordEnd + 1);
@@ -146,6 +120,21 @@ bool _isExpression(char *csWordEnd){
     }
 }
 
+bool _isWordEnd(char *csWordEnd){
+
+    if (
+        *csWordEnd != ' ' &&
+        *csWordEnd != '\t' &&
+        *csWordEnd != '\0' &&
+        *csWordEnd != '\n' &&
+        *csWordEnd != '\r' &&
+        
+        // DEPENDS
+        !_isExpression(csWordEnd + 1)
+    )    return true;
+
+    return false;
+}
 unsigned char _checkWordType(char *reservedWord){
     if(isupper(reservedWord[0]) && isupper(reservedWord[1])){
         return DW_RESWORD_CONSTANT;       // CONSTANT

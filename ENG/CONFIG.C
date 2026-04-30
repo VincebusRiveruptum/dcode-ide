@@ -44,6 +44,7 @@ bool cfg_loadConfig(){
     settings.clang_colors[DW_RESWORD_FLOAT]        = COLOR_LIGHT_BLUE;
     settings.clang_colors[DW_RESWORD_CONSTANT]     = COLOR_LIGHT_BLUE;
     settings.clang_colors[DW_RESWORD_CHAR]         = COLOR_LIGHT_BLUE;
+    settings.clang_colors[DW_RESWORD_EXPRESSION]   = COLOR_LIGHT_RED;
     settings.clang_colors[DW_RESWORD_STRING]       = COLOR_LIGHT_YELLOW;
     settings.clang_colors[DW_RESWORD_CONTROL_FLOW] = COLOR_LIGHT_RED;
     settings.clang_colors[DW_RESWORD_DOS_FUNC]     = COLOR_LIGHT_CYAN;

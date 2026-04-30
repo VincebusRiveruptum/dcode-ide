@@ -150,10 +150,11 @@ unsigned char _keywordMap(char *word){
     if(!word) return DW_RESWORD_NONE;
 
     // CONST
-    //if(isupper(*word) && isupper(*(word + 1))) return DW_RESWORD_CONSTANT;
-
+    if(isupper(*word) && isupper(*(word + 1))) return DW_RESWORD_CONSTANT;
+    if(atoi(word)) return DW_RESWORD_INT;
+    if(atof(word)) return DW_RESWORD_FLOAT;
     // Then we check if it's a keyword
-    
+    if(*word == '\'' && word[strlen(word) - 1] == '\'') return DW_RESWORD_CHAR;
     // DW_RESWORD_TYPES
     if (strncmp(word, "int", 3) == 0) return DW_RESWORD_TYPES;
     if (strncmp(word, "long", 4) == 0) return DW_RESWORD_TYPES;
@@ -226,7 +227,8 @@ unsigned char _keywordMap(char *word){
     if (strncmp(word, "#pragma", 7) == 0) return DW_RESWORD_PREPROCESSOR;
     if (strncmp(word, "#include_next", 13) == 0) return DW_RESWORD_PREPROCESSOR;
     if (strncmp(word, "#warning", 8) == 0) return DW_RESWORD_PREPROCESSOR;
-    //if (*word == '#') return COLOR_LIGHT_GRAY;     // CHEAPER
+    
+    if (*word == '0') return DW_RESWORD_INT;     // CHEAPER
     
     // Boolean values
     if (strncmp(word, "true", 4) == 0) return DW_RESWORD_CONSTANT;
@@ -667,7 +669,7 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
                                     // as string
 
                                     if(csWordEnd < csStringEnd){
-                                        specialWordColor = COLOR_LIGHT_YELLOW;
+                                        specialWordColor = settings.clang_colors[DW_RESWORD_STRING];
                                     }else{
                                         csStringEnd = NULL;
                                         isString=false;
@@ -675,14 +677,14 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
                                 // FULL #INLUCDE HANDLING (YELLOWING OF THE SECOND PART OF THE #INCLUDE SENTENCE)
                                 }else if(prevDetectedWordType == DW_RESWORD_PREPROCESSOR){
                                     detectedWordType = (*csWordEnd == '>') ? 0 : DW_RESWORD_PREPROCESSOR;
-                                    specialWordColor = COLOR_LIGHT_YELLOW;   
+                                    specialWordColor = settings.clang_colors[DW_RESWORD_STRING];
 
                                 // MATH EXPRESSIONS, SYNTAX AND CONTROL CHARACTERS RED COLORING
                                 }else if(
                                     (_isExpression(csWordEnd) ||
                                     _isComment(csWordEnd)) && 
                                     !(prevDetectedWordType == DW_RESWORD_PREPROCESSOR)){
-                                        specialWordColor = COLOR_LIGHT_RED;
+                                        specialWordColor = settings.clang_colors[DW_RESWORD_EXPRESSION];
                                 /* KEYWORD DETECTION METHOD (SIMPLE )*/
                                 }else{
                                     // 1. Find the end of the current word

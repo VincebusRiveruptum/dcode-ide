@@ -36,6 +36,21 @@ bool cfg_loadConfig(){
     settings.STATUSBAR_COLOR_BG             = (unsigned char)getEnvInt("STATUSBAR_COLOR_BG", COLOR_LIGHT_GRAY);
     settings.STATUSBAR_COLOR_TEXT           = (unsigned char)getEnvInt("STATUSBAR_COLOR_TEXT", COLOR_RED);
 
+    // Hardcoded for now
+    settings.clang_colors[DW_RESWORD_NONE]         = COLOR_LIGHT_GRAY;
+    settings.clang_colors[DW_RESWORD_PREPROCESSOR] = COLOR_LIGHT_RED;
+    settings.clang_colors[DW_RESWORD_TYPES]        = COLOR_LIGHT_CYAN;
+    settings.clang_colors[DW_RESWORD_INT]          = COLOR_LIGHT_BLUE;
+    settings.clang_colors[DW_RESWORD_FLOAT]        = COLOR_LIGHT_BLUE;
+    settings.clang_colors[DW_RESWORD_CONSTANT]     = COLOR_LIGHT_BLUE;
+    settings.clang_colors[DW_RESWORD_CHAR]         = COLOR_LIGHT_BLUE;
+    settings.clang_colors[DW_RESWORD_STRING]       = COLOR_LIGHT_YELLOW;
+    settings.clang_colors[DW_RESWORD_CONTROL_FLOW] = COLOR_LIGHT_RED;
+    settings.clang_colors[DW_RESWORD_DOS_FUNC]     = COLOR_LIGHT_CYAN;
+    settings.clang_colors[DW_RESWORD_STD_FUNC]     = COLOR_LIGHT_CYAN;
+    settings.clang_colors[DW_RESWORD_COMMENT]      = COLOR_DARK_GRAY;
+    settings.clang_colors[DW_RESWORD_WIFE]         = COLOR_LIGHT_YELLOW;
+
     logger("[cfg_loadConfig]: default.cfg loaded successfully");
 
     return true;

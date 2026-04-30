@@ -26,6 +26,8 @@ typedef struct Settings{
     // CUSTOMIZATION
     unsigned char STATUSBAR_COLOR_BG;
     unsigned char STATUSBAR_COLOR_TEXT;
+
+    unsigned char clang_colors[32];
 }Settings;
 
 extern Settings settings;

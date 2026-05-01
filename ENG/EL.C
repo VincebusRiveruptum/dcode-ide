@@ -78,7 +78,7 @@ void el_renderElements(){
     if(!root || !root->elements) return;
 
     for(i=0; i < root->elements->length; i++){
-        node = getNodeByIndex(root->elements, i);
+        node = getNodeByIndex(&root->elements, i);
         element = (BaseElement*)node->data;
 
         if(!element) continue;

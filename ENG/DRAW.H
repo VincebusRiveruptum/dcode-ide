@@ -24,6 +24,22 @@
 
 #define LINE_COUNTER_WIDTH 6
 
+#define DW_RESWORD_NONE 0
+#define DW_RESWORD_PREPROCESSOR 1
+#define DW_RESWORD_TYPES 2
+#define DW_RESWORD_INT 3
+#define DW_RESWORD_FLOAT 4
+#define DW_RESWORD_CONSTANT 5
+#define DW_RESWORD_CHAR 6
+#define DW_RESWORD_EXPRESSION 7
+#define DW_RESWORD_STRING 8
+#define DW_RESWORD_CONTROL_FLOW 9
+#define DW_RESWORD_DOS_FUNC 10
+#define DW_RESWORD_STD_FUNC 11
+#define DW_RESWORD_COMMENT 12
+#define DW_RESWORD_FUNCTION 13
+#define DW_RESWORD_WIFE 14
+
 typedef enum {
     DRAW_BORDER_SIMPLE,
     DRAW_BORDER_DOUBLE
@@ -47,6 +63,7 @@ void dw_rectangle(unsigned short *buffer, unsigned short x1, unsigned short y1, 
 void dw_writeBuffer(unsigned short *buffer, const char *format, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, ...);
 void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, struct File *file);
 
+void dw_charXY_color(unsigned short *buffer, char c, unsigned char x, unsigned char y, unsigned short color);
 void dw_charXY(unsigned short *buffer, char c, unsigned char x, unsigned char y);
 char dw_read(unsigned short *buffer, int x, int y);
 

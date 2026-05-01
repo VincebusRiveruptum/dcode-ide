@@ -9,5 +9,6 @@
 #include <MEM.H>
 #include <i86.h>
 #include <errno.h>
+#include <time.h>
 
 #endif

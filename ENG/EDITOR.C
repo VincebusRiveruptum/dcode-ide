@@ -11,9 +11,6 @@
 #include "EDITOR.H"
 #include "FILES.H"
 
-
-
-
 //unsigned char attrib = 0x07; // Default attribute: White on Black
 struct Container *root;
 
@@ -25,14 +22,18 @@ unsigned char currentCursorY = 0;
 
 bool ed_renderEvent = false;
 
+time_t ed_globalAuxTimer = 0;
+char statusBarMessage[ED_STATUSBAR_WIDTH] = {'\0'};
+
 void ed_initConfig(int argc, char *argv[]){
     //f_defaultExtension
 
     // We will hardcode the default extension until i implement .ENV/CFG LOADING
-    strcpy(f_defaultExtension, ".c");
-
-    ed_statusbarBgColor = COLOR_LIGHT_GRAY;
-    ed_statusbarFgColor = COLOR_RED;
+    if(!cfg_loadConfig()){
+        logger("[ed_initConfig]: Could not load config file!");
+        // App exits
+        return ;
+    }
 
     logger("[ed_initConfig]: %d %s", argc, argv[1]);
     ed_handleArguments(argc, argv);
@@ -56,15 +57,57 @@ void ed_handleArguments(int argc, char *argv[]){
     ed_renderEvent = true;
 }
 
-int _get_tab_counts_until_cursorCol(){
+
+int _get_tab_counts_until(int col){
     int i = 0, tabCount = 0;
 
-    while(i < currentFileArena->file->cursorCol){
+    if (!currentFileArena->file->currentLine) return 0;
+
+    while(i < col && i < currentFileArena->file->currentLine->length){
         if(currentFileArena->file->currentLine->buffer[i] == CHAR_TAB) tabCount++;
         i++; 
     }
     
     return tabCount;
+}
+
+int _get_tab_counts_someline(Line *someLine, int col){
+    int i = 0, tabCount = 0;
+
+    if (!someLine) return 0;
+
+    while(i < col && i < someLine->length){
+        if(someLine->buffer[i] == CHAR_TAB) tabCount++;
+        i++; 
+    }
+    
+    return tabCount;
+}
+
+int _get_auto_close_pos(){
+    int tabCount = 0;
+    Node *travelingBackwards = currentFileArena->file->currentLineNode;
+
+    if(!travelingBackwards) return 0;
+    
+    while(travelingBackwards != NULL){
+        if( travelingBackwards->data &&
+            ((Line*)travelingBackwards->data)->buffer &&
+            ((Line*)travelingBackwards->data)->length){
+                
+            if(((Line*)travelingBackwards->data)->buffer[((Line *)travelingBackwards->data)->length-1] == '{'){
+                return _get_tab_counts_someline((Line*)travelingBackwards->data, ((Line *)travelingBackwards->data)->length);
+            }
+        }
+
+        travelingBackwards = travelingBackwards->prev;
+    }
+
+    return 0;
+}
+
+int _calculateVisualOffset(int col){
+    return col + (_get_tab_counts_until(col) * 3);
 }
 // Calculate current line number of tabs
 int _calculateTabCount(){
@@ -106,7 +149,7 @@ int _calculateTabStart(){
 
 void _updateCurrentCursorY(){
      // If the cursor is closer to the bottom
-    if(currentCursorY <=0 || currentFileArena->file->cursorLine < 0) currentCursorY = 0;
+    if(currentCursorY <=0) currentCursorY = 0;
     
     if( currentFileArena->file->cursorLine - currentFileArena->file->scrollY >= 0){
         currentCursorY = currentFileArena->file->cursorLine - currentFileArena->file->scrollY;
@@ -115,39 +158,50 @@ void _updateCurrentCursorY(){
     if(currentCursorY >= VIDEO_ROWS ) currentCursorY = VIDEO_ROWS;
 }
 void _updateCurrentCursorX(){
-    int tabcounts = 0;
-    // For debugging
+    int visualCursor = 0;
+    int visualScroll = 0;
+    
+    visualCursor = _calculateVisualOffset(currentFileArena->file->cursorCol);
+    visualScroll = _calculateVisualOffset(currentFileArena->file->scrollX);
+
+    currentCursorX = (visualCursor - visualScroll) + LINE_COUNTER_WIDTH;
+
+    // Boundary check to keep cursor on screen if something goes wrong
+    if(currentCursorX < LINE_COUNTER_WIDTH) currentCursorX = LINE_COUNTER_WIDTH;
+    if(currentCursorX >= VIDEO_COLS) currentCursorX = VIDEO_COLS - 1;
+
     currentFileArena->file->prevChar = 
-        currentFileArena->file->cursorCol - 1 > 0 &&
-        currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1]
+        currentFileArena->file->cursorCol > 0 
         ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1]
-        : ' ';
-        
-    currentFileArena->file->currentChar =
-    currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol]
-    ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol]
-    : ' ';
-    
+        : 0;
+
+    currentFileArena->file->currentChar = 
+        currentFileArena->file->cursorCol > 0 
+        ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol]
+        : 0;
+
     currentFileArena->file->nextChar = 
-    currentFileArena->file->cursorCol + 1 < currentFileArena->file->currentLine->length && 
-    currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + 1]
-    ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + 1]
-    : ' ';
-    
-    //logger("[_updateCurrentCursorX]: '%c' '%c' '%c'", currentFileArena->file->prevChar, currentFileArena->file->currentChar, currentFileArena->file->nextChar);
-    
-     if(currentFileArena->file->cursorCol <= 0 ){
-         currentCursorX = 0;
-        
-     }else if(currentFileArena->file->cursorCol > 0){
-         currentCursorX = currentFileArena->file->cursorCol;        
-    
-     }else if(currentFileArena->file->cursorCol >= VIDEO_COLS) {
-         currentCursorX = VIDEO_COLS - 1;
-     }    
-    
-    tabcounts = _get_tab_counts_until_cursorCol();
-    currentCursorX = currentCursorX + tabcounts * 3 + LINE_COUNTER_WIDTH;
+        currentFileArena->file->cursorCol < currentFileArena->file->currentLine->length
+        ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + 1]
+        : currentFileArena->file->currentLine->length;
+}
+
+void _ensureHorizontalScroll(){
+    int visualCursor = _calculateVisualOffset(currentFileArena->file->cursorCol);
+    int visualScroll = _calculateVisualOffset(currentFileArena->file->scrollX);
+    int displayWidth = VIDEO_COLS - LINE_COUNTER_WIDTH;
+
+    // If cursor is to the left of the visible area
+    if (visualCursor < visualScroll) {
+        currentFileArena->file->scrollX = currentFileArena->file->cursorCol;
+    } 
+    // If cursor is to the right of the visible area
+    else if (visualCursor >= visualScroll + displayWidth) {
+        // We move scrollX forward until the cursor is visible
+        while (_calculateVisualOffset(currentFileArena->file->scrollX) + displayWidth <= visualCursor) {
+            currentFileArena->file->scrollX++;
+        }
+    }
 }
 
 void _updateCursor(){
@@ -301,7 +355,6 @@ void ed_moveCursor(short x, short y){
     // END VERTICAL SCROLLING =====================================================
 
     // HORIZ, SCROLLING ===========================================================
-    // We can't move the cursor past the end of the line
     if(x){
         if(currentFileArena->file->cursorCol + x <= 0){
             currentFileArena->file->cursorCol = 0;
@@ -309,15 +362,17 @@ void ed_moveCursor(short x, short y){
             currentFileArena->file->cursorCol + x > 0 && 
             currentFileArena->file->cursorCol + x <= currentFileArena->file->currentLine->length
         ){  
-            if (x < 0) c = currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + x];
-            if (x > 0) c = currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + x - 1];
-
             currentFileArena->file->cursorCol +=x;
 
-        }else if(currentFileArena->file->cursorCol + x >= VIDEO_COLS && currentFileArena->file->currentLine->length >= VIDEO_COLS){
-            // HERE WE SHOULD SCROLL RIGHT 
-            currentFileArena->file->cursorCol = currentFileArena->file->currentLine->length - 1;
+        }else if(currentFileArena->file->cursorCol + x >= MAX_FILE_LINE_LENGTH){
+            currentFileArena->file->cursorCol = MAX_FILE_LINE_LENGTH - 1;
         }
+
+        _ensureHorizontalScroll();
+    }
+    
+    if (y) {
+        _ensureHorizontalScroll();
     }
     // END HORIZ, SCROLLING =====================================================
 
@@ -372,6 +427,7 @@ void ed_typeChar(char c){
 
     currentFileArena->file->isModified = true;
     
+    _ensureHorizontalScroll();
     _updateCursor();
 }
 
@@ -486,6 +542,7 @@ void ed_backspace(){
             currentFileArena->file->currentLine->length--;
             
             currentFileArena->file->cursorCol--;
+            _ensureHorizontalScroll();
         }
     }
 
@@ -511,8 +568,10 @@ void ed_supr(){
     if (x < 0) x = 0;
     if (y < 0) y = 0;
 
-    node = getNodeByIndex(&file->lines, y);
+    node = file->currentLineNode;
     line = (Line *)node->data;
+    
+    if (x >= line->length) return;
     
     memcpy(line->buffer + x, line->buffer + x + 1, line->length - x);    
     line->length--;
@@ -527,10 +586,18 @@ void ed_newLine(){
     Node *currentLineNode, *newLineNode;
     Line *newLine;
     MemoryArena *arena;
+    bool isIndent = false;
+    bool isAutoClose = false;
+    int prevLineTabs = 0;
+    int autoClosePos = 0;
+    int autoIdentMovement = 0;
     
+
     arena = currentFileArena->arena;
 
     x = currentFileArena->file->cursorCol;
+
+    prevLineTabs = _get_tab_counts_until(currentFileArena->file->currentLine->length);
 
     // Creating the new line then zeroing
     // RECYCLING/NEW LINE LOGIC ========================================================================
@@ -574,21 +641,43 @@ void ed_newLine(){
     // ==============================
 
     // We copy the content from the current line in the current cursor position onwards to the now line
+    // We detect opening and closing of function
+        
+    autoClosePos = _get_auto_close_pos();
+
+    if(currentFileArena->file->prevChar == '{'){
+        isIndent = true;
+        autoIdentMovement = (int)isIndent + prevLineTabs;
+    }else if(currentFileArena->file->currentChar == '}'){
+        isAutoClose = true;
+        autoIdentMovement = autoClosePos;
+    }else{
+        autoIdentMovement = prevLineTabs;
+    }
+
+    logger("[ed_newLine]: AutoclosePos %d", autoClosePos);
+
     copyLen = 
         (x <= currentFileArena->file->currentLine->length)
         ?
-            currentFileArena->file->currentLine->length - x
+            currentFileArena->file->currentLine->length - x + autoIdentMovement
         :
             0
         ;
-            
-    memcpy(newLine->buffer, currentFileArena->file->currentLine->buffer + x, copyLen);
+        
+    memcpy(newLine->buffer + autoIdentMovement, currentFileArena->file->currentLine->buffer + x, copyLen);
     newLine->length = copyLen;
+
+    // Copy prev line tabs
+    if(autoIdentMovement > 0) memset(newLine->buffer , CHAR_TAB, autoIdentMovement);
+
+    if(isAutoClose == true){
+        memset(newLine->buffer , CHAR_TAB, autoClosePos);
+        newLine->buffer[autoClosePos] = '}';
+    }         
 
     // We clear the current line position onwards
     memset(currentFileArena->file->currentLine->buffer + x, '\0', MAX_FILE_LINE_LENGTH - x);
-    
-    // REMOVED 'buffer[x-1] = \n' assignment logic here as it caused char eating
     
     currentFileArena->file->currentLine->length = x;
 
@@ -604,7 +693,7 @@ void ed_newLine(){
         ;
 
     if(newLineNode->next) newLineNode->next->prev = newLineNode;
-
+ 
 
     currentFileArena->file->currentLineNode->next = newLineNode;
     currentFileArena->file->currentLineNode = newLineNode;
@@ -616,7 +705,6 @@ void ed_newLine(){
     currentFileArena->file->lines->length++;
 
     currentFileArena->file->cursorLine = currentFileArena->file->scrollY + currentCursorY;
-    currentFileArena->file->cursorCol = currentCursorX - LINE_COUNTER_WIDTH ;
 
     currentFileArena->file->prevLine = 
         currentFileArena->file->currentLineNode->prev &&
@@ -647,7 +735,8 @@ void ed_newLine(){
         currentCursorY++;
     }
 
-    currentFileArena->file->cursorCol = 0;
+    currentFileArena->file->cursorCol = 0 + autoIdentMovement;
+    currentFileArena->file->scrollX = 0;
     currentFileArena->file->cursorLine++;
 
     // activity flags
@@ -660,14 +749,15 @@ void ed_newLine(){
 char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
     int i = 0, j = 0, lenbuff = 0;
     char c = 0;
-    
+    bool esc = false;
+
     static char buffer[MAX_FILE_LINE_LENGTH];
 
     memset(buffer, '\0', MAX_FILE_LINE_LENGTH);
 
     ed_putCursor(x,y);    
 
-    while(c != CHAR_ENTER){
+    while(c != CHAR_ENTER && !(esc = inp_isKeyPressed(KEY_ESC) == true)){
         c = getch();
 
         if(c == 0 || (unsigned char)c == 0xE0){
@@ -734,23 +824,26 @@ char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
             }
         }
     }
+    
+    ed_putCursor(currentCursorX,currentCursorY);    
+
+    if (esc == true) return NULL;
 
     return buffer;
 }
 
 
 void ed_putCursorEnd(){
-    unsigned int tabCount = 0;
-
-    tabCount = _calculateTabCount();
     currentFileArena->file->cursorCol = currentFileArena->file->currentLine->length;
 
+    _ensureHorizontalScroll();
     _updateCursor();
 }
 
 void ed_putCursorStart(){   
     currentFileArena->file->cursorCol = 0;
 
+    _ensureHorizontalScroll();
     _updateCursor();
 }
 
@@ -798,54 +891,115 @@ void ed_putCursorFistLine(){
     currentFileArena->file->cursorCol = currentCursorX - LINE_COUNTER_WIDTH;
     
 
-    ed_putCursor(currentCursorX, currentCursorY);
-    ed_renderEvent = true;
+    _updateCursor();
 }
 
 void ed_putCursorLastLine(){
-    Line *tmpLine;
-    int lineposX;
+	int lineJump = 0;
+	Node *newLineNode = NULL;
+	Line *newLine = NULL;
 
-    currentFileArena->file->currentLineNode = currentFileArena->file->lines->lastNode;
+    if(
+		currentFileArena->file->lines->length > 0 &&
+		currentFileArena->file->cursorLine < currentFileArena->file->lines->length
+	){
+		lineJump = 
+			(currentFileArena->file->lines->length < VIDEO_ROWS)	
+			? currentFileArena->file->lines->length - 1
+			: VIDEO_ROWS - 1;
+			 
+		currentFileArena->file->cursorLine += lineJump;
+		currentFileArena->file->scrollY += 
+			currentFileArena->file->lines->length < VIDEO_ROWS
+			? 0 
+			: lineJump;	
+	}
+	
+	newLineNode = currentFileArena->file->lines->lastNode;
 
-    currentFileArena->file->prevLine =
-        currentFileArena->file->currentLineNode &&
-        currentFileArena->file->currentLineNode->prev 
-        ?
-            currentFileArena->file->currentLineNode->prev->data
-        :
-            NULL
-        ;
-        
-    currentFileArena->file->currentLine = currentFileArena->file->currentLineNode->data;
-    
-    currentFileArena->file->nextLine =
-        currentFileArena->file->currentLineNode &&
-        currentFileArena->file->currentLineNode->next
-        ?
-            currentFileArena->file->currentLineNode->next->data
-        :
-            NULL
-        ;
-    
-    lineposX = 
-        currentFileArena->file->currentLine->length - 1 < currentCursorX - LINE_COUNTER_WIDTH
-        ?
-            LINE_COUNTER_WIDTH + currentFileArena->file->currentLine->length - 1
-        :
-            currentCursorX
-        ;
-    
-    currentCursorX = lineposX;
-    // then we need to reset some flags so we can redraw the screen properly
-    /* Sync file cursor */
-    currentFileArena->file->scrollY = currentFileArena->file->lines->length - VIDEO_ROWS;
-    currentFileArena->file->cursorLine = currentFileArena->file->lines->length;
-    currentFileArena->file->cursorCol = currentCursorX - LINE_COUNTER_WIDTH;
-    
-    currentCursorY = currentFileArena->file->lines->length - currentFileArena->file->scrollY - 1;
-        
-    ed_putCursor(currentCursorX, currentCursorY);
-    ed_renderEvent = true;
+	if(!newLineNode){
+		logger("[ed_putCursorLastLine]: Error trying to obtain last line node.");
+		return;
+	}
+	
+	newLine = (Line*)newLineNode->data;
+
+	if(!newLine){
+		logger("[ed_putCursorLastLine]: Error trying to obtain last line object.");
+		return;
+	}	        
+	// Line metadata updating
+
+	currentFileArena->file->currentLineNode = newLineNode;
+	currentFileArena->file->currentLine = newLine;
+
+	currentFileArena->file->prevLine = 
+		currentFileArena->file->currentLineNode->prev 
+		? (Line*) currentFileArena->file->currentLineNode->prev->data
+		: NULL;
+
+	currentFileArena->file->nextLine = 
+		currentFileArena->file->currentLineNode->next
+		? (Line*) currentFileArena->file->currentLineNode->next->data
+		: NULL;
+	
+	// If on the new line the previous position is larger than the new line length, then we do the following
+	if(currentFileArena->file->cursorCol >= currentFileArena->file->currentLine->length - 1){
+		currentFileArena->file->cursorCol = currentFileArena->file->currentLine->length - 1;
+	}
+
+	_updateCursor();
 }
+
+void ed_statusBarMessage(const char *format,  ...){
+    va_list args;
+
+    time(&ed_globalAuxTimer);
+
+    memset(statusBarMessage, '\0', ED_STATUSBAR_WIDTH - 1);
+
+    va_start(args, format);
+    vsprintf(statusBarMessage, format, args);
+    va_end(args);
+
+    return;
+}
+
+bool ed_checkStatusBarMessage(){
+    time_t endClock;
+
+    if(statusBarMessage[0] == '\0') return false;
+    if(ed_globalAuxTimer == 0) return false;
+
+    time(&endClock);
+
+    // 5 seconds of duration
+    if(difftime(endClock, ed_globalAuxTimer) > 5){
+        memset(statusBarMessage, '\0', ED_STATUSBAR_WIDTH - 1);
+        ed_globalAuxTimer = 0;
+        return false;
+    }  
+    
+    return true;
+}
+
+// Statusbar drawing function
+void ed_statusBar(){
+    if(ed_checkStatusBarMessage() == true){
+        dw_writeBuffer(textmemptr, "%s", 0, VIDEO_ROWS - 1, ED_STATUSBAR_WIDTH-1, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, statusBarMessage);            
+    }else{
+        dw_writeBuffer(textmemptr, "Line %d, Col %d %c", 0, VIDEO_ROWS - 1, 39, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, currentFileArena->file->cursorLine + 1, currentFileArena->file->cursorCol + 1, 179, currentFileArena->file->currentLine->length);
+        dw_writeBuffer(textmemptr, " %s", 40, VIDEO_ROWS - 1, VIDEO_COLS, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, currentFileArena->file->name);
+    }        
+}
+
+
+
+
+
+
+
+
+
+
 

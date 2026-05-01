@@ -7,6 +7,8 @@
 
 // THIS REQUIRE THE INPUT DEPS
 #include "..\APP\MAIN.H"
+
+#define ED_STATUSBAR_WIDTH 80
 /*
  * IBM PC / DOS Code Page 437
  * Line Drawing & Special Characters
@@ -106,10 +108,9 @@
 
 extern struct Container *root;
 extern bool ed_renderEvent;
+extern time_t ed_globalAuxTimer;
 
-extern unsigned short ed_statusbarBgColor;
-extern unsigned short ed_statusbarFgColor;
-
+extern char statusBarMessage[ED_STATUSBAR_WIDTH];
 /* Prototypes ==============================================*/
 
 void ed_initConfig(int argc, char *argv[]);
@@ -130,5 +131,9 @@ void ed_putCursorStart();
 
 void ed_putCursorFistLine();
 void ed_putCursorLastLine();
+void ed_statusBarMessage(const char *format,  ...);
+bool ed_checkStatusBarMessage();
+void ed_statusBar();
 
 #endif
+

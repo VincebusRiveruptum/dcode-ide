@@ -203,15 +203,28 @@ bool f_isDefaultFileName(){
     return res;
 }
 
+unsigned char f_getExtensionId(char *filename){
+    char *ext = f_getFileExtension(filename);
+
+    if(!ext) return FILE_EXTENSION_TXT;
+    
+    if(strcmp(ext, ".c") == 0 || strcmp(ext, ".C") == 0) return FILE_EXTENSION_C;
+    if(strcmp(ext, ".txt") == 0 || strcmp(ext, ".TXT") == 0) return FILE_EXTENSION_TXT;
+    if(strcmp(ext, ".py") == 0 || strcmp(ext, ".PY") == 0) return FILE_EXTENSION_PYTHON;
+    if(strcmp(ext, ".js") == 0 || strcmp(ext, ".JS") == 0) return FILE_EXTENSION_JS;
+
+    return FILE_EXTENSION_TXT;
+}
+
 // We get where the file extension starts
-size_t f_getFileExtension(char *filename){
+char *f_getFileExtension(char *filename){
     size_t i=strlen(filename);
     
     while(i > 0 && filename[i] != '.'){ // Find the last dot
         i--;
     }
 
-    return i;
+    return strrchr(filename, '.');
 }
 
 size_t _copyLines(FileArena *old, FileArena *new){
@@ -282,7 +295,7 @@ void f_newFile(){
     }
 
     newFileArena->file->name = (char*)mem_arena_alloc(newArena, NULL, sizeof(tempName) * sizeof(char));
-
+    
     if(!newFileArena->file->name){
         logger("[f_newFile]: Could not assign temporary name to new file!");
         return;
@@ -290,6 +303,7 @@ void f_newFile(){
     
     memset(newFileArena->file->name, '\0', MAX_FILE_NAME * sizeof(char));
     strcpy(newFileArena->file->name, tempName);
+    newFileArena->file->ext = f_getExtensionId(newFileArena->file->name);
     
     // Buffer will not be used for now as this is used for parsing to lines when opening a file.
     newFileArena->file->buffer = NULL;
@@ -343,7 +357,7 @@ void f_newFile(){
     newFileArena->file->isActive = false;
 
     currentFileArena = f_addFileArena(newFileArena);
-    ed_triggerStatusBarMessage("Created a new file.");
+    ed_statusBarMessage("Created a new file.");
 
     ed_resetCursor();
     return;
@@ -376,7 +390,9 @@ bool f_openFile(char *filename){
     file = (File *)mem_arena_alloc(arena, NULL ,sizeof(File));
     
     file->name = (char*)mem_arena_alloc(arena, NULL, sizeof(char) * (strlen(filename) + 1));
+    
     sprintf(file->name, "%s", filename);
+    file->ext = f_getExtensionId(file->name);
 
     file->lines = NULL;
     file->deletedLines = NULL;
@@ -472,6 +488,8 @@ bool f_openFile(char *filename){
         : 0;
 
     fclose(fp);
+
+    ed_statusBarMessage("Opened %s succesfully.", currentFileArena->file->name);
     return true;
 }
 
@@ -524,13 +542,14 @@ void f_saveFile(){
     }
     memset(newFileArena->file, 0, sizeof(File));
     newFileArena->file->name = (char*)mem_arena_alloc(newArena, NULL, sizeof(char) * (strlen(oldFileArena->file->name) + 1));
-
+    
     if(!newFileArena->file->name){
         logger("[f_saveFile]: Could not allocate file name!");
         return;
     }
-
+    
     sprintf(newFileArena->file->name, "%s", oldFileArena->file->name);
+    newFileArena->file->ext = f_getExtensionId(newFileArena->file->name);
 
     newFileArena->file->scrollY = oldFileArena->file->scrollY;
     newFileArena->file->scrollX = oldFileArena->file->scrollX;
@@ -593,6 +612,7 @@ void f_saveFile(){
     newFileArena->file->isModified = false;
     sprintf(newFileArena->arena->name, "%s", newFileArena->file->name + f_getFileName(newFileArena->file->name));
 
+    ed_statusBarMessage("File %s saved successfully.", newFileArena->file->name);
     logger("[f_saveFile]: File %s saved successfully", newFileArena->file->name);
 }
 
@@ -602,6 +622,8 @@ void f_triggerClose(){
     char input;
     char *filename;
     int len = 0;
+    bool esc;
+    int status;
 
     if(currentFileArena->file->isModified == true){
         dw_writeBuffer(textmemptr, "File modified, save? Y/N ",0,VIDEO_ROWS - 1 ,26, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
@@ -610,25 +632,31 @@ void f_triggerClose(){
             input == 'n' ||
             input == 'N' ||
             input == 'y' ||
-            input == 'Y'
+            input == 'Y' ||
+            (esc = inp_isKeyPressed(KEY_ESC) == true) 
+
         )){
             input = getch();
         }
+
+        if(esc == true) return;
 
         if(input == 'n' || input == 'N'){
             endProgram = true;
             return;
         } 
-            
+        
         ed_renderElements();
         
         if(f_isDefaultFileName() == true){
             dw_writeBuffer(textmemptr, "File name: ",0,VIDEO_ROWS - 1, 10,VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
             
-            while(len <= 3 || len > 12){
+            while((len <= 3 || len > 12)){
                 dw_writeBuffer(textmemptr, "",11,VIDEO_ROWS - 1, VIDEO_COLS - 1, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
                 filename = ed_scanf(11, VIDEO_ROWS - 1, 32);
                 
+                if(filename == NULL) return;
+
                 len = strlen(filename);
 
                 ed_renderElements();
@@ -636,7 +664,7 @@ void f_triggerClose(){
                     dw_writeBuffer(textmemptr, "Invalid filename! Try again",0,VIDEO_ROWS - 1,30, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
                 }
             }
-            
+            if(esc == true) return;
             strcpy(currentFileArena->file->name, filename);
         }
     }

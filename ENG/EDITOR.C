@@ -91,7 +91,6 @@ int _get_auto_close_pos(){
     if(!travelingBackwards) return 0;
     
     while(travelingBackwards != NULL){
-        logger("[_get_auto_close_pos]: looping");
         if( travelingBackwards->data &&
             ((Line*)travelingBackwards->data)->buffer &&
             ((Line*)travelingBackwards->data)->length){
@@ -750,14 +749,15 @@ void ed_newLine(){
 char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
     int i = 0, j = 0, lenbuff = 0;
     char c = 0;
-    
+    bool esc = false;
+
     static char buffer[MAX_FILE_LINE_LENGTH];
 
     memset(buffer, '\0', MAX_FILE_LINE_LENGTH);
 
     ed_putCursor(x,y);    
 
-    while(c != CHAR_ENTER){
+    while(c != CHAR_ENTER && !(esc = inp_isKeyPressed(KEY_ESC) == true)){
         c = getch();
 
         if(c == 0 || (unsigned char)c == 0xE0){
@@ -824,6 +824,10 @@ char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
             }
         }
     }
+    
+    ed_putCursor(currentCursorX,currentCursorY);    
+
+    if (esc == true) return NULL;
 
     return buffer;
 }
@@ -947,19 +951,16 @@ void ed_putCursorLastLine(){
 	_updateCursor();
 }
 
-void ed_triggerStatusBarMessage(const char *format,  ...){
+void ed_statusBarMessage(const char *format,  ...){
     va_list args;
 
     time(&ed_globalAuxTimer);
 
-    
     memset(statusBarMessage, '\0', ED_STATUSBAR_WIDTH - 1);
 
     va_start(args, format);
     vsprintf(statusBarMessage, format, args);
     va_end(args);
-
-    logger("[ed_triggerStatusBarMessage]: %s", statusBarMessage);
 
     return;
 }
@@ -982,7 +983,15 @@ bool ed_checkStatusBarMessage(){
     return true;
 }
 
-
+// Statusbar drawing function
+void ed_statusBar(){
+    if(ed_checkStatusBarMessage() == true){
+        dw_writeBuffer(textmemptr, "%s", 0, VIDEO_ROWS - 1, ED_STATUSBAR_WIDTH-1, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, statusBarMessage);            
+    }else{
+        dw_writeBuffer(textmemptr, "Line %d, Col %d %c", 0, VIDEO_ROWS - 1, 39, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, currentFileArena->file->cursorLine + 1, currentFileArena->file->cursorCol + 1, 179, currentFileArena->file->currentLine->length);
+        dw_writeBuffer(textmemptr, " %s", 40, VIDEO_ROWS - 1, VIDEO_COLS, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, currentFileArena->file->name);
+    }        
+}
 
 
 

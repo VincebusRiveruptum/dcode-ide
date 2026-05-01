@@ -131,7 +131,9 @@ void ed_putCursorStart();
 
 void ed_putCursorFistLine();
 void ed_putCursorLastLine();
-void ed_triggerStatusBarMessage(const char *format,  ...);
+void ed_statusBarMessage(const char *format,  ...);
 bool ed_checkStatusBarMessage();
+void ed_statusBar();
+
 #endif
 

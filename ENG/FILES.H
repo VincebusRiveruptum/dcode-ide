@@ -10,6 +10,11 @@
 #define MAX_FILE_LINE_LENGTH 384
 #define MAX_FILE_NAME 256
 
+#define FILE_EXTENSION_TXT 0
+#define FILE_EXTENSION_C 1
+#define FILE_EXTENSION_PYTHON 2
+#define FILE_EXTENSION_JS 3
+
 /* Types =================================================================*/
 
 typedef struct Line {
@@ -20,6 +25,7 @@ typedef struct Line {
 typedef struct File {
     char *name;         // full name and path
     char *buffer;
+    unsigned char ext;  // EXTENSION ID
 
     size_t bufferLength;  /* also known as file size */
     
@@ -80,7 +86,7 @@ FileArena *f_addFileArena(FileArena *fileArena);
 void f_closeFile(FileArena *fileArena);
 
 size_t f_getFileName(char *filename);
-size_t f_getFileExtension(char *filename);
+char *f_getFileExtension(char *filename);
 
 void f_init();
 void f_newFile();

@@ -154,95 +154,96 @@ unsigned char _keywordMap(char *word){
     if(atoi(word)) return DW_RESWORD_INT;
     if(atof(word)) return DW_RESWORD_FLOAT;
     // Then we check if it's a keyword
+    if(*word == '/' && *(word + 1) == '/') return DW_RESWORD_COMMENT;
     if(*word == '\'' && word[strlen(word) - 1] == '\'') return DW_RESWORD_CHAR;
+    
     // DW_RESWORD_TYPES
-    if (strncmp(word, "int", 3) == 0) return DW_RESWORD_TYPES;
-    if (strncmp(word, "long", 4) == 0) return DW_RESWORD_TYPES;
-    if (strncmp(word, "short", 5) == 0) return DW_RESWORD_TYPES;
-    if (strncmp(word, "float", 5) == 0) return DW_RESWORD_TYPES;
-    if (strncmp(word, "double", 6) == 0) return DW_RESWORD_TYPES;
-    if (strncmp(word, "char", 4) == 0) return DW_RESWORD_TYPES;
-    if (strncmp(word, "void", 4) == 0) return DW_RESWORD_TYPES;
-    if (strncmp(word, "bool", 4) == 0) return DW_RESWORD_TYPES;
-    if (strncmp(word, "unsigned", 8) == 0) return DW_RESWORD_TYPES;
-    if (strncmp(word, "const", 5) == 0) return DW_RESWORD_TYPES;
-    if (strncmp(word, "enum", 4) == 0) return DW_RESWORD_TYPES;
-    if (strncmp(word, "struct", 6) == 0) return DW_RESWORD_TYPES;
-    if (strncmp(word, "union", 5) == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "int") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "long") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "short") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "float") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "double") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "char") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "void") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "bool") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "unsigned") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "const") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "enum") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "struct") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "union") == 0) return DW_RESWORD_TYPES;
     
     // Known STD types
-    if (strncmp(word, "FILE", 4) == 0) return DW_RESWORD_STD_FUNC;
-    if (strncmp(word, "ptrdiff_t", 9) == 0) return DW_RESWORD_STD_FUNC;
-    if (strncmp(word, "wchar_t", 7) == 0) return DW_RESWORD_STD_FUNC;
-    if (strncmp(word, "size_t", 6) == 0) return DW_RESWORD_STD_FUNC;
-    if (strncmp(word, "clock_t", 7) == 0) return DW_RESWORD_STD_FUNC;
-    if (strncmp(word, "time_t", 6) == 0) return DW_RESWORD_STD_FUNC;
-    if (strncmp(word, "tm", 2) == 0) return DW_RESWORD_STD_FUNC;
-    if (strncmp(word, "fpos_t", 6) == 0) return DW_RESWORD_STD_FUNC;
-    if (strncmp(word, "div_t", 5) == 0) return DW_RESWORD_STD_FUNC;
-    if (strncmp(word, "ldiv_t", 6) == 0) return DW_RESWORD_STD_FUNC;
-    if (strncmp(word, "sig_atomic_t", 12) == 0) return DW_RESWORD_STD_FUNC;
-    if (strncmp(word, "jmp_buf", 7) == 0) return DW_RESWORD_STD_FUNC;
-    if (strncmp(word, "va_list", 7) == 0) return DW_RESWORD_STD_FUNC;
-    if (strncmp(word, "lconv", 5) == 0) return DW_RESWORD_STD_FUNC;
+    if (strcmp(word, "FILE") == 0) return DW_RESWORD_STD_FUNC;
+    if (strcmp(word, "ptrdiff_t") == 0) return DW_RESWORD_STD_FUNC;
+    if (strcmp(word, "wchar_t") == 0) return DW_RESWORD_STD_FUNC;
+    if (strcmp(word, "size_t") == 0) return DW_RESWORD_STD_FUNC;
+    if (strcmp(word, "clock_t") == 0) return DW_RESWORD_STD_FUNC;
+    if (strcmp(word, "time_t") == 0) return DW_RESWORD_STD_FUNC;
+    if (strcmp(word, "tm") == 0) return DW_RESWORD_STD_FUNC;
+    if (strcmp(word, "fpos_t") == 0) return DW_RESWORD_STD_FUNC;
+    if (strcmp(word, "div_t") == 0) return DW_RESWORD_STD_FUNC;
+    if (strcmp(word, "ldiv_t") == 0) return DW_RESWORD_STD_FUNC;
+    if (strcmp(word, "sig_atomic_t") == 0) return DW_RESWORD_STD_FUNC;
+    if (strcmp(word, "jmp_buf") == 0) return DW_RESWORD_STD_FUNC;
+    if (strcmp(word, "va_list") == 0) return DW_RESWORD_STD_FUNC;
+    if (strcmp(word, "lconv") == 0) return DW_RESWORD_STD_FUNC;
     
     // known DOS.H types
-    if (strncmp(word, "REGS", 4) == 0) return DW_RESWORD_DOS_FUNC;
-    if (strncmp(word, "WORDREGS", 8) == 0) return DW_RESWORD_DOS_FUNC;
-    if (strncmp(word, "BYTEREGS", 8) == 0) return DW_RESWORD_DOS_FUNC;
-    if (strncmp(word, "SREGS", 5) == 0) return DW_RESWORD_DOS_FUNC;
-    if (strncmp(word, "REGPACK", 7) == 0) return DW_RESWORD_DOS_FUNC;
-    if (strncmp(word, "asm", 3) == 0) return DW_RESWORD_DOS_FUNC;
+    if (strcmp(word, "REGS") == 0) return DW_RESWORD_DOS_FUNC;
+    if (strcmp(word, "WORDREGS") == 0) return DW_RESWORD_DOS_FUNC;
+    if (strcmp(word, "BYTEREGS") == 0) return DW_RESWORD_DOS_FUNC;
+    if (strcmp(word, "SREGS") == 0) return DW_RESWORD_DOS_FUNC;
+    if (strcmp(word, "REGPACK") == 0) return DW_RESWORD_DOS_FUNC;
+    if (strcmp(word, "asm") == 0) return DW_RESWORD_DOS_FUNC;
     
     /* Control flow */
-    if (strncmp(word, "if", 2) == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strncmp(word, "else", 4) == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strncmp(word, "while", 5) == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strncmp(word, "do", 2) == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strncmp(word, "for", 3) == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strncmp(word, "return", 6) == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strncmp(word, "break", 5) == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strncmp(word, "switch", 6) == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strncmp(word, "case", 4) == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strncmp(word, "default", 7) == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strncmp(word, "goto", 4) == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strncmp(word, "continue", 8) == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strncmp(word, "typedef", 7) == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strncmp(word, "extern", 6) == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strncmp(word, "volatile", 8) == 0) return DW_RESWORD_CONTROL_FLOW;
+    if (strcmp(word, "if") == 0) return DW_RESWORD_CONTROL_FLOW;
+    if (strcmp(word, "else") == 0) return DW_RESWORD_CONTROL_FLOW;
+    if (strcmp(word, "while") == 0) return DW_RESWORD_CONTROL_FLOW;
+    if (strcmp(word, "do") == 0) return DW_RESWORD_CONTROL_FLOW;
+    if (strcmp(word, "for") == 0) return DW_RESWORD_CONTROL_FLOW;
+    if (strcmp(word, "return") == 0) return DW_RESWORD_CONTROL_FLOW;
+    if (strcmp(word, "break") == 0) return DW_RESWORD_CONTROL_FLOW;
+    if (strcmp(word, "switch") == 0) return DW_RESWORD_CONTROL_FLOW;
+    if (strcmp(word, "case") == 0) return DW_RESWORD_CONTROL_FLOW;
+    if (strcmp(word, "default") == 0) return DW_RESWORD_CONTROL_FLOW;
+    if (strcmp(word, "goto") == 0) return DW_RESWORD_CONTROL_FLOW;
+    if (strcmp(word, "continue") == 0) return DW_RESWORD_CONTROL_FLOW;
+    if (strcmp(word, "typedef") == 0) return DW_RESWORD_CONTROL_FLOW;
+    if (strcmp(word, "extern") == 0) return DW_RESWORD_CONTROL_FLOW;
+    if (strcmp(word, "volatile") == 0) return DW_RESWORD_CONTROL_FLOW;
     
     // Preprocessor directives
-   
-    if (strncmp(word, "#include", 8) == 0) return DW_RESWORD_PREPROCESSOR;
-    if (strncmp(word, "#define", 7) == 0) return DW_RESWORD_PREPROCESSOR;
-    if (strncmp(word, "#ifdef", 6) == 0) return DW_RESWORD_PREPROCESSOR;
-    if (strncmp(word, "#ifndef", 7) == 0) return DW_RESWORD_PREPROCESSOR;
-    if (strncmp(word, "#if", 3) == 0) return DW_RESWORD_PREPROCESSOR;
-    if (strncmp(word, "#endif", 6) == 0) return DW_RESWORD_PREPROCESSOR;
-    if (strncmp(word, "#else", 5) == 0) return DW_RESWORD_PREPROCESSOR;
-    if (strncmp(word, "#elif", 5) == 0) return DW_RESWORD_PREPROCESSOR;
-    if (strncmp(word, "#undef", 6) == 0) return DW_RESWORD_PREPROCESSOR;
-    if (strncmp(word, "#error", 6) == 0) return DW_RESWORD_PREPROCESSOR;
-    if (strncmp(word, "#line", 5) == 0) return DW_RESWORD_PREPROCESSOR;
-    if (strncmp(word, "#pragma", 7) == 0) return DW_RESWORD_PREPROCESSOR;
-    if (strncmp(word, "#include_next", 13) == 0) return DW_RESWORD_PREPROCESSOR;
-    if (strncmp(word, "#warning", 8) == 0) return DW_RESWORD_PREPROCESSOR;
+    if (strcmp(word, "#include") == 0) return DW_RESWORD_PREPROCESSOR;
+    if (strcmp(word, "#define") == 0) return DW_RESWORD_PREPROCESSOR;
+    if (strcmp(word, "#ifdef") == 0) return DW_RESWORD_PREPROCESSOR;
+    if (strcmp(word, "#ifndef") == 0) return DW_RESWORD_PREPROCESSOR;
+    if (strcmp(word, "#if") == 0) return DW_RESWORD_PREPROCESSOR;
+    if (strcmp(word, "#endif") == 0) return DW_RESWORD_PREPROCESSOR;
+    if (strcmp(word, "#else") == 0) return DW_RESWORD_PREPROCESSOR;
+    if (strcmp(word, "#elif") == 0) return DW_RESWORD_PREPROCESSOR;
+    if (strcmp(word, "#undef") == 0) return DW_RESWORD_PREPROCESSOR;
+    if (strcmp(word, "#error") == 0) return DW_RESWORD_PREPROCESSOR;
+    if (strcmp(word, "#line") == 0) return DW_RESWORD_PREPROCESSOR;
+    if (strcmp(word, "#pragma") == 0) return DW_RESWORD_PREPROCESSOR;
+    if (strcmp(word, "#include_next") == 0) return DW_RESWORD_PREPROCESSOR;
+    if (strcmp(word, "#warning") == 0) return DW_RESWORD_PREPROCESSOR;
     
-    if (*word == '0') return DW_RESWORD_INT;     // CHEAPER
+    if (*word == '0') return DW_RESWORD_INT;
     
     // Boolean values
-    if (strncmp(word, "true", 4) == 0) return DW_RESWORD_CONSTANT;
-    if (strncmp(word, "false", 5) == 0) return DW_RESWORD_CONSTANT;
+    if (strcmp(word, "true") == 0) return DW_RESWORD_CONSTANT;
+    if (strcmp(word, "false") == 0) return DW_RESWORD_CONSTANT;
     
     // Null
-    if (strncmp(word, "NULL", 4) == 0) return DW_RESWORD_CONSTANT;
+    if (strcmp(word, "NULL") == 0) return DW_RESWORD_CONSTANT;
 
     // Comments
-    if (strncmp(word, "//", 2) == 0) return DW_RESWORD_COMMENT;
-    if (strncmp(word, "/*", 2) == 0) return DW_RESWORD_COMMENT;
-    if (strncmp(word, "*/", 2) == 0) return DW_RESWORD_COMMENT;
+    if (strcmp(word, "//") == 0) return DW_RESWORD_COMMENT;
+    if (strcmp(word, "/*") == 0) return DW_RESWORD_COMMENT;
+    if (strcmp(word, "*/") == 0) return DW_RESWORD_COMMENT;
     
-    if (strncmp(word, "renamon", 7) == 0) return DW_RESWORD_WIFE;
+    if (strcmp(word, "renamon") == 0) return DW_RESWORD_WIFE;
 
     return DW_RESWORD_NONE;
 }
@@ -511,7 +512,7 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
     char *c;
 
     int t;
-    int j,w;
+    int j;
     int spaceBetween = 0;    
     int lineCount = 0;
     char lineCounterBufferTemp[8] = {0};
@@ -521,7 +522,6 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
     char *csWordEnd;        // current character special word
     char *csStringEnd;        // current character special word
     char detectedWord[32] = {0};
-    char auxWordBuffer[32] = {0};
     char previousWord[32] = {0};
     unsigned char specialWordColor = 0;   
     unsigned char detectedWordType = DW_RESWORD_NONE;
@@ -628,7 +628,6 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
                             memset(previousWord,'\0', 32);
                             memcpy(previousWord, detectedWord, strlen(detectedWord));
                             memset(detectedWord, '\0', 32);
-                            memset(auxWordBuffer, '\0', 32);
 
                             csWordStart = c;
                             csWordEnd = csWordStart;
@@ -668,7 +667,7 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
                                     // If the character is under the addres where the string ends, then we treat the character
                                     // as string
 
-                                    if(csWordEnd < csStringEnd){
+                                    if(csWordEnd <= csStringEnd){
                                         specialWordColor = settings.clang_colors[DW_RESWORD_STRING];
                                     }else{
                                         csStringEnd = NULL;
@@ -721,8 +720,7 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
 
                         // If the word is actually  mapped and has its own color, we use that
                         
-                        // If not, we just print the character with the default color
-                                                          
+                        // If not, we just print the character with the default color                    
                         
                         if(*c == '\t'){
                             /// UGLYT TEST
@@ -900,9 +898,3 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
 
     return;
 }
-
-
-
-
-
-

@@ -224,7 +224,7 @@ char *f_getFileExtension(char *filename){
         i--;
     }
 
-    return filename + i;
+    return strrchr(filename, '.');
 }
 
 size_t _copyLines(FileArena *old, FileArena *new){

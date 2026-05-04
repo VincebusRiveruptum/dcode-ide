@@ -24,7 +24,7 @@ int main(int argc, char *argv[]){
     
     logger("[main]: %d %s", argc, argv[1]);
     ed_initConfig(argc, argv);
-    t_initTests();
+    //t_initTests();
     
     ed_renderEvent = true;
     
@@ -52,7 +52,7 @@ int main(int argc, char *argv[]){
         
         // NEW FILE
         if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_N)){
-            f_newFile();
+            f_newFile(NULL);
             logger("[main]: User created %s ,a new file.", currentFileArena->file->name);
         }
         
@@ -85,9 +85,6 @@ int main(int argc, char *argv[]){
                 
             } else {
                 /* Ignore action keys based on ASCII values */
-                // TYPING
-         
-
                 if(c == CHAR_BACKSPACE){
                     ed_backspace();
                 }
@@ -97,18 +94,11 @@ int main(int argc, char *argv[]){
                 }
 
                 if(!(c == CHAR_ESCAPE ||
-                    c == CHAR_BACKSPACE ||
-                    c == CHAR_ENTER ||
-                    c == CHAR_DELETE)){
-                        
-                        //dw_char(textmemptr, c);
-                        //el_renderElements();
-                        // Tick counting by user activity, not globally
-                        //dw_writeBuffer(textmemptr, "Hello World %d", 5, 6, 20, 10, COLOR_WHITE, COLOR_BLACK, ticks);
-                        
-                        ed_typeChar(c);
-
-                        ticks++;
+					c == CHAR_BACKSPACE ||
+					c == CHAR_ENTER ||
+					c == CHAR_DELETE)){
+						ed_typeChar(c);
+						ticks++;
                     }
                 }
             }
@@ -126,7 +116,6 @@ int main(int argc, char *argv[]){
 
         inp_updateKeyboard();
     }
-
     
     inp_closeKeyboard();
     dw_cls(textmemptr);
@@ -136,6 +125,8 @@ int main(int argc, char *argv[]){
     printf("96 Tears...\n");
     return 0;
 }
+
+
 
 
 

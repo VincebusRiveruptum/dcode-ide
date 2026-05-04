@@ -48,10 +48,10 @@ void ed_handleArguments(int argc, char *argv[]){
     if(argc > 1 || (argv != NULL && argv[1] != NULL)){
         if(!f_openFile(argv[1])){
             logger("[ed_handleArguments]: File %s not found. Falling back to new file.", argv[1]);
-            f_newFile();
+            f_newFile(argv[1]);
         }
     }else{
-        f_newFile();
+        f_newFile(NULL);
     }
 
     ed_renderEvent = true;

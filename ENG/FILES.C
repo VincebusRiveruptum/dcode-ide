@@ -83,15 +83,15 @@ int f_checkAvailableName(){
     return index + 1;
 }
 
-void f_splitIntoLines(File *file, MemoryArena *arena) {
+void f_splitIntoLines(char *buffer, size_t bufferLength, File *file, MemoryArena *arena) {
     char *start;
     char *end;    
     char *p;
     size_t lineLen;
     Line *line;
 
-    start = file->buffer;
-    end = file->buffer + file->bufferLength;
+    start = buffer;
+    end = buffer + bufferLength;
     p = start;
 
     file->lines = (List *)mem_arena_alloc(arena, NULL, sizeof(List));
@@ -256,7 +256,7 @@ size_t _copyLines(FileArena *old, FileArena *new){
 
 /* NEW FILE ==============================================================================*/
 
-void f_newFile(){
+void f_newFile(char *filename){
     MemoryArena *newArena;
     FileArena *newFileArena;
     
@@ -264,14 +264,20 @@ void f_newFile(){
     int newFileCounter;
     Line *firstLine;
 
-    newFileCounter = f_checkAvailableName();
-
-    if(settings.DEFAULT_EXTENSION[0] == '\0'){
-        logger("[f_newFile]: Editor has no default file extension configuration yet!.");
-        return;
+    // If no filename param provided, we generate it
+    if(filename == NULL){
+        newFileCounter = f_checkAvailableName();
+        
+        if(settings.DEFAULT_EXTENSION[0] == '\0'){
+            logger("[f_newFile]: Editor has no default file extension configuration yet!.");
+            return;
+        }
+    
+        sprintf(&tempName, "newfile%d%s", newFileCounter, settings.DEFAULT_EXTENSION);
+    }else{
+        sprintf(&tempName, "%s", filename);
     }
 
-    sprintf(&tempName, "newfile%d%s", newFileCounter, settings.DEFAULT_EXTENSION);
     newArena = (MemoryArena *)mem_create_arena(tempName, MEM_ARENA_FILE, MEM_ARENA_512K);
 
     if(!newArena){
@@ -306,7 +312,7 @@ void f_newFile(){
     newFileArena->file->ext = f_getExtensionId(newFileArena->file->name);
     
     // Buffer will not be used for now as this is used for parsing to lines when opening a file.
-    newFileArena->file->buffer = NULL;
+    //newFileArena->file->buffer = NULL;
     newFileArena->file->bufferLength = 0;
     
     newFileArena->file->lines = (List*)mem_arena_alloc(newArena, NULL, sizeof(List));
@@ -371,6 +377,7 @@ bool f_openFile(char *filename){
     MemoryArena *arena = NULL;
     FileArena *fileArena = NULL;
     char *shortFileName = NULL;
+    char *fileParsingBuffer = NULL;
     
     // We are creating an arena per file
     if(fp == NULL){
@@ -427,35 +434,27 @@ bool f_openFile(char *filename){
     
     rewind(fp); // or fseek(fp, 0, SEEK_SET);
     
-    file->buffer = (char *)mem_arena_alloc(arena, NULL, sizeof(char) * (file->bufferLength + 1));
+    fileParsingBuffer = (char *)malloc(sizeof(char) * file->bufferLength);
     
-    memset(file->buffer, '\0', sizeof(char) * (file->bufferLength + 1));
+    memset(fileParsingBuffer, '\0', sizeof(char) * (file->bufferLength + 1));
 
     logger("\n[f_openFile]: File buffer size %d (allocated %d)", file->bufferLength, file->bufferLength + 1);
     
-    if(!file->buffer){
-        logger("\n[f_openFile]: Error: Could not allocate memory for file buffer");
+    if(!fileParsingBuffer){
+        logger("\n[f_openFile]: Error: Could not allocate memory for fileParsingBuffer");
         f_closeFile(fileArena);
         fclose(fp);
         return false;
     }
     // Actually reading the file
-    fread(file->buffer, sizeof(char), file->bufferLength, fp);
-    
-    if(!file->buffer){
-        logger("\n[f_openFile]: Error: Could not allocate memory for file buffer");
-        
-        fclose(fp);
-        return false; 
-    }
+    fread(fileParsingBuffer, sizeof(char), file->bufferLength, fp);
 
     // So the after opening hte file, it becomes the current file active
     currentFileArena = f_addFileArena(fileArena);
     
-    f_splitIntoLines(file, arena);
+    f_splitIntoLines(fileParsingBuffer, file->bufferLength, file, arena);
 
     // Line handling not the best way
-
     currentFileArena->file->currentLineNode = currentFileArena->file->lines->firstNode;
 
     currentFileArena->file->prevLine = NULL;
@@ -488,6 +487,7 @@ bool f_openFile(char *filename){
         : 0;
 
     fclose(fp);
+    free(fileParsingBuffer);
 
     ed_statusBarMessage("Opened %s succesfully.", currentFileArena->file->name);
     return true;
@@ -504,6 +504,7 @@ void f_saveFile(){
     char *newArenaName = "NEW";
     size_t offset = 0;
     size_t lengthSum = 0;
+    char *fileParsingBuffer = NULL;
     
     oldFileArena = currentFileArena;
     oldArena = oldFileArena->arena;
@@ -571,14 +572,14 @@ void f_saveFile(){
     currentNode = oldFileArena->file->lines->firstNode;
     lengthSum = _copyLines(oldFileArena, newFileArena);
 
-    newFileArena->file->buffer = (char*)mem_arena_alloc(newArena, NULL, sizeof(char) * (lengthSum + 1));
+    fileParsingBuffer = (char*)malloc(sizeof(char) * (lengthSum + 1));
 
-    if(!newFileArena->file->buffer){
+    if(!fileParsingBuffer){
         logger("[f_saveFile]: Could not allocate file buffer!");
         return;
     }
 
-    memset(newFileArena->file->buffer, '\0', sizeof(char) * (lengthSum + 1));
+    memset(fileParsingBuffer, '\0', sizeof(char) * (lengthSum + 1));
 
     if(currentNode == NULL){
         logger("\n[f_saveFile]: Error: No lines found");
@@ -589,10 +590,10 @@ void f_saveFile(){
     while(currentNode != NULL){
         line = (Line *)currentNode->data;
         
-        memcpy(newFileArena->file->buffer + offset, line->buffer, line->length);
+        memcpy(fileParsingBuffer + offset, line->buffer, line->length);
         
         offset += line->length;         // Avoiding null terminator
-        newFileArena->file->buffer[offset] = '\n';   // Replacing null terminator with newline
+        fileParsingBuffer[offset] = '\n';   // Replacing null terminator with newline
         offset++;
 
         currentNode = currentNode->next;
@@ -601,7 +602,7 @@ void f_saveFile(){
     newFileArena->file->bufferLength = offset;
 
     // We dump the new file buffer to the file
-    f_dumpBufferTofile(newFileArena->file->buffer, newFileArena->file->bufferLength, newFileArena->file->name);
+    f_dumpBufferTofile(fileParsingBuffer, newFileArena->file->bufferLength, newFileArena->file->name);
 
     // We close the old file
     f_closeFile(oldFileArena);
@@ -611,6 +612,8 @@ void f_saveFile(){
 
     newFileArena->file->isModified = false;
     sprintf(newFileArena->arena->name, "%s", newFileArena->file->name + f_getFileName(newFileArena->file->name));
+
+    free(fileParsingBuffer);
 
     ed_statusBarMessage("File %s saved successfully.", newFileArena->file->name);
     logger("[f_saveFile]: File %s saved successfully", newFileArena->file->name);

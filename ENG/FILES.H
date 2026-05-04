@@ -24,7 +24,6 @@ typedef struct Line {
 
 typedef struct File {
     char *name;         // full name and path
-    char *buffer;
     unsigned char ext;  // EXTENSION ID
 
     size_t bufferLength;  /* also known as file size */
@@ -87,6 +86,7 @@ void f_closeFile(FileArena *fileArena);
 
 size_t f_getFileName(char *filename);
 char *f_getFileExtension(char *filename);
+void f_splitIntoLines(char *buffer, size_t bufferLength, File *file, MemoryArena *arena);
 
 void f_init();
 void f_newFile();

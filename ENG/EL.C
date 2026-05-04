@@ -10,7 +10,7 @@ void el_renderFiles_test(){
     */
 
     // Workspace background
-    dw_fill(editormemptr, COLOR_BLUE, COLOR_LIGHT_BLUE, '°');
+    //dw_fill(editormemptr, COLOR_BLUE, COLOR_LIGHT_BLUE, '°');
     
     for(i; i < MAX_ARENAS; i++){
         fileArena = &fileList[i];    
@@ -23,7 +23,6 @@ void el_renderFiles_test(){
             there should be a layer between that a window element handles that buffer
             somehow.
         */
-        //logger("\n[el_renderFiles_test]: Rendering %s", file->buffer);
         dw_writeBufferEditorFormatted(&editormemptr, 0, 0, VIDEO_COLS - 1, VIDEO_ROWS - 2, COLOR_LIGHT_GRAY, COLOR_BLACK, file) ;
      
     }
@@ -41,24 +40,29 @@ void el_renderFiles_test(){
 void el_renderContainer(Container *container){
     return;
 }
+
 void el_renderLabel(Label *label){
     // Put the cursor on labels coordinates
     // Print the text with the color attributes
 
     return;
 }
+
 void el_renderButton(Button *button){
     // Put the cursor on the button coordinates
     // Draw a rectangle with the color attributes at the position
     // Print the text with the color attributes
     return;
 }
+
 void el_renderInput(Input *input){
     return;
 }
+
 void el_renderStatusbar(Statusbar *menu){
     return;
 }
+
 void el_renderMenu(Menu *menu){
     return;
 }

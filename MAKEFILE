@@ -28,7 +28,7 @@ $(APPNAME).EXE: $(OBJS)
 $(CFLAGS_LNK): .ALWAYS
     @if not exist $(OBJDIR) mkdir $(OBJDIR)
     @%create $@
-    @%append $@ /4r /s /otexan
+    @%append $@ /3r /s /otexan
     @%append $@ -i=DEPS\INPUT -i=DEPS\VGA -i=DEPS\DATA -i=DEPS\SORT
     @%append $@ -i=DEPS\ENV -i=DEPS\MEM -i=DEPS\LOG -i=ENG
 

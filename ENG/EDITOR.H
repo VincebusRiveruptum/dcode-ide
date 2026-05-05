@@ -8,7 +8,7 @@
 // THIS REQUIRE THE INPUT DEPS
 #include "..\APP\MAIN.H"
 
-#define ED_STATUSBAR_WIDTH 80
+#define ED_STATUSBAR_WIDTH 132
 /*
  * IBM PC / DOS Code Page 437
  * Line Drawing & Special Characters

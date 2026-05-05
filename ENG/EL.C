@@ -32,7 +32,7 @@ void el_renderFiles_test(){
     // This will trasnate line jumps and tabs, becaues in memeory these are special chars and by copying directly to memory these are not translated 
     // and will look wrong
 
-    for(i=0; i < VIDEO_BUFFER_SIZE; i++){
+    for(i=0; i < v_getVideoBufferSize(); i++){
         textmemptr[i] = editormemptr[i];
     }
 }

@@ -30,27 +30,30 @@ void v_init_video(){
     dw_cls(textmemptr);
 }
 
+void v_set25Lines(){
+    VIDEO_ROWS = 25;
+    VIDEO_COLS = 80;
+    _set80x25_asm();
+}
+
 void v_set43Lines(){
     VIDEO_ROWS = 43;
     VIDEO_COLS = 80;
 
-    _set350Lines_asm();
-    _set43Lines_asm();
+    _set80x43_asm();
 }
 
 void v_set50Lines(){
     VIDEO_ROWS = 50;
     VIDEO_COLS = 80;
 
-    _set400Lines_asm();
-    _set43Lines_asm();
+    _set80x50_asm();
 }
+void v_set132x60(){
+    VIDEO_ROWS = 60;
+    VIDEO_COLS = 132;
 
-void v_set25Lines(){
-    VIDEO_ROWS = 25;
-    VIDEO_COLS = 80;
-    _set400Lines_asm();
-    _set25Lines_asm();
+    _set132x60_asm();
 }
 
 unsigned short v_getVideoBufferSize(){

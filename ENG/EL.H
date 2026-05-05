@@ -9,7 +9,7 @@
  #define EL_MAX_NAME_SIZE 16
  #define EL_MAX_TEXT_SIZE 256
  #define EL_MAX_TOOLTIP_SIZE 512
- #define EL_MAX_STATUSBAR_TEXT_SIZE 80
+ #define EL_MAX_STATUSBAR_TEXT_SIZE 132
 
 typedef enum ButtonType {
     EL_BUTTON_TYPE_DEFAULT,

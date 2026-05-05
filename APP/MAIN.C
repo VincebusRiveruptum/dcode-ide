@@ -32,29 +32,30 @@ int main(int argc, char *argv[]){
 
         // ACTION KEYS HANDLING
         // This is uses ISR approach, not getch()
-        if(inp_isKeyPressed(KEY_ESC)) f_triggerClose();
-        if(inp_isKeyDown(KEY_F1)) {v_set25Lines(); ed_renderEvent = true;}
-        if(inp_isKeyDown(KEY_F2)) {v_set50Lines(); ed_renderEvent = true;}
-        if(inp_isKeyDown(KEY_F3)) {v_set43Lines(); ed_renderEvent = true;}
-        if(inp_isKeyDown(KEY_F12)){mem_vis_mem();};
+		if(inp_isKeyPressed(KEY_ESC)) f_triggerClose();
+		if(inp_isKeyDown(KEY_F1)) {v_set25Lines(); ed_renderEvent = true;}
+		if(inp_isKeyDown(KEY_F2)) {v_set50Lines(); ed_renderEvent = true;}
+		if(inp_isKeyDown(KEY_F3)) {v_set43Lines(); ed_renderEvent = true;}
+		if(inp_isKeyDown(KEY_F4)) {v_set132x60(); ed_renderEvent = true;}
+		if(inp_isKeyDown(KEY_F12)){mem_vis_mem();};
 
-        if(inp_isKeyDown(KEY_HOME)) ed_putCursorStart();
-        if(inp_isKeyDown(KEY_END)) ed_putCursorEnd();
+		if(inp_isKeyDown(KEY_HOME)) ed_putCursorStart();
+		if(inp_isKeyDown(KEY_END)) ed_putCursorEnd();
         
-        if(inp_isKeyDown(KEY_PAGEUP)) ed_putCursorFistLine();
-        if(inp_isKeyDown(KEY_PAGEDOWN)) ed_putCursorLastLine();
+		if(inp_isKeyDown(KEY_PAGEUP)) ed_putCursorFistLine();
+		if(inp_isKeyDown(KEY_PAGEDOWN)) ed_putCursorLastLine();
         
-        if(inp_keysPressed(INP_TRIGGER_EDGE, 3, KEY_LCTRL, KEY_LSHIFT, KEY_S)) f_saveFile();
-        if(inp_isKeyDown(KEY_SPACE)) ed_renderEvent = true;
+		if(inp_keysPressed(INP_TRIGGER_EDGE, 3, KEY_LCTRL, KEY_LSHIFT, KEY_S)) f_saveFile();
+		if(inp_isKeyDown(KEY_SPACE)) ed_renderEvent = true;
         
-        if(inp_isKeyPressed(KEY_DELETE)) ed_supr();
+		if(inp_isKeyPressed(KEY_DELETE)) ed_supr();
         
         
-        // NEW FILE
-        if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_N)){
-            f_newFile(NULL);
-            logger("[main]: User created %s ,a new file.", currentFileArena->file->name);
-        }
+		// NEW FILE
+		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_N)){
+			f_newFile(NULL);
+			logger("[main]: User created %s ,a new file.", currentFileArena->file->name);
+		}
         
 
         // Hice mi propio editor, ke wea!!
@@ -93,38 +94,41 @@ int main(int argc, char *argv[]){
                     ed_newLine();
                 }
 
-                if(!(c == CHAR_ESCAPE ||
+				if(!(c == CHAR_ESCAPE ||
 					c == CHAR_BACKSPACE ||
 					c == CHAR_ENTER ||
 					c == CHAR_DELETE)){
 						ed_typeChar(c);
 						ticks++;
-                    }
-                }
-            }
+					}
+				}
+			}
 
-        // Draw statusbar
-        ed_statusBar();
+		// Draw statusbar
+		ed_statusBar();
         
-        //t_drawDebugger();
-        ed_updateCursor();
+		//t_drawDebugger();
+		ed_updateCursor();
 
-        if(ed_renderEvent == true){
-            ed_renderElements();
-            ed_renderEvent = false;
-        }
+		if(ed_renderEvent == true){
+			ed_renderElements();
+			ed_renderEvent = false;
+		}
 
-        inp_updateKeyboard();
-    }
-    
-    inp_closeKeyboard();
-    dw_cls(textmemptr);
-    v_set25Lines();
-    mem_shutdown();
-    log_shutdown();
-    printf("96 Tears...\n");
-    return 0;
+		inp_updateKeyboard();
+	}
+
+	inp_closeKeyboard();
+	dw_cls(textmemptr);
+	v_set25Lines();
+	mem_shutdown();
+	log_shutdown();
+	printf("96 Tears...\n");
+	return 0;
 }
+
+
+
 
 
 

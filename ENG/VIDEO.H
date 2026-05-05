@@ -6,7 +6,7 @@
 
 /* Global =================================================*/
 
-#define VIDEO_BUFFER_SIZE 4160   /* WE'LL USE 80 * 50  + 2 lines ( 80 x 2 ) as universal buffer size*/
+#define VIDEO_BUFFER_SIZE 8192   /* WE'LL USE 132 * 60 (7920) as universal buffer size*/
 /* Prototypes =============================================*/
 
 /* ASM Prototypes */
@@ -15,34 +15,51 @@
 // AX = 0x0003 = clear screen
 // AX = 0x0083 = don't clear screen
 
-#pragma aux _set350Lines_asm = \
-    "mov ax, 0x1201" \
-    "mov bl, 0x30" \
-    "int 0x10" \
-    "mov ax, 0x0083" \
-    "int 0x10" \
-    modify [ax bx cx dx]
-
-#pragma aux _set400Lines_asm = \
+#pragma aux _set80x25_asm = \
     "mov ax, 0x1202" \
     "mov bl, 0x30" \
     "int 0x10" \
     "mov ax, 0x0083" \
     "int 0x10" \
-    modify [ax bx cx dx]
+    "mov ax, 0x1114" \
+    "mov bl, 0x00" \
+    "int 0x10" \
+    modify[ax bx cx dx]
 
-#pragma aux _set43Lines_asm = \
+#pragma aux _set80x43_asm = \
+    "mov ax, 0x1201" \
+    "mov bl, 0x30" \
+    "int 0x10" \
+    "mov ax, 0x0083" \
+    "int 0x10" \
+    "mov ax, 0x1112" \
+    "mov bl, 0x00" \
+    "int 0x10" \
+    modify[ax bx cx dx]
+
+#pragma aux _set80x50_asm = \
+    "mov ax, 0x1202" \
+    "mov bl, 0x30" \
+    "int 0x10" \
+    "mov ax, 0x0083" \
+    "int 0x10" \
+    "mov ax, 0x1112" \
+    "mov bl, 0x00" \
+    "int 0x10" \
+    modify[ax bx cx dx]
+
+// VESA
+// 1. We set VESA 10C mode with bit 15 high
+// 2. We set 8x8 char mode
+// so it wiont clear the screen
+#pragma aux _set132x60_asm = \
+    "mov ax, 0x4F02" \
+    "mov bx, 0x810C" \
+    "int 0x10" \
     "mov ax, 0x1112" \
     "mov bl, 0x00" \
     "int 0x10" \
     modify [ax bx cx dx]
-    
-#pragma aux _set25Lines_asm = \
-    "mov ax, 0x1114" \
-    "mov bl, 0x00" \
-    "int 0x10" \
-    modify [ax bx cx dx]
-
    
 extern unsigned short *textmemptr;      // VIDEO BUFFER
 extern unsigned short editormemptr[VIDEO_BUFFER_SIZE];    // EDITOR BUFFER, i think this could be the half of VIDEO_BUFFER_SIZE extern unsigned char tempBuffer[VIDEO_BUFFER_SIZE];   

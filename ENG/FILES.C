@@ -445,7 +445,7 @@ bool f_openFile(char *filename){
         return false;
     }
 
-	memset(fileParsinBuffer,'\0', sizeof(char)*file->bufferLength + 1);
+	memset(fileParsingBuffer,'\0', sizeof(char)*file->bufferLength + 1);
 	
     // Actually reading the file
     fread(fileParsingBuffer, sizeof(char), file->bufferLength, fp);

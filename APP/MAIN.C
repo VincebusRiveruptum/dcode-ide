@@ -33,10 +33,7 @@ int main(int argc, char *argv[]){
         // ACTION KEYS HANDLING
         // This is uses ISR approach, not getch()
 		if(inp_isKeyPressed(KEY_ESC)) f_triggerClose();
-		if(inp_isKeyDown(KEY_F1)) {v_set25Lines(); ed_renderEvent = true;}
-		if(inp_isKeyDown(KEY_F2)) {v_set50Lines(); ed_renderEvent = true;}
-		if(inp_isKeyDown(KEY_F3)) {v_set43Lines(); ed_renderEvent = true;}
-		if(inp_isKeyDown(KEY_F4)) {v_set132x60(); ed_renderEvent = true;}
+		if(inp_isKeyPressed(KEY_F11)) {v_cycleVideoModes(); ed_renderEvent = true;}
 		if(inp_isKeyDown(KEY_F12)){mem_vis_mem();};
 
 		if(inp_isKeyDown(KEY_HOME)) ed_putCursorStart();
@@ -126,6 +123,13 @@ int main(int argc, char *argv[]){
 	printf("96 Tears...\n");
 	return 0;
 }
+
+
+
+
+
+
+
 
 
 

@@ -121,6 +121,11 @@ void el_renderElements(){
     }
 }   
 
+// Recursive rendering, in my head is simple, the root is a binary tree, we render recursively
+// until a branch is done, we follow the next branch.
+
+
+
 void el_rootZOrder(){
     /*
         This method orders elements in the root list by z-order

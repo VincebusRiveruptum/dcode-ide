@@ -9,6 +9,10 @@
 #include "..\APP\MAIN.H"
 
 #define ED_STATUSBAR_WIDTH 132
+#define ED_WORD_JUMP_PREV 0
+#define ED_WORD_JUMP_NEXT 1
+#define ED_LINE_JUMP_UP 0
+#define ED_LINE_JUMP_DOWN 1
 /*
  * IBM PC / DOS Code Page 437
  * Line Drawing & Special Characters
@@ -135,5 +139,7 @@ void ed_statusBarMessage(const char *format,  ...);
 bool ed_checkStatusBarMessage();
 void ed_statusBar();
 
+void ed_wordJump(short wordJump);
+void ed_swapLine(short lineJump);
 #endif
 

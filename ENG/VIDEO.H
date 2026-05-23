@@ -48,6 +48,18 @@
     "int 0x10" \
     modify[ax bx cx dx]
 
+
+#pragma aux _set80x60_asm = \
+    "mov ax, 0x1202" \
+    "mov bl, 0x30" \
+    "int 0x10" \
+    "mov ax, 0x0083" \
+    "int 0x10" \
+    "mov ax, 0x1112" \
+    "mov bl, 0x00" \
+    "int 0x10" \
+    modify[ax bx cx dx]
+
 // VESA
 // 1. We set VESA 10C mode with bit 15 high
 // 2. We set 8x8 char mode

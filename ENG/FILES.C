@@ -243,8 +243,8 @@ size_t _copyLines(FileArena *old, FileArena *new){
         oldLine = (Line *)currentNode->data;
         
         newLine = (Line *)mem_arena_alloc(new->arena, NULL, sizeof(Line));
-        newLine->buffer = (char *)mem_arena_alloc(new->arena, NULL, sizeof(char) * oldLine->length + 1);
-        memset(newLine->buffer, '\0', sizeof(char) * oldLine->length + 1);
+        newLine->buffer = (char *)mem_arena_alloc(new->arena, NULL, sizeof(char) * MAX_FILE_LINE_LENGTH);
+        memset(newLine->buffer, '\0', sizeof(char) * MAX_FILE_LINE_LENGTH);
         sprintf(newLine->buffer, "%s", oldLine->buffer);
         newLine->length = strlen(newLine->buffer);
 
@@ -560,11 +560,6 @@ void f_saveFile(){
     newFileArena->file->cursorLine = oldFileArena->file->cursorLine;
     newFileArena->file->cursorCol = oldFileArena->file->cursorCol;
     
-    newFileArena->file->currentLineNode = oldFileArena->file->currentLineNode;
-    newFileArena->file->prevLine = oldFileArena->file->prevLine;
-    newFileArena->file->currentLine = oldFileArena->file->currentLine;
-    newFileArena->file->nextLine = oldFileArena->file->nextLine;
-    
     newFileArena->file->prevChar = oldFileArena->file->prevChar;
     newFileArena->file->currentChar = oldFileArena->file->currentChar;
     newFileArena->file->nextChar = oldFileArena->file->nextChar;
@@ -574,6 +569,21 @@ void f_saveFile(){
     // We are going to travel the old file lines and copy them to the new file buffer
     currentNode = oldFileArena->file->lines->firstNode;
     lengthSum = _copyLines(oldFileArena, newFileArena);
+
+    // wE CANNOT COPY OLD POINTERS TO THE NEW FILE ARENA...
+    newFileArena->file->currentLineNode = getNodeByIndex(&(newFileArena->file->lines), newFileArena->file->cursorLine);
+    newFileArena->file->prevLine = 
+        newFileArena->file->currentLineNode->prev &&
+        newFileArena->file->currentLineNode->prev->data
+        ? newFileArena->file->currentLineNode->prev->data
+        : NULL ;
+
+    newFileArena->file->currentLine = newFileArena->file->currentLineNode->data;
+    newFileArena->file->nextLine = 
+        newFileArena->file->currentLineNode->next &&
+        newFileArena->file->currentLineNode->next->data
+        ? newFileArena->file->currentLineNode->next->data
+        : NULL;
 
     fileParsingBuffer = (char*)malloc(sizeof(char) * (lengthSum + 1));
 

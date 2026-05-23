@@ -624,12 +624,19 @@ void f_saveFile(){
 
 /* CLOSE FILE ==================================================================*/
 
-void f_triggerClose(){
+void f_triggerClose(bool end_program){
     char input;
     char *filename;
     int len = 0;
     bool esc;
     int status;
+
+    endProgram = end_program;
+
+    if(!currentFileArena || !currentFileArena->file || !currentFileArena->arena ){
+        logger("[f_triggerClose]: No opened files, proceed to close app directly.");
+        return;
+    }
 
     if(currentFileArena->file->isModified == true){
         dw_writeBuffer(textmemptr, "File modified, save? Y/N ",0,VIDEO_ROWS - 1 ,26, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
@@ -647,8 +654,9 @@ void f_triggerClose(){
 
         if(esc == true) return;
 
-        if(input == 'n' || input == 'N'){
-            endProgram = true;
+        if(input == 'n' || input == 'N'){            
+            // Here we should close the file or the program
+            f_closeCurrentFile();
             return;
         } 
         
@@ -675,9 +683,38 @@ void f_triggerClose(){
         }
     }
 
+    // Close the file
     f_saveFile();
-    endProgram = true;
+    f_closeCurrentFile();
 }
 
+void f_closeCurrentFile(){
+    int i=0;
+    char oldFileName[255] = {'\0'};
 
+    // If there are no current file opened, we fallback
+    if(!currentFileArena) return;
 
+    strncpy(oldFileName, currentFileArena->file->name, 255);
+    f_closeFile(currentFileArena);    
+
+    // We find the next opened file
+    i = 0;
+
+    while(i < MAX_ARENAS && fileList[i].file == NULL && fileList[i].arena == NULL){
+        i++;
+    }
+
+    if(i == MAX_ARENAS){
+        currentFileArena = NULL;
+    }else{
+        currentFileArena = &fileList[i];
+    }
+
+    ed_statusBarMessage("%s closed successfully.", oldFileName);
+    logger("[f_closdeCurrentFile]: %s closed successfully.", oldFileName);
+
+    ed_renderEvent = true;
+
+    return;
+}

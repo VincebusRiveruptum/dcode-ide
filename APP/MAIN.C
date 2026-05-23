@@ -4,10 +4,10 @@
     (C) 2026 Vincebus Riveruptum
 
     This library is for educational or entertainment purposes only.
-    It is not intended for use in production environments.
     So, there are still some issues, unfortunatelly
-*/
-
+    It is not intended for use in production environments.
+    */
+    
 #include "MAIN.H"
 
 int main(int argc, char *argv[]){
@@ -33,19 +33,26 @@ int main(int argc, char *argv[]){
         // ACTION KEYS HANDLING
         // This is uses ISR approach, not getch()
 		if(inp_isKeyPressed(KEY_ESC)) f_triggerClose();
-		if(inp_isKeyDown(KEY_F1)) {v_set25Lines(); ed_renderEvent = true;}
-		if(inp_isKeyDown(KEY_F2)) {v_set50Lines(); ed_renderEvent = true;}
-		if(inp_isKeyDown(KEY_F3)) {v_set43Lines(); ed_renderEvent = true;}
-		if(inp_isKeyDown(KEY_F4)) {v_set132x60(); ed_renderEvent = true;}
-		if(inp_isKeyDown(KEY_F12)){mem_vis_mem();};
+		if(inp_isKeyPressed(KEY_F11)) {v_cycleVideoModes(); ed_renderEvent = true;}
+		if(inp_isKeyPressed(KEY_F12)){mem_vis_mem();};
 
-		if(inp_isKeyDown(KEY_HOME)) ed_putCursorStart();
-		if(inp_isKeyDown(KEY_END)) ed_putCursorEnd();
+		if(inp_isKeyPressed(KEY_HOME)) ed_putCursorStart();
+		if(inp_isKeyPressed(KEY_END)) ed_putCursorEnd();
         
-		if(inp_isKeyDown(KEY_PAGEUP)) ed_putCursorFistLine();
-		if(inp_isKeyDown(KEY_PAGEDOWN)) ed_putCursorLastLine();
+		if(inp_isKeyPressed(KEY_PAGEUP)) ed_putCursorFistLine();
+		if(inp_isKeyPressed(KEY_PAGEDOWN)) ed_putCursorLastLine();
         
 		if(inp_keysPressed(INP_TRIGGER_EDGE, 3, KEY_LCTRL, KEY_LSHIFT, KEY_S)) f_saveFile();
+
+        // Horizontal Word jump
+        if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_RIGHT)) ed_wordJump(ED_WORD_JUMP_PREV);
+        if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_LEFT)) ed_wordJump(ED_WORD_JUMP_NEXT);
+
+        // Line Jumping
+        if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_UP)) ed_swapLine(ED_LINE_JUMP_UP);
+        if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_DOWN)) ed_swapLine(ED_LINE_JUMP_DOWN);
+
+
 		if(inp_isKeyDown(KEY_SPACE)) ed_renderEvent = true;
         
 		if(inp_isKeyPressed(KEY_DELETE)) ed_supr();
@@ -126,6 +133,18 @@ int main(int argc, char *argv[]){
 	printf("96 Tears...\n");
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -994,8 +994,82 @@ void ed_statusBar(){
     }        
 }
 
+void ed_wordJump(short wordJump){
+    unsigned short currentCharPos = currentFileArena->file->cursorCol;
+    char *currentLineBuffer = currentFileArena->file->currentLine->buffer;
 
+    switch(wordJump){
+        case ED_WORD_JUMP_NEXT:
+            if(currentCharPos > 0 && currentLineBuffer[currentCharPos - 1 ] == ' ') currentCharPos--;
+            
+            while(
+                (currentCharPos - 1 > 0) &&
+                currentLineBuffer[currentCharPos - 1 ] != ' ' ||
+                (currentLineBuffer[currentCharPos] == ' ')){
+                    currentCharPos--;
+            }
+            break;
+        case ED_WORD_JUMP_PREV:
+            if(currentCharPos < currentFileArena->file->currentLine->length && currentLineBuffer[currentCharPos + 1 ] == ' ') currentCharPos++;
 
+            while(
+                (currentCharPos + 1 < currentFileArena->file->currentLine->length) &&
+                currentLineBuffer[currentCharPos + 1 ] != ' ' ||
+                (currentLineBuffer[currentCharPos] == ' ')){
+                    currentCharPos++;
+            }
+            break;
+    }
+    
+    currentFileArena->file->cursorCol = currentCharPos;
+    _updateCursor();
+}
+
+// This is for swapping the lines with the next or previous one with the
+// ALT + UP or ALT + DOWN key stroke.
+// Similar to visual studio code editor feature
+
+void ed_swapLine(short lineJump){
+    Node *tmpNext = NULL;
+    Node *tmpPrev = NULL;
+    Node *curr = currentFileArena->file->currentLineNode;
+    switch(lineJump){
+        case ED_LINE_JUMP_DOWN:
+            if(curr->next == NULL) break;
+            curr = currentFileArena->file->currentLineNode->next;
+            currentFileArena->file->cursorLine += 2;
+            if(currentCursorY + 1 < VIDEO_ROWS ) currentCursorY+=2; 
+            /* FALLTHROUGH ...*/
+        case ED_LINE_JUMP_UP:
+            tmpNext = curr->next;
+            tmpPrev = curr->prev;
+
+            // Is head
+            if(curr->prev == NULL) break;
+
+            if(tmpPrev->prev != NULL){
+                tmpPrev->prev->next = curr;
+            }
+
+            curr->prev = tmpPrev->prev;
+
+            curr->next = tmpPrev;
+            tmpPrev->prev = curr;
+            tmpPrev->next = tmpNext;
+
+            if(tmpNext != NULL){
+                tmpNext->prev = tmpPrev;            
+            }
+
+            currentFileArena->file->cursorLine--;
+
+            if(currentCursorY - 1 > 0) currentCursorY--; 
+
+            break;
+           
+    }
+   _updateCursor();
+}
 
 
 

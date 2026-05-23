@@ -34,13 +34,13 @@ int main(int argc, char *argv[]){
         // This is uses ISR approach, not getch()
 		if(inp_isKeyPressed(KEY_ESC)) f_triggerClose();
 		if(inp_isKeyPressed(KEY_F11)) {v_cycleVideoModes(); ed_renderEvent = true;}
-		if(inp_isKeyDown(KEY_F12)){mem_vis_mem();};
+		if(inp_isKeyPressed(KEY_F12)){mem_vis_mem();};
 
-		if(inp_isKeyDown(KEY_HOME)) ed_putCursorStart();
-		if(inp_isKeyDown(KEY_END)) ed_putCursorEnd();
+		if(inp_isKeyPressed(KEY_HOME)) ed_putCursorStart();
+		if(inp_isKeyPressed(KEY_END)) ed_putCursorEnd();
         
-		if(inp_isKeyDown(KEY_PAGEUP)) ed_putCursorFistLine();
-		if(inp_isKeyDown(KEY_PAGEDOWN)) ed_putCursorLastLine();
+		if(inp_isKeyPressed(KEY_PAGEUP)) ed_putCursorFistLine();
+		if(inp_isKeyPressed(KEY_PAGEDOWN)) ed_putCursorLastLine();
         
 		if(inp_keysPressed(INP_TRIGGER_EDGE, 3, KEY_LCTRL, KEY_LSHIFT, KEY_S)) f_saveFile();
 

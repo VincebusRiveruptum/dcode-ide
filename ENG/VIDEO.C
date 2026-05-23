@@ -3,6 +3,7 @@
 
 unsigned short *textmemptr;
 unsigned short editormemptr[VIDEO_BUFFER_SIZE];
+int v_currentMode = VID_80X25;
 
 char tempBuffer[VIDEO_BUFFER_SIZE];
 

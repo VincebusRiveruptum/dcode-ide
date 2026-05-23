@@ -3,7 +3,6 @@
 
 unsigned short *textmemptr;
 unsigned short editormemptr[VIDEO_BUFFER_SIZE];
-int v_currentMode = VID_80X25;
 
 char tempBuffer[VIDEO_BUFFER_SIZE];
 
@@ -73,7 +72,7 @@ void v_set132x50(){
     VIDEO_ROWS = 50;
     VIDEO_COLS = 132;
 
-    _set132x60_asm();
+    _set132x50_asm();
 }
 void v_set132x60(){
     VIDEO_ROWS = 60;
@@ -113,16 +112,16 @@ void v_cycleVideoModes(){
             v_set50Lines();
             break;
         case VID_80X60:
-            ed_statusBarMessage("Set 80x60 video mode (%d)", v_currentMode);       
-            v_set80x60();
+            ed_statusBarMessage("80x60 video mode NOT SUPPORTED YET (%d)", v_currentMode);       
+            //v_set80x60();
             break;
         case VID_132X25:
-            ed_statusBarMessage("Set 132x25 video mode (%d)", v_currentMode);       
-            v_set132x25();
+            ed_statusBarMessage("132x25 video mode NOT SUPPORTED YET (%d)", v_currentMode);       
+            //v_set132x25();
             break;
         case VID_132X43:
-            ed_statusBarMessage("Set 132x43 video mode (%d)", v_currentMode);       
-            v_set132x43();
+            ed_statusBarMessage("132x43 video mode NOT SUPPORTED YET (%d)", v_currentMode);       
+            //v_set132x43();
             break;
         case VID_132X50:
             ed_statusBarMessage("Set 132x50 video mode (%d)", v_currentMode);       

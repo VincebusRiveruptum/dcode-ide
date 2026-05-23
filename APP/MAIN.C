@@ -44,9 +44,12 @@ int main(int argc, char *argv[]){
         
 		if(inp_keysPressed(INP_TRIGGER_EDGE, 3, KEY_LCTRL, KEY_LSHIFT, KEY_S)) f_saveFile();
 
+        // Switch files
+        if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_LSHIFT)) ed_showFileSwitcher();
+
         // Horizontal Word jump
-        if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_RIGHT)) ed_wordJump(ED_WORD_JUMP_PREV);
-        if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_LEFT)) ed_wordJump(ED_WORD_JUMP_NEXT);
+        if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_RIGHT)) ed_wordJump(ED_WORD_JUMP_NEXT);
+        if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_LEFT)) ed_wordJump(ED_WORD_JUMP_PREV);
 
         // Line Jumping
         if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_UP)) ed_swapLine(ED_LINE_JUMP_UP);
@@ -133,44 +136,3 @@ int main(int argc, char *argv[]){
 	printf("96 Tears...\n");
 	return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

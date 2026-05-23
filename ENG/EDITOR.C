@@ -42,13 +42,17 @@ void ed_initConfig(int argc, char *argv[]){
 }
 
 void ed_handleArguments(int argc, char *argv[]){
+    int i;
     // File opening
     logger("[ed_handleArguments]: %d %s", argc, argv[1]);
     
     if(argc > 1 || (argv != NULL && argv[1] != NULL)){
-        if(!f_openFile(argv[1])){
-            logger("[ed_handleArguments]: File %s not found. Falling back to new file.", argv[1]);
-            f_newFile(argv[1]);
+        // Multiple file opening
+        for(i=1;i<argc;i++){
+            if(!f_openFile(argv[i])){
+                logger("[ed_handleArguments]: File %s not found. Falling back to new file.", argv[i]);
+                f_newFile(argv[i]);
+            }
         }
     }else{
         f_newFile(NULL);
@@ -999,23 +1003,23 @@ void ed_wordJump(short wordJump){
     char *currentLineBuffer = currentFileArena->file->currentLine->buffer;
 
     switch(wordJump){
-        case ED_WORD_JUMP_NEXT:
-            if(currentCharPos > 0 && currentLineBuffer[currentCharPos - 1 ] == ' ') currentCharPos--;
+        case ED_WORD_JUMP_PREV:
+            if((currentCharPos - 1) > 0 && currentLineBuffer[currentCharPos] == ' ') currentCharPos--;
             
             while(
                 (currentCharPos - 1 > 0) &&
-                currentLineBuffer[currentCharPos - 1 ] != ' ' ||
-                (currentLineBuffer[currentCharPos] == ' ')){
+                (currentLineBuffer[currentCharPos] != ' ' ||
+                currentLineBuffer[currentCharPos - 1] == ' ')){
                     currentCharPos--;
             }
             break;
-        case ED_WORD_JUMP_PREV:
-            if(currentCharPos < currentFileArena->file->currentLine->length && currentLineBuffer[currentCharPos + 1 ] == ' ') currentCharPos++;
+        case ED_WORD_JUMP_NEXT:
+            if(currentCharPos < currentFileArena->file->currentLine->length && currentLineBuffer[currentCharPos] == ' ') currentCharPos++;
 
             while(
                 (currentCharPos + 1 < currentFileArena->file->currentLine->length) &&
-                currentLineBuffer[currentCharPos + 1 ] != ' ' ||
-                (currentLineBuffer[currentCharPos] == ' ')){
+                (currentLineBuffer[currentCharPos] != ' ' ||
+                currentLineBuffer[currentCharPos + 1] == ' ')){
                     currentCharPos++;
             }
             break;
@@ -1030,7 +1034,7 @@ void ed_wordJump(short wordJump){
 // Similar to visual studio code editor feature
 
 void ed_swapLine(short lineJump){
-    Node *tmpNext = NULL;
+Node *tmpNext = NULL;
     Node *tmpPrev = NULL;
     Node *curr = currentFileArena->file->currentLineNode;
     switch(lineJump){
@@ -1071,7 +1075,54 @@ void ed_swapLine(short lineJump){
    _updateCursor();
 }
 
+void ed_showFileSwitcher(){
+    int i;
+    int selectedIndex = 0;
+    bool selected = false;
+    FileArena *fileptr;
 
+    /* Encontrar el índice seleccionado inicial antes del bucle */
+    for(i = 0; i < MAX_ARENAS; i++) {
+        if(fileList[i].file != NULL && 
+           strcmp(fileList[i].file->name, currentFileArena->file->name) == 0) {
+            selectedIndex = i;
+            break;
+        }
+    }
+
+    while(inp_isKeyDown(KEY_LALT)){
+        /* 1. Dibujar el cuadro */
+        dw_rectangle(textmemptr, 4, 4, 34, 16, COLOR_RED, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_RED, false, DRAW_BORDER_SIMPLE);
+
+        /* 2. Dibujar la lista de archivos */
+        for(i = 0; i < MAX_ARENAS; i++){
+            fileptr = &fileList[i];
+            if (fileptr->file != NULL) {
+                selected = (i == selectedIndex);
+                dw_writeBuffer(textmemptr, "%s %s", 5, 5 + i, 33, 5 + i, 
+                               COLOR_WHITE, COLOR_RED, (selected ? "*" : " "), fileptr->file->name);
+            }
+        }
+
+        /* 3. Detectar pulsación de borde de LSHIFT dentro del bucle */
+        if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_LSHIFT)){
+            /* Avanzar al siguiente archivo abierto válido */
+            do {
+                selectedIndex = (selectedIndex + 1) % MAX_ARENAS;
+            } while(fileList[selectedIndex].file == NULL);
+
+            currentFileArena = &fileList[selectedIndex];
+        }
+
+        /* 4. Actualizar el buffer del teclado manualmente en este bucle */
+        inp_updateKeyboard();
+        
+        /* En DOS es bueno dar un brevísimo retardo/yield aquí para no saturar la CPU */
+        delay(10); /* O similar */
+    }
+
+    ed_renderEvent = true;
+}
 
 
 

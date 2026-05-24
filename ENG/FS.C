@@ -62,22 +62,42 @@ void fs_printContents(const char *path){
 
 /* ============== */
 
+void fs_freeDirectory(Directory *d) {
+    Node *current, *temp;
+    if (!d) return;
+    if (d->fileEntries) {
+        current = d->fileEntries->firstNode;
+        while (current != NULL) {
+            temp = current;
+            current = current->next;
+            if (temp->data) free(temp->data);   /// free up FileEntry
+            free(temp);                         // free node
+        }
+        free(d->fileEntries);
+    }
+    free(d);
+}
+
 /* We obtain a linked list of the files of a certain path*/
 Directory *fs_getDirectoryFileList(const char *path){
     unsigned int rc;
     struct find_t foundFile;
     FileEntry *foundFileEntry;
     Directory *d;
+    char searchPattern[512] = {'\0'};
+    size_t len = strlen(path);
 
     d = (Directory*) malloc(sizeof(Directory));
-
+    
+    logger("[fs_getDirectoryFileList] Retrieving directory data from : %s", path);
+    
     if(!d){
         logger("[fs_getDirectoryFileList] Could not allocate memory for buffer directory list");
         return NULL;
     } 
 
     d->fileEntries = (List*)malloc(sizeof(List));
-    memset(d->fileEntries, 0, sizeof(d->fileEntries));
+    memset(d->fileEntries, 0, sizeof(List));
 
 
     if(!d->fileEntries){
@@ -85,7 +105,15 @@ Directory *fs_getDirectoryFileList(const char *path){
         return NULL;
     } 
 
-    rc = _dos_findfirst("*.*", _A_NORMAL | _A_SUBDIR, &foundFile);
+    if (len == 0) {
+        strcpy(searchPattern, "*.*");
+    } else if (path[len - 1] == '\\' || path[len - 1] == '/') {
+        sprintf(searchPattern, "%s*.*", path);
+    } else {
+        sprintf(searchPattern, "%s\\*.*", path);
+    }
+
+    rc = _dos_findfirst(searchPattern, _A_NORMAL | _A_SUBDIR, &foundFile);
 
     do{
         // Packaging the found file to a file entry

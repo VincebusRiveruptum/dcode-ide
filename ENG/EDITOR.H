@@ -129,6 +129,7 @@ void ed_tab();
 
 char *ed_getDefaultExtension();
 char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars);
+char *ed_async_scanf(unsigned char x, unsigned char y, unsigned char maxChars, char *buffer, size_t bufflen, int *stepIndex);
 
 void ed_putCursorEnd();
 void ed_putCursorStart();

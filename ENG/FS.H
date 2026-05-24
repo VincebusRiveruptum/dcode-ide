@@ -31,5 +31,5 @@ typedef struct Directory{
 
 extern char currentWorkspacePath[255];
 Directory *fs_getDirectoryFileList(const char *path);
-
+void fs_freeDirectory(Directory *d);
 #endif

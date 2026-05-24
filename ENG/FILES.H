@@ -94,4 +94,5 @@ bool f_openFile(char *filename);
 void f_saveFile();
 void f_triggerClose(bool end_program);
 void f_closeCurrentFile();
+
 #endif

@@ -6,8 +6,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "..\DEPS\DATA\DATA.H"
+#include "..\DEPS\LOG\LOG.H"
+#include ".\FILES.H"
+
 #if defined(__MSDOS__) || defined(__WATCOMC__)
 #include <dos.h>
+#include <direct.h>
 
 #elif defined(__linux__)
 #include <dirent.h>
@@ -20,6 +25,11 @@ typedef struct FileEntry{
     long size;
 }FileEntry;
 
+typedef struct Directory{
+    List *fileEntries;
+}Directory;
+
 extern char currentWorkspacePath[255];
+Directory *fs_getDirectoryFileList(const char *path);
 
 #endif

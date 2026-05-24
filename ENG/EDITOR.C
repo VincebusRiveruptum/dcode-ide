@@ -838,6 +838,89 @@ char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
 }
 
 
+// PROMPT ELEMENT
+char *ed_async_scanf(unsigned char x, unsigned char y, unsigned char maxChars, char *buffer, size_t bufflen){
+    int i = 0, j = 0, lenbuff = 0;
+    char c = 0;
+    bool esc = false;
+
+    ed_putCursor(x,y);    
+
+    c = getch();
+
+    if(c == 0 || (unsigned char)c == 0xE0){
+        c = getch();
+
+        if(c == KEY_LEFT && i > 0){
+            i--;
+            ed_putCursor(x + i, y);
+        } 
+        if(c == KEY_RIGHT && i < strlen(buffer)){
+            i++;
+            ed_putCursor(x + i, y);
+        } 
+        if(c == KEY_DELETE){
+            // Shift to the left the buffer from the current position 
+            lenbuff = strlen(buffer);
+            for(j=i; j <= lenbuff; j++){
+                buffer[j] = buffer[j+1];
+            }
+
+            // Redraw he entire prompt by copying the buffer content to the screen buffer
+            for(j=0;j <  maxChars; j++){
+                dw_charXY(textmemptr,buffer[j], x+j, y);
+            }
+        }
+    }else{   
+        // OK
+        if(c == CHAR_BACKSPACE && i > 0 ){
+            lenbuff = strlen(buffer);
+            for(j=i; i > 0 && j <= lenbuff; j++){
+                buffer[j - 1] = buffer[j];
+            }   
+            
+            // Redraw
+            i--;
+
+            // Redraw he entire prompt by copying the buffer content to the screen buffer
+            for(j=0;j < maxChars; j++){
+                dw_charXY(textmemptr,buffer[j], x+j, y);
+            }   
+
+            ed_putCursor(x + i, y);
+        }else if(c == CHAR_SPACE){                
+            for(j=strlen(buffer); j >= i; j--){
+                if(j + 1 < MAX_FILE_LINE_LENGTH && j + 1 < maxChars ){
+                    buffer[j + 1] = buffer[j];
+                }
+            }
+
+            buffer[i] = ' ';
+
+            // Redraw he entire prompt by copying the buffer content to the screen buffer
+            for(j=0;j <  maxChars; j++){
+                dw_charXY(textmemptr,buffer[j], x+j, y);
+            }   
+            
+            i++;
+            ed_putCursor(x + i, y);
+        } else if (c != CHAR_ENTER && i < maxChars && i < MAX_FILE_LINE_LENGTH - 1){
+            buffer[i] = c;
+            dw_charXY(textmemptr,c,x + i,y);
+            i++;
+            ed_putCursor(x + i, y);
+        }
+    }
+
+    
+    ed_putCursor(currentCursorX,currentCursorY);    
+
+    if (esc == true) return NULL;
+
+    return buffer;
+}
+
+
 void ed_putCursorEnd(){
     currentFileArena->file->cursorCol = currentFileArena->file->currentLine->length;
 
@@ -1124,7 +1207,59 @@ void ed_showFileSwitcher(){
     ed_renderEvent = true;
 }
 
+/*
+    This is basically VSCODE's quick open feature. The behavior is the following:
+    Prompt that has pre-filled the absolute path of the current position, filalble with the left and right arrows
+    Select file of the current selected path with the up and down arrows.
+    The file list will be reactive depending on hte detected path from the input prompt.
+*/
 
+void ed_quickOpenFileDialog(){
+    int i;
+    int vis_offset = 0, dialog_offset = 0;
+    int selectedIndex = 0;
+    char *currentPath = fs_getAbsoluteCurrentPath();
+    Directory *currPathDirectory;
+    Node *node;
+    int entryIndex;
+    FileEntry *fileEntry;
+    currPathDirectory = fs_getDirectoryFileList(currentPath);
+
+    vis_offset = (VIDEO_COLS / 4);
+    dialog_offset = vis_offset / 4;
+
+    dw_rectangle(textmemptr, vis_offset, 2, VIDEO_COLS - vis_offset, 18, COLOR_BLUE, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_BLUE, false, DRAW_BORDER_SIMPLE);
+    dw_writeBuffer(textmemptr, "%s", vis_offset + dialog_offset, 3, vis_offset - dialog_offset, 3,  COLOR_WHITE, COLOR_BLUE, "Open File" );
+    
+    while(!inp_isKeyPressed(KEY_ESC)){
+        // Draw rect in the middle, 1/4 will be the start and the end, so i it will always be in the center
+        ed_async_scanf(vis_offset + 1, 3, (VIDEO_ROWS - 2 * vis_offset) - 1, currentPath, 255);
+        
+        currPathDirectory = fs_getDirectoryFileList(currentPath);
+
+        if(!currPathDirectory){
+            logger("[ed_quickOpenFileDialog]: Could not get currPathDirectory or FileEntry list for selection!");
+            return;
+        }
+        // Draw list of files
+        node = currPathDirectory->fileEntries->firstNode;
+        entryIndex = 0;
+        while(node != NULL){
+            fileEntry = (FileEntry*)node->data;
+            entryIndex++;
+            // We write the filename under the prompt
+            dw_writeBuffer(textmemptr,"%s", vis_offset + 1, 3 + entryIndex + 1, VIDEO_COLS - vis_offset - 1, 3 + entryIndex + 1, COLOR_WHITE, COLOR_BLUE, fileEntry->name);
+
+            node = node->next;
+        }
+
+        inp_updateKeyboard();
+        
+        delay(10);
+    }
+
+    ed_renderEvent = true;
+}
 
 
 

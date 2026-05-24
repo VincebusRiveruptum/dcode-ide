@@ -141,5 +141,9 @@ void ed_statusBar();
 
 void ed_wordJump(short wordJump);
 void ed_swapLine(short lineJump);
+
+void ed_showFileSwitcher();
+void ed_quickOpenFileDialog();
+
 #endif
 

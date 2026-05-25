@@ -1223,12 +1223,19 @@ void ed_showFileSwitcher(){
 void ed_quickOpenFileDialog(){
     int i, stepIndex;
     int vis_offset = 0, dialog_offset = 0;
+    int entriesLen = 0;
+    bool isSelected = false;
+    int selectedEntry = 0;
     int selectedIndex = 0;
+    char selectedEntryFullPath[255] = {'\0'};
+
     char *currentPath = fs_getAbsoluteCurrentPath();
     Directory *currPathDirectory;
     Node *node;
     int entryIndex;
-    FileEntry *fileEntry;
+    FileEntry *fileEntry, *selectedFileEntry;
+
+    strcat(currentPath, '\\' );
     currPathDirectory = fs_getDirectoryFileList(currentPath);
 
     vis_offset = (VIDEO_COLS / 4);
@@ -1246,6 +1253,9 @@ void ed_quickOpenFileDialog(){
         ed_async_scanf(vis_offset + 1, 3, (VIDEO_ROWS - 2 * vis_offset) - 1, currentPath, strlen(currentPath), &stepIndex);
         
         // Freeing up list of files each time there is a change in the prompt.
+
+        // Ok, for the file selection we have to clear mark a flag for the selected file
+        // By
         fs_freeDirectory(currPathDirectory);
 
         currPathDirectory = fs_getDirectoryFileList(currentPath);
@@ -1256,17 +1266,58 @@ void ed_quickOpenFileDialog(){
         }
 
         // Draw list of files
+        entriesLen = currPathDirectory->fileEntries->length;
         node = currPathDirectory->fileEntries->firstNode;
         entryIndex = 0;
+
         while(node != NULL){
             fileEntry = (FileEntry*)node->data;
             entryIndex++;
             // We write the filename under the prompt
-            dw_writeBuffer(textmemptr,"%s", vis_offset + 1, 3 + entryIndex + 1, VIDEO_COLS - vis_offset - 1, 3 + entryIndex + 1, COLOR_WHITE, COLOR_BLUE, fileEntry->name);
+            isSelected = (entryIndex == selectedEntry);
+
+            // We mar the selected item or not
+            if(isSelected){
+                selectedFileEntry = fileEntry;
+                dw_writeBuffer(textmemptr,"%s", vis_offset + 1, 3 + entryIndex + 1, VIDEO_COLS - vis_offset - 1, 3 + entryIndex + 1, COLOR_BLUE, COLOR_WHITE, fileEntry->name);
+            }else{
+                dw_writeBuffer(textmemptr,"%s", vis_offset + 1, 3 + entryIndex + 1, VIDEO_COLS - vis_offset - 1, 3 + entryIndex + 1, COLOR_WHITE, COLOR_BLUE, fileEntry->name);
+            }
 
             node = node->next;
         }
 
+        // Key selection
+        if(inp_isKeyPressed(KEY_UP)){
+            selectedEntry = 
+                selectedEntry > 0
+                ? selectedEntry - 1
+                : 0; 
+        }
+
+        if(inp_isKeyPressed(KEY_DOWN)){
+            selectedEntry = 
+                selectedEntry < entriesLen
+                ? selectedEntry + 1
+                : entriesLen; 
+        }
+
+        // If we press enter, we have to detect if the entry is either a directory or a file.
+        if(inp_isKeyPressed(KEY_ENTER)){
+            if(selectedFileEntry->isDirectory){
+                //
+            }else{
+                // We open the file
+                // TODO: SANITIZE buffer by removing the chars until the last directory
+                sprintf(selectedEntryFullPath, "%s%s", currentPath, selectedFileEntry->name);
+                f_openFile(selectedEntryFullPath);
+                ed_renderEvent = true;
+                return;
+            }
+
+        
+        }
+        
         inp_updateKeyboard();
     }
 

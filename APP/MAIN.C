@@ -103,23 +103,16 @@ int main(int argc, char *argv[]){
                 
 			} else {
 				/* Ignore action keys based on ASCII values */
-				if(c == CHAR_BACKSPACE){
+				if (c >= 32 || c == CHAR_TAB) {
+					ed_typeChar(c);
+					ticks++;
+				} else if (c == CHAR_BACKSPACE) {
 					ed_backspace();
-				}
-
-				if(c == CHAR_ENTER){                    
+				} else if (c == CHAR_ENTER) {
 					ed_newLine();
 				}
-
-				if(!(c == CHAR_ESCAPE ||
-					c == CHAR_BACKSPACE ||
-					c == CHAR_ENTER ||
-					c == CHAR_DELETE)){
-						ed_typeChar(c);
-						ticks++;
-					}
-				}
 			}
+		}
 
 		// Draw statusbar
 		ed_statusBar();

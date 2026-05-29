@@ -4,8 +4,8 @@ char currentWorkspacePath[255] = {'\0'};
 
 /* TEST FUNCTIONS */
 #if defined(__MSDOS__) || defined(__WATCOMC__)
-char *fs_getAbsoluteCurrentPath(){
-    return getcwd(NULL, 255);
+char *fs_getAbsoluteCurrentPath(char *strbuffer, size_t len){
+    return getcwd(strbuffer, len);
 }
 
 #endif

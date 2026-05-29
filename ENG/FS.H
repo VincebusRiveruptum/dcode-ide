@@ -30,6 +30,8 @@ typedef struct Directory{
 }Directory;
 
 extern char currentWorkspacePath[255];
+
+char *fs_getAbsoluteCurrentPath(char *strbuffer, size_t len);
 Directory *fs_getDirectoryFileList(const char *path);
 void fs_freeDirectory(Directory *d);
 #endif

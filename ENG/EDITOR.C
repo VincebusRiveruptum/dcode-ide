@@ -821,7 +821,7 @@ char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
                 
                 i++;
                 ed_putCursor(x + i, y);
-            } else if (c != CHAR_ENTER && i < maxChars && i < MAX_FILE_LINE_LENGTH - 1){
+            } else if (c >= 32 && i < maxChars && i < MAX_FILE_LINE_LENGTH - 1){
                 buffer[i] = c;
                 dw_charXY(textmemptr,c,x + i,y);
                 i++;
@@ -850,7 +850,11 @@ char *ed_async_scanf(unsigned char x, unsigned char y, unsigned char maxChars, c
     charLimit = (bufflen >= maxChars) ? maxChars : bufflen + 2;
     
     ed_putCursor(x + (*stepIndex),y);    
-    logger("[ed_async_scanf]: We are examining how this works (STEP: %d): %s", *stepIndex, buffer);
+    
+    // Redraw he entire prompt by copying the buffer content to the screen buffer
+    for(j=0;j < charLimit; j++){
+        dw_charXY(textmemptr,buffer[j], x+j, y);
+    }   
 
     c = getch();
 
@@ -872,10 +876,6 @@ char *ed_async_scanf(unsigned char x, unsigned char y, unsigned char maxChars, c
                 buffer[j] = buffer[j+1];
             }
 
-            // Redraw he entire prompt by copying the buffer content to the screen buffer
-            for(j=0;j <  bufflen; j++){
-                dw_charXY(textmemptr,buffer[j], x+j, y);
-            }
         }
     }else{   
         // OK
@@ -888,11 +888,6 @@ char *ed_async_scanf(unsigned char x, unsigned char y, unsigned char maxChars, c
             // Redraw
             (*stepIndex)--;
 
-            // Redraw he entire prompt by copying the buffer content to the screen buffer
-            for(j=0;j < charLimit; j++){
-                dw_charXY(textmemptr,buffer[j], x+j, y);
-            }   
-
             ed_putCursor(x + (*stepIndex), y);
         }else if(c == CHAR_SPACE){                
             for(j=strlen(buffer); j >= (*stepIndex); j--){
@@ -902,15 +897,11 @@ char *ed_async_scanf(unsigned char x, unsigned char y, unsigned char maxChars, c
             }
 
             buffer[(*stepIndex)] = ' ';
-
-            // Redraw he entire prompt by copying the buffer content to the screen buffer
-            for(j=0;j < charLimit; j++){
-                dw_charXY(textmemptr,buffer[j], x+j, y);
-            }   
             
             (*stepIndex)++;
             ed_putCursor(x + (*stepIndex), y);
-        } else if (c != CHAR_ENTER && (*stepIndex) < charLimit && (*stepIndex) < MAX_FILE_LINE_LENGTH - 1){
+        // Only accept printable characters (ASCII >= 32)
+        } else if (c >= 32 && (*stepIndex) < charLimit && (*stepIndex) < MAX_FILE_LINE_LENGTH - 1){
             buffer[(*stepIndex)] = c;
             dw_charXY(textmemptr,c,x + (*stepIndex),y);
             (*stepIndex)++;
@@ -1169,7 +1160,9 @@ void ed_showFileSwitcher(){
     int selectedIndex = 0;
     bool selected = false;
     FileArena *fileptr;
-
+    
+    inp_clearKeyboardBuffer();
+    
     /* Encontrar el índice seleccionado inicial antes del bucle */
     for(i = 0; i < MAX_ARENAS; i++) {
         if(fileList[i].file != NULL && 
@@ -1213,13 +1206,34 @@ void ed_showFileSwitcher(){
     ed_renderEvent = true;
 }
 
+void _goBackPath(char *path){
+    int end, len;
+    char *endptr;
+    
+    end = strlen(path) - 1;
+    len = end + 1;
+
+    if(len <= 3) return;
+    
+    endptr = path + end;
+
+    if(*endptr == '\\' ){
+        *endptr = '\0';
+        endptr--;
+    }
+
+    while(endptr > path && *(endptr) != '\\'){
+        *endptr = '\0';
+        endptr--;
+    };
+    
+}
 /*
     This is basically VSCODE's quick open feature. The behavior is the following:
     Prompt that has pre-filled the absolute path of the current position, filalble with the left and right arrows
     Select file of the current selected path with the up and down arrows.
     The file list will be reactive depending on hte detected path from the input prompt.
 */
-
 void ed_quickOpenFileDialog(){
     int i, stepIndex;
     int vis_offset = 0, dialog_offset = 0;
@@ -1229,83 +1243,52 @@ void ed_quickOpenFileDialog(){
     int selectedIndex = 0;
     char selectedEntryFullPath[255] = {'\0'};
 
-    char *currentPath = fs_getAbsoluteCurrentPath();
-    Directory *currPathDirectory;
+    char currentPath[255] = {'\0'};
+    Directory *currPathDirectory = NULL;
     Node *node;
     int entryIndex;
     FileEntry *fileEntry, *selectedFileEntry;
+    
+    fs_getAbsoluteCurrentPath(currentPath, 255);
+    
+    if(currentPath[0] == '\0'){
+        logger("[ed_quickOpenFileDialog]: Failed to retrieve currentPath");
+    }
 
-    strcat(currentPath, '\\' );
-    currPathDirectory = fs_getDirectoryFileList(currentPath);
+    logger("[ed_quickOpenFileDialog]: currentPath : %s", currentPath);
+
+    strcat(currentPath, "\\" );
 
     vis_offset = (VIDEO_COLS / 4);
     dialog_offset = vis_offset / 4;
 
     dw_rectangle(textmemptr, vis_offset, 2, VIDEO_COLS - vis_offset, 18, COLOR_BLUE, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_BLUE, false, DRAW_BORDER_SIMPLE);
-    dw_writeBuffer(textmemptr, "%s", vis_offset + dialog_offset, 3, vis_offset - dialog_offset, 3,  COLOR_WHITE, COLOR_BLUE, "Open File" );
-    
+
     stepIndex = strlen(currentPath);
     
-    dw_writeBuffer(textmemptr,"%s", vis_offset + 1, 3 + entryIndex + 1, VIDEO_COLS - vis_offset - 1, 3 + entryIndex + 1, COLOR_WHITE, COLOR_BLUE, fileEntry->name);
+    inp_waitForRelease();
 
-    while(!inp_isKeyPressed(KEY_ESC)){
-        // Draw rect in the middle, 1/4 will be the start and the end, so i it will always be in the center
-        ed_async_scanf(vis_offset + 1, 3, (VIDEO_ROWS - 2 * vis_offset) - 1, currentPath, strlen(currentPath), &stepIndex);
-        
-        // Freeing up list of files each time there is a change in the prompt.
-
-        // Ok, for the file selection we have to clear mark a flag for the selected file
-        // By
-        fs_freeDirectory(currPathDirectory);
-
-        currPathDirectory = fs_getDirectoryFileList(currentPath);
-
-        if(!currPathDirectory){
-            logger("[ed_quickOpenFileDialog]: Could not get currPathDirectory or FileEntry list for selection!");
-            return;
-        }
-
-        // Draw list of files
-        entriesLen = currPathDirectory->fileEntries->length;
-        node = currPathDirectory->fileEntries->firstNode;
-        entryIndex = 0;
-
-        while(node != NULL){
-            fileEntry = (FileEntry*)node->data;
-            entryIndex++;
-            // We write the filename under the prompt
-            isSelected = (entryIndex == selectedEntry);
-
-            // We mar the selected item or not
-            if(isSelected){
-                selectedFileEntry = fileEntry;
-                dw_writeBuffer(textmemptr,"%s", vis_offset + 1, 3 + entryIndex + 1, VIDEO_COLS - vis_offset - 1, 3 + entryIndex + 1, COLOR_BLUE, COLOR_WHITE, fileEntry->name);
-            }else{
-                dw_writeBuffer(textmemptr,"%s", vis_offset + 1, 3 + entryIndex + 1, VIDEO_COLS - vis_offset - 1, 3 + entryIndex + 1, COLOR_WHITE, COLOR_BLUE, fileEntry->name);
-            }
-
-            node = node->next;
-        }
-
+    do{
         // Key selection
         if(inp_isKeyPressed(KEY_UP)){
             selectedEntry = 
                 selectedEntry > 0
                 ? selectedEntry - 1
                 : 0; 
-        }
-
-        if(inp_isKeyPressed(KEY_DOWN)){
+        }else if(inp_isKeyPressed(KEY_DOWN)){
             selectedEntry = 
                 selectedEntry < entriesLen
                 ? selectedEntry + 1
                 : entriesLen; 
-        }
+        }else if(inp_isKeyPressed(KEY_ENTER)){
+            // If we press enter, we have to detect if the entry is either a directory or a file
+            // 
+            if(strcmp(selectedFileEntry->name, "..") == 0){         // .. path
+                _goBackPath(currentPath);
+            }
 
-        // If we press enter, we have to detect if the entry is either a directory or a file.
-        if(inp_isKeyPressed(KEY_ENTER)){
-            if(selectedFileEntry->isDirectory){
-                //
+            if(selectedFileEntry && selectedFileEntry->isDirectory){
+                //// Nothing happens
             }else{
                 // We open the file
                 // TODO: SANITIZE buffer by removing the chars until the last directory
@@ -1314,12 +1297,50 @@ void ed_quickOpenFileDialog(){
                 ed_renderEvent = true;
                 return;
             }
+        }else{
 
-        
+            // Freeing up list of files each time there is a change in the prompt.
+
+            // Ok, for the file selection we have to clear mark a flag for the selected file
+            // By
+            if(currPathDirectory) fs_freeDirectory(currPathDirectory);
+
+            currPathDirectory = fs_getDirectoryFileList(currentPath);
+
+            if(!currPathDirectory){
+                logger("[ed_quickOpenFileDialog]: Could not get currPathDirectory or FileEntry list for selection!");
+                return;
+            }
+
+            // Draw list of files
+            entriesLen = currPathDirectory->fileEntries->length;
+            node = currPathDirectory->fileEntries->firstNode;
+            entryIndex = 0;
+
+            while(node != NULL){
+                fileEntry = (FileEntry*)node->data;
+                entryIndex++;
+                // We write the filename under the prompt
+                isSelected = (entryIndex == selectedEntry);
+
+                // We mar the selected item or not
+                if(isSelected){
+                    selectedFileEntry = fileEntry;
+                    dw_writeBuffer(textmemptr,"%s", vis_offset + 1, 3 + entryIndex + 1, VIDEO_COLS - vis_offset - 1, 3 + entryIndex + 1, COLOR_BLUE, COLOR_WHITE, fileEntry->name);
+                }else{
+                    dw_writeBuffer(textmemptr,"%s", vis_offset + 1, 3 + entryIndex + 1, VIDEO_COLS - vis_offset - 1, 3 + entryIndex + 1, COLOR_WHITE, COLOR_BLUE, fileEntry->name);
+                }
+
+                node = node->next;
+            }
+            
+            // Draw rect in the middle, 1/4 will be the start and the end, so i it will always be in the center
+            ed_async_scanf(vis_offset + 1, 3, (VIDEO_ROWS - 2 * vis_offset) - 1, currentPath, strlen(currentPath), &stepIndex);
+            
         }
         
         inp_updateKeyboard();
-    }
+    }while(!inp_isKeyPressed(KEY_ESC));
 
     ed_renderEvent = true;
 }

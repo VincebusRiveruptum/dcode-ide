@@ -57,3 +57,4 @@ This will clean previous builds, compile all modules, and generate `DCODE.EXE` i
 DCode IDE is an ongoing project created for educational and entertainment purposes. It follows a strict 90's C89 coding style and modular architecture.
 
 **Author**: Vincebus Riveruptum (2026)
+

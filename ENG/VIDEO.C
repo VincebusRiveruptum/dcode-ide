@@ -8,24 +8,7 @@ int v_currentMode = VID_80X25;
 char tempBuffer[VIDEO_BUFFER_SIZE];
 
 void v_init_video(){
-    switch(settings.VIDEO_MODE){
-        case 3:
-            VIDEO_ROWS = 50;
-            VIDEO_COLS = 80;
-             v_set50Lines();
-            break;
-        case 2:
-            VIDEO_ROWS = 43;
-            VIDEO_COLS = 80;
-            v_set43Lines();
-        case 1:
-        case 0:
-        default:
-            VIDEO_ROWS = 25;
-            VIDEO_COLS = 80;
-            v_set25Lines();
-            break;    
-    }
+    v_setVideoMode(0, NO_MSG);
 
     textmemptr = (unsigned short *)0xB8000;
     dw_cls(textmemptr);
@@ -94,46 +77,56 @@ void v_clearBuffer(unsigned short *buffer){
     }
 }
 
+unsigned char v_setVideoMode(unsigned char mode, unsigned char show_msg){
+    unsigned char recmode;
+
+    switch(mode){
+        case VID_80X25:
+            if(show_msg == SHOW_MSG) ed_statusBarMessage("Set 80x25 video mode (%d)", mode);
+            v_set25Lines();
+            break;
+        case VID_80X43:
+            if(show_msg == SHOW_MSG) ed_statusBarMessage("Set 80x43 video mode (%d)", mode);       
+            v_set43Lines();
+            break;
+        case VID_80X50:
+            if(show_msg == SHOW_MSG) ed_statusBarMessage("Set 80x50 video mode (%d)", mode);       
+            v_set50Lines();
+            break;
+        case VID_80X60:
+            if(show_msg == SHOW_MSG) ed_statusBarMessage("80x60 video mode NOT SUPPORTED YET (%d)", mode);       
+            //v_set80x60();
+            break;
+        case VID_132X25:
+            if(show_msg == SHOW_MSG) ed_statusBarMessage("132x25 video mode NOT SUPPORTED YET (%d)", mode);       
+            //v_set132x25();
+            break;
+        case VID_132X43:
+            if(show_msg == SHOW_MSG) ed_statusBarMessage("132x43 video mode NOT SUPPORTED YET (%d)", mode);       
+            //v_set132x43();
+            break;
+        case VID_132X50:
+            if(show_msg == SHOW_MSG) ed_statusBarMessage("Set 132x50 video mode (%d)", mode);       
+            v_set132x50();
+            break;
+        case VID_132X60:
+            if(show_msg == SHOW_MSG) ed_statusBarMessage("Set 132x60 video mode (%d)", mode);       
+            v_set132x60();
+            break;
+        default:        // if mode is 0 or whatever
+            recmode = v_setVideoMode(settings.DEFAULT_VIDEO_MODE, show_msg);
+
+            if(show_msg == SHOW_MSG) ed_statusBarMessage("Set default video mode (%d)", settings.DEFAULT_VIDEO_MODE);
+            return recmode;
+    }
+
+    return mode;
+}
+
 void v_cycleVideoModes(){
     v_currentMode++;
 
     if(v_currentMode > 8) v_currentMode = 0;
 
-    switch(v_currentMode){
-        case VID_80X25:
-            ed_statusBarMessage("Set 80x25 video mode (%d)", v_currentMode);
-            v_set25Lines();
-            break;
-        case VID_80X43:
-            ed_statusBarMessage("Set 80x43 video mode (%d)", v_currentMode);       
-            v_set43Lines();
-            break;
-        case VID_80X50:
-            ed_statusBarMessage("Set 80x50 video mode (%d)", v_currentMode);       
-            v_set50Lines();
-            break;
-        case VID_80X60:
-            ed_statusBarMessage("80x60 video mode NOT SUPPORTED YET (%d)", v_currentMode);       
-            //v_set80x60();
-            break;
-        case VID_132X25:
-            ed_statusBarMessage("132x25 video mode NOT SUPPORTED YET (%d)", v_currentMode);       
-            //v_set132x25();
-            break;
-        case VID_132X43:
-            ed_statusBarMessage("132x43 video mode NOT SUPPORTED YET (%d)", v_currentMode);       
-            //v_set132x43();
-            break;
-        case VID_132X50:
-            ed_statusBarMessage("Set 132x50 video mode (%d)", v_currentMode);       
-            v_set132x50();
-            break;
-        case VID_132X60:
-            ed_statusBarMessage("Set 132x60 video mode (%d)", v_currentMode);       
-            v_set132x60();
-            break;
-        default:
-            ed_statusBarMessage("Set default video mode (%d)", v_currentMode);
-            v_set25Lines();
-    }
+    v_setVideoMode(v_currentMode, SHOW_MSG);
 }

@@ -847,14 +847,18 @@ char *ed_async_scanf(unsigned char x, unsigned char y, unsigned char maxChars, c
     bool esc = false;
     int charLimit;
 
-    charLimit = (bufflen >= maxChars) ? maxChars : bufflen + 2;
+    charLimit = bufflen >= maxChars ? maxChars : bufflen + 2;
     
     ed_putCursor(x + (*stepIndex),y);    
     
     // Redraw he entire prompt by copying the buffer content to the screen buffer
-    for(j=0;j < charLimit; j++){
-        dw_charXY(textmemptr,buffer[j], x+j, y);
-    }   
+    for(j=0;j < maxChars; j++){
+        if(j > bufflen){
+            dw_charXY(textmemptr,' ', x+j, y);
+        }else{
+            dw_charXY(textmemptr,buffer[j], x+j, y);
+        }
+    }       
 
     c = getch();
 
@@ -1206,14 +1210,14 @@ void ed_showFileSwitcher(){
     ed_renderEvent = true;
 }
 
-void _goBackPath(char *path){
+int _goBackPath(char *path){
     int end, len;
     char *endptr;
     
     end = strlen(path) - 1;
     len = end + 1;
 
-    if(len <= 3) return;
+    if(len <= 3) return len;
     
     endptr = path + end;
 
@@ -1227,6 +1231,7 @@ void _goBackPath(char *path){
         endptr--;
     };
     
+    return (int)(endptr - path) + 1;
 }
 /*
     This is basically VSCODE's quick open feature. The behavior is the following:
@@ -1236,7 +1241,7 @@ void _goBackPath(char *path){
 */
 void ed_quickOpenFileDialog(){
     int i, stepIndex;
-    int vis_offset = 0, dialog_offset = 0;
+    int vis_offset = 0, dialog_offset = 0, dialogStartY, dialogEndY, dialogHeight;
     int entriesLen = 0;
     bool isSelected = false;
     int selectedEntry = 0;
@@ -1248,7 +1253,7 @@ void ed_quickOpenFileDialog(){
     Node *node;
     int entryIndex;
     FileEntry *fileEntry, *selectedFileEntry;
-    
+    int clearMarkPoint = 0;
     fs_getAbsoluteCurrentPath(currentPath, 255);
     
     if(currentPath[0] == '\0'){
@@ -1262,7 +1267,11 @@ void ed_quickOpenFileDialog(){
     vis_offset = (VIDEO_COLS / 4);
     dialog_offset = vis_offset / 4;
 
-    dw_rectangle(textmemptr, vis_offset, 2, VIDEO_COLS - vis_offset, 18, COLOR_BLUE, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_BLUE, false, DRAW_BORDER_SIMPLE);
+    dialogStartY = 2;
+    dialogEndY = 18; 
+    dialogHeight = dialogEndY - dialogStartY;
+
+    dw_rectangle(textmemptr, vis_offset, dialogStartY, VIDEO_COLS - vis_offset, dialogEndY, COLOR_BLUE, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_BLUE, false, DRAW_BORDER_SIMPLE);
 
     stepIndex = strlen(currentPath);
     
@@ -1284,16 +1293,18 @@ void ed_quickOpenFileDialog(){
             // If we press enter, we have to detect if the entry is either a directory or a file
             // 
             if(strcmp(selectedFileEntry->name, "..") == 0){         // .. path
-                _goBackPath(currentPath);
-            }
-
-            if(selectedFileEntry && selectedFileEntry->isDirectory){
+                stepIndex = _goBackPath(currentPath);       
+            }else if(selectedFileEntry && selectedFileEntry->isDirectory){
                 //// Nothing happens
+                strcat(currentPath, selectedFileEntry->name);
+                strcat(currentPath, "\\");
+                stepIndex = strlen(currentPath);
             }else{
                 // We open the file
                 // TODO: SANITIZE buffer by removing the chars until the last directory
                 sprintf(selectedEntryFullPath, "%s%s", currentPath, selectedFileEntry->name);
                 f_openFile(selectedEntryFullPath);
+                _updateCursor();
                 ed_renderEvent = true;
                 return;
             }
@@ -1333,15 +1344,26 @@ void ed_quickOpenFileDialog(){
 
                 node = node->next;
             }
+
+            // Clear list container until touches bottom
+            clearMarkPoint = entryIndex;
+
+            if(clearMarkPoint < dialogEndY - 5){
+                while(clearMarkPoint < dialogEndY - 5){     
+                    clearMarkPoint++;
+                    dw_writeBuffer(textmemptr,"%s", vis_offset + 1, clearMarkPoint + 4, VIDEO_COLS - vis_offset - 1, clearMarkPoint + 4, COLOR_WHITE, COLOR_BLUE, "            ");
+                }
+            }
             
             // Draw rect in the middle, 1/4 will be the start and the end, so i it will always be in the center
-            ed_async_scanf(vis_offset + 1, 3, (VIDEO_ROWS - 2 * vis_offset) - 1, currentPath, strlen(currentPath), &stepIndex);
+            ed_async_scanf(vis_offset + 1, 3, (2 * vis_offset) - 1, currentPath, strlen(currentPath), &stepIndex);
             
         }
         
         inp_updateKeyboard();
     }while(!inp_isKeyPressed(KEY_ESC));
 
+    _updateCursor();
     ed_renderEvent = true;
 }
 

@@ -7,6 +7,7 @@
 #include <time.h>
 
 extern FILE *logFp;
+extern unsigned char log_enable;
 
 void log_init();
 void log_shutdown();

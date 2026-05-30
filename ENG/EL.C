@@ -12,20 +12,20 @@ void el_renderFiles_test(){
     // Workspace background
     //dw_fill(editormemptr, COLOR_BLUE, COLOR_LIGHT_BLUE, '°');
     
-    for(i; i < MAX_ARENAS; i++){
-        fileArena = &fileList[i];    
+    //for(i; i < MAX_ARENAS; i++){
+        //fileArena = &fileList[i];    
 
-        if(!fileArena || !fileArena->file || !fileArena->arena) continue;
+//        if(!fileArena || !fileArena->file || !fileArena->arena) continue;
 
-        file = fileArena->file;
+//        file = fileArena->file;
         /*
             In this place, instead of drawing directly the buffer on screen, 
             there should be a layer between that a window element handles that buffer
             somehow.
         */
-        dw_writeBufferEditorFormatted(&editormemptr, 0, 0, VIDEO_COLS - 1, VIDEO_ROWS - 2, COLOR_LIGHT_GRAY, COLOR_BLACK, file) ;
+        dw_writeBufferEditorFormatted(&editormemptr, 0, 0, VIDEO_COLS - 1, VIDEO_ROWS - 2, COLOR_LIGHT_GRAY, COLOR_BLACK, currentFileArena->file) ;
      
-    }
+    //}
 
     // COPY FROM EDITOR --> VIDEO
 

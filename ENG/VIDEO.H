@@ -109,6 +109,9 @@
 #define VID_132X50 7
 #define VID_132X60 8
 
+#define SHOW_MSG 0
+#define NO_MSG 1
+
 extern unsigned short *textmemptr;      // VIDEO BUFFER
 extern unsigned short editormemptr[VIDEO_BUFFER_SIZE];    // EDITOR BUFFER, i think this could be the half of VIDEO_BUFFER_SIZE extern unsigned char tempBuffer[VIDEO_BUFFER_SIZE];   
 extern char tempBuffer[VIDEO_BUFFER_SIZE];
@@ -119,12 +122,16 @@ extern unsigned char currentCursorX;
 extern unsigned char currentCursorY;
     
 void v_init_video();
+unsigned char v_setVideoMode(unsigned char mode, unsigned char show_msg);
 void v_close_video();
 
+
+// ASM STUFF
 void v_set43Lines();
 void v_set25Lines();
 unsigned short v_getVideoBufferSize();
 void v_clearBuffer(unsigned short *buffer);
 void v_cycleVideoModes();
+
 #endif
 

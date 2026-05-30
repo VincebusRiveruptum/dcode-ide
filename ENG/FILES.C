@@ -209,6 +209,8 @@ unsigned char f_getExtensionId(char *filename){
     if(!ext) return FILE_EXTENSION_TXT;
     
     if(strcmp(ext, ".c") == 0 || strcmp(ext, ".C") == 0) return FILE_EXTENSION_C;
+    if(strcmp(ext, ".cpp") == 0 || strcmp(ext, ".CPP") == 0) return FILE_EXTENSION_C;
+    if(strcmp(ext, ".h") == 0 || strcmp(ext, ".H") == 0) return FILE_EXTENSION_C;
     if(strcmp(ext, ".txt") == 0 || strcmp(ext, ".TXT") == 0) return FILE_EXTENSION_TXT;
     if(strcmp(ext, ".py") == 0 || strcmp(ext, ".PY") == 0) return FILE_EXTENSION_PYTHON;
     if(strcmp(ext, ".js") == 0 || strcmp(ext, ".JS") == 0) return FILE_EXTENSION_JS;
@@ -241,8 +243,8 @@ size_t _copyLines(FileArena *old, FileArena *new){
         oldLine = (Line *)currentNode->data;
         
         newLine = (Line *)mem_arena_alloc(new->arena, NULL, sizeof(Line));
-        newLine->buffer = (char *)mem_arena_alloc(new->arena, NULL, sizeof(char) * oldLine->length + 1);
-        memset(newLine->buffer, '\0', sizeof(char) * oldLine->length + 1);
+        newLine->buffer = (char *)mem_arena_alloc(new->arena, NULL, sizeof(char) * MAX_FILE_LINE_LENGTH);
+        memset(newLine->buffer, '\0', sizeof(char) * MAX_FILE_LINE_LENGTH);
         sprintf(newLine->buffer, "%s", oldLine->buffer);
         newLine->length = strlen(newLine->buffer);
 
@@ -558,11 +560,6 @@ void f_saveFile(){
     newFileArena->file->cursorLine = oldFileArena->file->cursorLine;
     newFileArena->file->cursorCol = oldFileArena->file->cursorCol;
     
-    newFileArena->file->currentLineNode = oldFileArena->file->currentLineNode;
-    newFileArena->file->prevLine = oldFileArena->file->prevLine;
-    newFileArena->file->currentLine = oldFileArena->file->currentLine;
-    newFileArena->file->nextLine = oldFileArena->file->nextLine;
-    
     newFileArena->file->prevChar = oldFileArena->file->prevChar;
     newFileArena->file->currentChar = oldFileArena->file->currentChar;
     newFileArena->file->nextChar = oldFileArena->file->nextChar;
@@ -573,6 +570,27 @@ void f_saveFile(){
     currentNode = oldFileArena->file->lines->firstNode;
     lengthSum = _copyLines(oldFileArena, newFileArena);
 
+    // wE CANNOT COPY OLD POINTERS TO THE NEW FILE ARENA...
+    newFileArena->file->currentLineNode = getNodeByIndex(&(newFileArena->file->lines), newFileArena->file->cursorLine);
+    if (newFileArena->file->currentLineNode) {
+        newFileArena->file->prevLine = 
+            newFileArena->file->currentLineNode->prev &&
+            newFileArena->file->currentLineNode->prev->data
+            ? newFileArena->file->currentLineNode->prev->data
+            : NULL ;
+
+        newFileArena->file->currentLine = newFileArena->file->currentLineNode->data;
+        newFileArena->file->nextLine = 
+            newFileArena->file->currentLineNode->next &&
+            newFileArena->file->currentLineNode->next->data
+            ? newFileArena->file->currentLineNode->next->data
+            : NULL;
+    } else {
+        newFileArena->file->prevLine = NULL;
+        newFileArena->file->currentLine = NULL;
+        newFileArena->file->nextLine = NULL;
+    }
+    
     fileParsingBuffer = (char*)malloc(sizeof(char) * (lengthSum + 1));
 
     if(!fileParsingBuffer){
@@ -622,12 +640,19 @@ void f_saveFile(){
 
 /* CLOSE FILE ==================================================================*/
 
-void f_triggerClose(){
+void f_triggerClose(bool end_program){
     char input;
     char *filename;
     int len = 0;
     bool esc;
     int status;
+    // endProgram IS A GLOBAL VARIABLE THO
+    endProgram = end_program;
+
+    if(!currentFileArena || !currentFileArena->file || !currentFileArena->arena ){
+        logger("[f_triggerClose]: No opened files, proceed to close app directly.");
+        return;
+    }
 
     if(currentFileArena->file->isModified == true){
         dw_writeBuffer(textmemptr, "File modified, save? Y/N ",0,VIDEO_ROWS - 1 ,26, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
@@ -645,8 +670,9 @@ void f_triggerClose(){
 
         if(esc == true) return;
 
-        if(input == 'n' || input == 'N'){
-            endProgram = true;
+        if(input == 'n' || input == 'N'){            
+            // Here we should close the file or the program
+            f_closeCurrentFile();
             return;
         } 
         
@@ -673,9 +699,39 @@ void f_triggerClose(){
         }
     }
 
+    // Close the file
     f_saveFile();
-    endProgram = true;
+    f_closeCurrentFile();
 }
 
+void f_closeCurrentFile(){
+    int i=0;
+    char oldFileName[255] = {'\0'};
 
+    // If there are no current file opened, we fallback
+    if(!currentFileArena) return;
 
+    strncpy(oldFileName, currentFileArena->file->name, 255);
+    f_closeFile(currentFileArena);    
+
+    // We find the next opened file
+    i = 0;
+
+    while(i < MAX_ARENAS && fileList[i].file == NULL && fileList[i].arena == NULL){
+        i++;
+    }
+
+    if(i == MAX_ARENAS){
+        currentFileArena = NULL;
+    }else{
+        currentFileArena = &fileList[i];
+    }
+
+    ed_statusBarMessage("%s closed successfully.", oldFileName);
+    logger("[f_closdeCurrentFile]: %s closed successfully.", oldFileName);
+
+    _updateCursor();
+    ed_renderEvent = true;
+
+    return;
+}

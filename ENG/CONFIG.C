@@ -13,10 +13,10 @@ static int getEnvInt(char *key, int defaultVal) {
 bool cfg_loadConfig(){
     char *ext;
 
-    if(!loadEnv()){
-        return false;
-    } 
+    log_enable = false;
 
+    if(!loadEnv()) return false;
+    
     settings.DEBUG                          = (unsigned char)getEnvInt("DEBUG", 0);
     settings.MAX_FILE_INSTANCE_SIZE         = (unsigned int)getEnvInt("MAX_FILE_INSTANCE_SIZE", MAX_ARENAS);
     settings.MAX_FILE_INSTANCES_OPENED      = (unsigned int)getEnvInt("MAX_FILE_INSTANCES_OPENED", MAX_ARENAS);
@@ -32,7 +32,11 @@ bool cfg_loadConfig(){
     if (ext) strcpy(settings.DEFAULT_EXTENSION, ext);
 
     settings.AUTOSAVE                       = (unsigned char)getEnvInt("AUTOSAVE", 0);
-    settings.VIDEO_MODE                     = (unsigned char)getEnvInt("VIDEO_MODE", 0);
+    settings.DEFAULT_VIDEO_MODE             = (unsigned char)getEnvInt("DEFAULT_VIDEO_MODE", 1);
+    
+    // Validate that DEFUALT_VIDEO_MODE is never 0 or ther will be an infite loop when trying to switch video modes.
+    if (settings.DEFAULT_VIDEO_MODE <= 0 || settings.DEFAULT_VIDEO_MODE > 8) settings.DEFAULT_VIDEO_MODE = 1;
+
     settings.STATUSBAR_COLOR_BG             = (unsigned char)getEnvInt("STATUSBAR_COLOR_BG", COLOR_LIGHT_GRAY);
     settings.STATUSBAR_COLOR_TEXT           = (unsigned char)getEnvInt("STATUSBAR_COLOR_TEXT", COLOR_RED);
 
@@ -52,7 +56,9 @@ bool cfg_loadConfig(){
     settings.clang_colors[DW_RESWORD_COMMENT]      = (unsigned char)getEnvInt("DW_RESWORD_COMMENT", COLOR_DARK_GRAY); //COLOR_DARK_GRAY;
     settings.clang_colors[DW_RESWORD_FUNCTION]     = (unsigned char)getEnvInt("DW_RESWORD_FUNCTION",COLOR_LIGHT_GREEN); //COLOR_LIGHT_GREEN;
     settings.clang_colors[DW_RESWORD_WIFE]         = COLOR_LIGHT_YELLOW;
-
+    
+    log_enable = settings.DEBUG ;
+    
     logger("[cfg_loadConfig]: default.cfg loaded successfully");
 
     return true;

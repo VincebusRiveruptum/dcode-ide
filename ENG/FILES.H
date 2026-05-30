@@ -92,5 +92,7 @@ void f_init();
 void f_newFile();
 bool f_openFile(char *filename);
 void f_saveFile();
-void f_triggerClose();
+void f_triggerClose(bool end_program);
+void f_closeCurrentFile();
+
 #endif

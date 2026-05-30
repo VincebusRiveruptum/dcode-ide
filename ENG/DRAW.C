@@ -325,7 +325,6 @@ void dw_fill(
         buffer[i] = screenCharacter;
 }
 
-
 void dw_rectangle(
     unsigned short *buffer,
     unsigned short x1, 
@@ -338,12 +337,34 @@ void dw_rectangle(
     unsigned char foregroundFillColor, 
     unsigned char backgroundFillColor, 
     bool blinking, 
-    BorderType borderType){
+    BorderType borderType,
+    const char *title
+    ){
+
     unsigned short screenCharacter;
-    unsigned short i, leftLimit, rightLimit;
+    unsigned short i, leftLimit, rightLimit, width;
+
+    short titleStartPos, titleEndPos, titleCharIndex = 0;
+    size_t titleLen=0;
 
     // Boundary check
     if(x1 > x2 || y1 > y2) return;
+    
+    width = x2 - x1;
+
+    if(title){
+        titleLen = strlen(title);
+        
+        // if title is centered we do the following:
+        // we take the half of window width and the half of the title lenght
+        // Then the start position of the tittle text is : windowwHalfWidth - titleHalfWidth
+        // Same with the end position but suming instead,
+        // Because the center is the origin now so we need to substact or add depending to the offset direction.
+    
+        titleStartPos = x1 + (short) (width / 2) - (short) (titleLen / 2);
+        titleEndPos = titleStartPos + (short) titleLen;
+        logger("TITLE POS, %d - %d", titleStartPos, titleEndPos);
+    } 
 
     i = (y1 * VIDEO_COLS) + x1;
 
@@ -363,8 +384,15 @@ void dw_rectangle(
                     screenCharacter = _getBorderCharacter(borderType, DW_SIDE_TOP_RIGHT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                     buffer[i] = screenCharacter;
                 }else{
-                    screenCharacter = _getBorderCharacter(borderType, DW_SIDE_TOP) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
-                    buffer[i] = screenCharacter;
+                    // WE DRAW THE TITLE IF i is stepping on the boundaries of the title, of not we just draw the TOP of the rectangle
+                    titleCharIndex = (short)(i % VIDEO_COLS) - titleStartPos;
+                        
+                    if(titleLen > 0 && (titleCharIndex >= 0 && titleCharIndex < (short)titleLen)){
+                        buffer[i] = ((title[titleCharIndex] != '\0') ? title[titleCharIndex] : ' ') | ((0 | foregroundBorderColor) << 8);
+                    }else{   
+                        screenCharacter = _getBorderCharacter(borderType, DW_SIDE_TOP) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
+                        buffer[i] = screenCharacter;
+                    }
                 }
             }
 

@@ -161,12 +161,14 @@ typedef unsigned char bool;
 void inp_initKeyboard();
 void inp_closeKeyboard();
 void inp_updateKeyboard();
-
+void inp_clearKeyboardBuffer();
 bool inp_isKeyDown(unsigned char key);
 bool inp_isKeyPressed(unsigned char key);
 bool inp_isKeyReleased(unsigned char key);
 unsigned char inp_keysPressed(int triggerType, int nKeys, ...);
 unsigned char inp_keysDown(int nKeys, ...);
+
+void inp_waitForRelease();
 
 /* VARIABLES ============================================================*/
 

@@ -119,7 +119,7 @@ extern char statusBarMessage[ED_STATUSBAR_WIDTH];
 
 void ed_initConfig(int argc, char *argv[]);
 void ed_handleArguments(int argc, char *argv[]);
-void ed_updateCursor();
+
 void ed_putCursor(unsigned char x, unsigned char y);
 void ed_moveCursor(short x, short y);
 void ed_typeChar(char c);
@@ -127,8 +127,11 @@ void ed_backspace();
 void ed_supr();
 void ed_tab();
 
+void ed_resetCursor();
+
 char *ed_getDefaultExtension();
 char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars);
+char *ed_async_scanf(unsigned char x, unsigned char y, unsigned char maxChars, char *buffer, size_t bufflen, int *stepIndex);
 
 void ed_putCursorEnd();
 void ed_putCursorStart();
@@ -141,5 +144,9 @@ void ed_statusBar();
 
 void ed_wordJump(short wordJump);
 void ed_swapLine(short lineJump);
+
+void ed_showFileSwitcher();
+void ed_quickOpenFileDialog();
+
 #endif
 

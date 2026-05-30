@@ -155,6 +155,44 @@ static void __interrupt __far keyISR() {
     oldKeyISR();
 }
 
+// Used for clearing the buffers after pressing a keystroke combination for a dialog or
+// certain function
+void inp_clearKeyboardBuffer() {
+    int i;
+    _disable();
+    for (i = 0; i < 256; i++) {
+        inp_pressed[i] = 0;
+        inp_released[i] = 0;
+        inp_justPressed[i] = 0;
+        inp_justPressedPending[i] = 0;
+    }
+    _enable();
+    
+    /* Drain BIOS keyboard buffer */
+    while (kbhit()) {
+        getch();
+    }
+}
+
+void inp_waitForRelease(){
+    char pressed = 0;
+    int i=0;
+
+    do{
+        pressed = 0;
+        _disable();
+        for (i = 0; i < 256; i++) {
+            pressed =
+                inp_state[i];
+
+            if(pressed) break;
+        }
+        _enable();
+    }while(pressed);
+
+    inp_clearKeyboardBuffer();
+}
+
 void inp_initKeyboard() {
     int i;
     for (i = 0; i < 256; i++) {

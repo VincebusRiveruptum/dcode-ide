@@ -20,7 +20,7 @@ void mem_vis_mem(){
     unsigned char currchar;
     // We clear the screen
     dw_cls(textmemptr);
-    dw_rectangle(textmemptr, RECT_XSTART, RECT_YSTART, RECT_XSTART + RECT_WIDTH, RECT_YSTART + RECT_HEIGHT, COLOR_BLACK, COLOR_WHITE, ' ', COLOR_LIGHT_GRAY, COLOR_BLACK, false, DRAW_BORDER_SIMPLE);
+    dw_rectangle(textmemptr, RECT_XSTART, RECT_YSTART, RECT_XSTART + RECT_WIDTH, RECT_YSTART + RECT_HEIGHT, COLOR_BLACK, COLOR_WHITE, ' ', COLOR_LIGHT_GRAY, COLOR_BLACK, false, DRAW_BORDER_SIMPLE, NULL);
     // If we want to draw all the memory map into a 70x20 rectangle then
     // we have to scale down the memory size and offset by some ratio
     // lets divide by 100

@@ -640,7 +640,7 @@ void f_triggerClose(bool end_program){
     int len = 0;
     bool esc;
     int status;
-
+    // endProgram IS A GLOBAL VARIABLE THO
     endProgram = end_program;
 
     if(!currentFileArena || !currentFileArena->file || !currentFileArena->arena ){
@@ -724,6 +724,7 @@ void f_closeCurrentFile(){
     ed_statusBarMessage("%s closed successfully.", oldFileName);
     logger("[f_closdeCurrentFile]: %s closed successfully.", oldFileName);
 
+    _updateCursor();
     ed_renderEvent = true;
 
     return;

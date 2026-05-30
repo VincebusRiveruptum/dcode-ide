@@ -30,11 +30,13 @@ void ed_initConfig(int argc, char *argv[]){
 
     // We will hardcode the default extension until i implement .ENV/CFG LOADING
     if(!cfg_loadConfig()){
-        logger("[ed_initConfig]: Could not load config file!");
+        //logger("[ed_initConfig]: Could not load config file!");
         // App exits
+        printf("\nCould not load config file!.");
         return ;
     }
 
+    log_init();   
     logger("[ed_initConfig]: %d %s", argc, argv[1]);
     ed_handleArguments(argc, argv);
 
@@ -220,21 +222,8 @@ void ed_resetCursor(){
 
     // In th future, when the text area became a movable element we will have to 
     // calculate the cursor position relative to the text area position.
-    currentCursorX = LINE_COUNTER_WIDTH;
-    currentCursorY = 0;
+    _updateCursor();
 }
-
-void ed_updateCursor(){
-    char c;
-    
-    // Force a cursor in 43/50 line moded
-    // Force a cursor in high resolution modes
-    if(VIDEO_ROWS >= 43){
-        dw_writeColor(textmemptr, currentCursorX, currentCursorY, COLOR_BLACK, COLOR_LIGHT_GRAY);
-    }
-    ed_putCursor(currentCursorX, currentCursorY);
-}
-
 
 void ed_putCursor(unsigned char x, unsigned char y){
     unsigned short temp;
@@ -1178,7 +1167,7 @@ void ed_showFileSwitcher(){
 
     while(inp_isKeyDown(KEY_LALT)){
         /* 1. Dibujar el cuadro */
-        dw_rectangle(textmemptr, 4, 4, 34, 16, COLOR_RED, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_RED, false, DRAW_BORDER_SIMPLE);
+        dw_rectangle(textmemptr, 4, 4, 34, 16, COLOR_RED, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_RED, false, DRAW_BORDER_SIMPLE, NULL);
 
         /* 2. Dibujar la lista de archivos */
         for(i = 0; i < MAX_ARENAS; i++){
@@ -1271,7 +1260,7 @@ void ed_quickOpenFileDialog(){
     dialogEndY = 18; 
     dialogHeight = dialogEndY - dialogStartY;
 
-    dw_rectangle(textmemptr, vis_offset, dialogStartY, VIDEO_COLS - vis_offset, dialogEndY, COLOR_BLUE, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_BLUE, false, DRAW_BORDER_SIMPLE);
+    dw_rectangle(textmemptr, vis_offset, dialogStartY, VIDEO_COLS - vis_offset, dialogEndY, COLOR_BLUE, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_BLUE, false, DRAW_BORDER_SIMPLE, "OPEN FILE");
 
     stepIndex = strlen(currentPath);
     

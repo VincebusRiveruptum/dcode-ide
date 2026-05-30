@@ -17,13 +17,17 @@ int main(int argc, char *argv[]){
 	endProgram = false;
 	// So, the steps are:
 	// 1. Set VGA mode 2
-	log_init();
+
+	//log_init();
 	mem_init();
-	v_init_video();
-	inp_initKeyboard();
-    
-	logger("[main]: %d %s", argc, argv[1]);
+	
 	ed_initConfig(argc, argv);
+    
+	inp_initKeyboard();
+	v_init_video();
+
+	logger("[main]: %d %s", argc, argv[1]);
+	//ed_initConfig(argc, argv);
 	//t_initTests();
     
 	ed_renderEvent = true;
@@ -118,10 +122,10 @@ int main(int argc, char *argv[]){
 		ed_statusBar();
         
 		//t_drawDebugger();
-		ed_updateCursor();
 
 		if(ed_renderEvent == true){
 			ed_renderElements();
+			ed_resetCursor();
 			ed_renderEvent = false;
 		}
 
@@ -136,6 +140,7 @@ int main(int argc, char *argv[]){
 	printf("96 Tears...\n");
 	return 0;
 }
+
 
 
 

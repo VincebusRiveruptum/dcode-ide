@@ -386,7 +386,7 @@ void dw_rectangle(
                 }else{
                     // WE DRAW THE TITLE IF i is stepping on the boundaries of the title, of not we just draw the TOP of the rectangle
                     titleCharIndex = (short)(i % VIDEO_COLS) - titleStartPos;
-                    
+                        
                     if(titleLen > 0 && (titleCharIndex >= 0 && titleCharIndex < (short)titleLen)){
                         buffer[i] = ((title[titleCharIndex] != '\0') ? title[titleCharIndex] : ' ') | ((0 | foregroundBorderColor) << 8);
                     }else{   

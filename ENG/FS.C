@@ -121,12 +121,12 @@ Directory *fs_getDirectoryFileList(const char *path){
         
         if(!foundFileEntry){
             logger("[fs_getDirectoryFileList]: Fail to alloc found file entry");
-            free(d);
+            fs_freeDirectory(d);
             return NULL;
         }
 
-        memset(foundFileEntry->name, '\0', 255);
-        strncpy(foundFileEntry->name, foundFile.name, strlen(foundFile.name));
+        memset(foundFileEntry->name, '\0', sizeof(foundFileEntry->name));
+        strncpy(foundFileEntry->name, foundFile.name, sizeof(foundFileEntry->name) - 1);
 
         foundFileEntry->isDirectory = (foundFile.attrib & _A_SUBDIR) ? true : false;
         foundFileEntry->size = foundFile.size;

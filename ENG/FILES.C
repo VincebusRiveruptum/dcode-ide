@@ -572,19 +572,25 @@ void f_saveFile(){
 
     // wE CANNOT COPY OLD POINTERS TO THE NEW FILE ARENA...
     newFileArena->file->currentLineNode = getNodeByIndex(&(newFileArena->file->lines), newFileArena->file->cursorLine);
-    newFileArena->file->prevLine = 
-        newFileArena->file->currentLineNode->prev &&
-        newFileArena->file->currentLineNode->prev->data
-        ? newFileArena->file->currentLineNode->prev->data
-        : NULL ;
+    if (newFileArena->file->currentLineNode) {
+        newFileArena->file->prevLine = 
+            newFileArena->file->currentLineNode->prev &&
+            newFileArena->file->currentLineNode->prev->data
+            ? newFileArena->file->currentLineNode->prev->data
+            : NULL ;
 
-    newFileArena->file->currentLine = newFileArena->file->currentLineNode->data;
-    newFileArena->file->nextLine = 
-        newFileArena->file->currentLineNode->next &&
-        newFileArena->file->currentLineNode->next->data
-        ? newFileArena->file->currentLineNode->next->data
-        : NULL;
-
+        newFileArena->file->currentLine = newFileArena->file->currentLineNode->data;
+        newFileArena->file->nextLine = 
+            newFileArena->file->currentLineNode->next &&
+            newFileArena->file->currentLineNode->next->data
+            ? newFileArena->file->currentLineNode->next->data
+            : NULL;
+    } else {
+        newFileArena->file->prevLine = NULL;
+        newFileArena->file->currentLine = NULL;
+        newFileArena->file->nextLine = NULL;
+    }
+    
     fileParsingBuffer = (char*)malloc(sizeof(char) * (lengthSum + 1));
 
     if(!fileParsingBuffer){

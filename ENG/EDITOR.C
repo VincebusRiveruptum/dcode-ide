@@ -1281,13 +1281,17 @@ void ed_quickOpenFileDialog(){
         }else if(inp_isKeyPressed(KEY_ENTER)){
             // If we press enter, we have to detect if the entry is either a directory or a file
             // 
-            if(strcmp(selectedFileEntry->name, "..") == 0){         // .. path
+            if(selectedFileEntry && strcmp(selectedFileEntry->name, "..") == 0){         // .. path
                 stepIndex = _goBackPath(currentPath);       
+                selectedEntry = 0;
+                selectedFileEntry = NULL;
             }else if(selectedFileEntry && selectedFileEntry->isDirectory){
                 //// Nothing happens
                 strcat(currentPath, selectedFileEntry->name);
                 strcat(currentPath, "\\");
                 stepIndex = strlen(currentPath);
+                selectedEntry = 0;
+                selectedFileEntry = NULL;
             }else{
                 // We open the file
                 // TODO: SANITIZE buffer by removing the chars until the last directory

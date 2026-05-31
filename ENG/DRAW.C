@@ -280,7 +280,7 @@ unsigned char _keywordMap(char *word){
     // Boolean values
     if (strcmp(word, "true") == 0) return DW_RESWORD_CONSTANT;
     if (strcmp(word, "false") == 0) return DW_RESWORD_CONSTANT;
-    
+
     // Null
     if (strcmp(word, "NULL") == 0) return DW_RESWORD_CONSTANT;
 
@@ -802,7 +802,7 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
                             /// UGLYT TEST
                             for(t=0; t < 4 && screenX <= x2; t++){
                                 if (dw_isCharSelected(file, lineCount, linePos + file->scrollX)) {
-                                    tabAttrib = (COLOR_WHITE << 4) | COLOR_BLACK;
+                                    tabAttrib = ((COLOR_LIGHT_GRAY << 4) | (COLOR_BLACK << 8));
                                 } else {
                                     tabAttrib = backgroundColor << 4 | ((t==3 && settings.TAB_INDICATOR == true) ? COLOR_DARK_GRAY : foregroundColor);
                                 }
@@ -819,7 +819,7 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
                             continue;
                         } else {
                             if (dw_isCharSelected(file, lineCount, linePos + file->scrollX)) {
-                                charAttrib = (COLOR_WHITE << 4) | COLOR_BLACK;
+                                charAttrib = ((COLOR_LIGHT_GRAY << 4) | (COLOR_BLACK << 8));
                             } else {
                                 charAttrib = backgroundColor << 4 | (specialWordColor ? specialWordColor : foregroundColor);
                             }
@@ -941,7 +941,7 @@ void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2
                             for(t=0; t < 4 && screenX <= x2; t++){
                         
                                 if (dw_isCharSelected(file, lineCount, linePos + file->scrollX)) {
-                                    tabAttrib = (COLOR_WHITE << 4) | COLOR_BLACK;
+                                    tabAttrib = ((COLOR_LIGHT_GRAY << 4) | (COLOR_BLACK << 8));
                                 } else {
                                     tabAttrib = backgroundColor << 4 | ((t==3 && settings.TAB_INDICATOR == true) ? COLOR_DARK_GRAY : foregroundColor);
                                 }
@@ -959,7 +959,7 @@ void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2
                         } else {
                            
                             if (dw_isCharSelected(file, lineCount, linePos + file->scrollX)) {
-                                charAttrib = (COLOR_WHITE << 4) | COLOR_BLACK;
+                                charAttrib = ((COLOR_LIGHT_GRAY << 4) | (COLOR_BLACK << 8));
                             } else {
                                 charAttrib = backgroundColor << 4 | (specialWordColor ? specialWordColor : foregroundColor);
                             }

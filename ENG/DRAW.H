@@ -78,6 +78,7 @@ void dw_rectangle(
 
 void dw_writeBuffer(unsigned short *buffer, const char *format, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, ...);
 void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, struct File *file);
+bool dw_isCharSelected(struct File *file, int lineIndex, int colIndex);
 
 void dw_charXY_color(unsigned short *buffer, char c, unsigned char x, unsigned char y, unsigned short color);
 void dw_charXY(unsigned short *buffer, char c, unsigned char x, unsigned char y);

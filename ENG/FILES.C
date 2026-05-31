@@ -360,9 +360,19 @@ void f_newFile(char *filename){
     newFileArena->file->prevChar = 0;
     newFileArena->file->currentChar = 0;
     newFileArena->file->nextChar = 0;
+
+    // Selection metadata
+    newFileArena->file->selectedStartX = 0;
+    newFileArena->file->selectedEndX = 0;
+    newFileArena->file->selectedStartLine = 0;
+    newFileArena->file->selectedEndLine = 0;
     
+    newFileArena->file->selectedStartNode = NULL;
+    newFileArena->file->selectedEndNode = NULL;
+
     newFileArena->file->isModified = false;
     newFileArena->file->isActive = false;
+    
 
     currentFileArena = f_addFileArena(newFileArena);
     ed_statusBarMessage("Created a new file.");
@@ -412,6 +422,16 @@ bool f_openFile(char *filename){
     file->prevChar = NULL;
     file->currentChar = NULL;
     file->nextChar = NULL;
+
+    // Selection metadata
+    file->selectedStartX = 0;
+    file->selectedEndX = 0;
+    file->selectedStartLine = 0;
+    file->selectedEndLine = 0;
+    
+    file->selectedStartNode = NULL;
+    file->selectedEndNode = NULL;
+
 
     if(!file->name){
         logger("\n[f_openFile]: Error: Could not allocate memory for file details");
@@ -565,6 +585,15 @@ void f_saveFile(){
     newFileArena->file->nextChar = oldFileArena->file->nextChar;
 
     newFileArena->file->isActive = oldFileArena->file->isActive;
+    
+    // Selection metadata, it will be reseted for now
+    newFileArena->file->selectedStartX = 0;
+    newFileArena->file->selectedEndX = 0;
+    newFileArena->file->selectedStartLine = 0;
+    newFileArena->file->selectedEndLine = 0;
+    
+    newFileArena->file->selectedStartNode = NULL;
+    newFileArena->file->selectedEndNode = NULL;
     
     // We are going to travel the old file lines and copy them to the new file buffer
     currentNode = oldFileArena->file->lines->firstNode;

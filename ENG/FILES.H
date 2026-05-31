@@ -56,6 +56,19 @@ typedef struct File {
     // Indicates the current cursor column index
     unsigned short cursorCol;
 
+    // Selectection metadata
+    unsigned short selectedStartX;
+    unsigned short selectedEndX;
+    unsigned short selectedStartLine;
+    unsigned short selectedEndLine;
+
+    struct Node *oldLineNode;
+    unsigned short oldCol;
+    unsigned short oldLine;
+    
+    Node *selectedStartNode;
+    Node *selectedEndNode;
+
     bool isModified;
     bool isActive;
 } File;

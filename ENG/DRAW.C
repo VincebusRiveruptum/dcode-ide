@@ -1,5 +1,51 @@
 
 #include "DRAW.H"
+
+bool dw_isCharSelected(struct File *file, int lineIndex, int colIndex) {
+    int startLine, endLine, startCol, endCol;
+
+    if (!file || !file->selectedStartNode || !file->selectedEndNode) {
+        return false;
+    }
+
+    if (file->selectedStartLine < file->selectedEndLine) {
+        startLine = (int)file->selectedStartLine;
+        startCol = (int)file->selectedStartX;
+        endLine = (int)file->selectedEndLine;
+        endCol = (int)file->selectedEndX;
+    } else if (file->selectedStartLine > file->selectedEndLine) {
+        startLine = (int)file->selectedEndLine;
+        startCol = (int)file->selectedEndX;
+        endLine = (int)file->selectedStartLine;
+        endCol = (int)file->selectedStartX;
+    } else {
+        startLine = (int)file->selectedStartLine;
+        endLine = (int)file->selectedEndLine;
+        if (file->selectedStartX < file->selectedEndX) {
+            startCol = (int)file->selectedStartX;
+            endCol = (int)file->selectedEndX;
+        } else {
+            startCol = (int)file->selectedEndX;
+            endCol = (int)file->selectedStartX;
+        }
+    }
+
+    if (lineIndex > startLine && lineIndex < endLine) {
+        return true;
+    }
+    if (lineIndex == startLine && lineIndex == endLine) {
+        return (colIndex >= startCol && colIndex < endCol);
+    }
+    if (lineIndex == startLine) {
+        return (colIndex >= startCol);
+    }
+    if (lineIndex == endLine) {
+        return (colIndex < endCol);
+    }
+
+    return false;
+}
+
 // Private functions
 
 // SENTENCE - WORD 
@@ -532,19 +578,16 @@ void dw_writeColor(unsigned short *buffer, int x, int y, unsigned short foregrou
 void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, File *file){
 
     int x, y;
-    Node *currentNode = NULL;
-    Line *line;
     int linePos;
     int screenX;
     int screenPos;
-    char *c;
-
     int t;
     int j;
     int spaceBetween = 0;    
     int lineCount = 0;
-    char lineCounterBufferTemp[8] = {0};
     
+    char *c;
+    char lineCounterBufferTemp[8] = {0};
     // special word detection stuff
     char *csWordStart;
     char *csWordEnd;        // current character special word
@@ -554,13 +597,18 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
     unsigned char specialWordColor = 0;   
     unsigned char detectedWordType = DW_RESWORD_NONE;
     unsigned char prevDetectedWordType = DW_RESWORD_NONE;
-
+    unsigned char stringEscapeCharColor = 0;
+    
     bool isMultilineComment = false;
     bool isSingleLineComment = false;   
     bool isString = false;
     bool isIdentifier=false;
-    unsigned char stringEscapeCharColor = 0;
+    
+    unsigned short tabAttrib;
+    unsigned short charAttrib;
 
+    Node *currentNode = NULL;
+    Line *line;
     /* Boundary check */
     if(x1 > x2 || y1 > y2) return;
 
@@ -753,7 +801,12 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
                         if(*c == '\t'){
                             /// UGLYT TEST
                             for(t=0; t < 4 && screenX <= x2; t++){
-                                destBuffer[(y * VIDEO_COLS) + screenX] = ((t==3 && settings.TAB_INDICATOR == true) ? 179 : ' ') | (backgroundColor << 4 | ((t==3 && settings.TAB_INDICATOR == true) ? COLOR_DARK_GRAY : foregroundColor) << 8);
+                                if (dw_isCharSelected(file, lineCount, linePos + file->scrollX)) {
+                                    tabAttrib = (COLOR_WHITE << 4) | COLOR_BLACK;
+                                } else {
+                                    tabAttrib = backgroundColor << 4 | ((t==3 && settings.TAB_INDICATOR == true) ? COLOR_DARK_GRAY : foregroundColor);
+                                }
+                                destBuffer[(y * VIDEO_COLS) + screenX] = ((t==3 && settings.TAB_INDICATOR == true) ? 179 : ' ') | (tabAttrib << 8);
                                 screenX++;
                             }
                             linePos++;
@@ -765,8 +818,12 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
                             linePos++;
                             continue;
                         } else {
-
-                            destBuffer[screenPos] = *c | ((backgroundColor << 4 | (specialWordColor ? specialWordColor : foregroundColor)) << 8);
+                            if (dw_isCharSelected(file, lineCount, linePos + file->scrollX)) {
+                                charAttrib = (COLOR_WHITE << 4) | COLOR_BLACK;
+                            } else {
+                                charAttrib = backgroundColor << 4 | (specialWordColor ? specialWordColor : foregroundColor);
+                            }
+                            destBuffer[screenPos] = *c | (charAttrib << 8);
                             screenX++;
                             linePos++;
                         }
@@ -793,17 +850,22 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
 void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, File *file){
 
     int x, y;
-    Node *currentNode = NULL;
-    Line *line;
     int linePos;
     int screenX;
     int screenPos;
-    char *c;
     int j,t;
     int spaceBetween = 0;    
     int lineCount = 0;
+    
+    char *c;
     char lineCounterBufferTemp[8] = {0};
+    
+    unsigned short tabAttrib;
+    unsigned short charAttrib;
     unsigned char specialWordColor = COLOR_LIGHT_GRAY;   
+
+    Node *currentNode = NULL;
+    Line *line;
     /* Boundary check */
     if(x1 > x2 || y1 > y2) return;
 
@@ -877,7 +939,13 @@ void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2
                         if(*c == '\t'){
                             /// UGLYT TEST
                             for(t=0; t < 4 && screenX <= x2; t++){
-                                destBuffer[(y * VIDEO_COLS) + screenX] = ((t==3 && settings.TAB_INDICATOR == true) ? 179 : ' ') | (backgroundColor << 4 | ((t==3 && settings.TAB_INDICATOR == true) ? COLOR_DARK_GRAY : foregroundColor) << 8);
+                        
+                                if (dw_isCharSelected(file, lineCount, linePos + file->scrollX)) {
+                                    tabAttrib = (COLOR_WHITE << 4) | COLOR_BLACK;
+                                } else {
+                                    tabAttrib = backgroundColor << 4 | ((t==3 && settings.TAB_INDICATOR == true) ? COLOR_DARK_GRAY : foregroundColor);
+                                }
+                                destBuffer[(y * VIDEO_COLS) + screenX] = ((t==3 && settings.TAB_INDICATOR == true) ? 179 : ' ') | (tabAttrib << 8);
                                 screenX++;
                             }
                             linePos++;
@@ -889,8 +957,13 @@ void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2
                             linePos++;
                             continue;
                         } else {
-
-                            destBuffer[screenPos] = *c | ((backgroundColor << 4 | (specialWordColor ? specialWordColor : foregroundColor)) << 8);
+                           
+                            if (dw_isCharSelected(file, lineCount, linePos + file->scrollX)) {
+                                charAttrib = (COLOR_WHITE << 4) | COLOR_BLACK;
+                            } else {
+                                charAttrib = backgroundColor << 4 | (specialWordColor ? specialWordColor : foregroundColor);
+                            }
+                            destBuffer[screenPos] = *c | (charAttrib << 8);
                             screenX++;
                             linePos++;
                         }

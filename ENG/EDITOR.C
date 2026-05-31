@@ -21,9 +21,11 @@ unsigned char currentCursorX = 0;
 unsigned char currentCursorY = 0;
 
 bool ed_renderEvent = false;
+bool on_selection_tool = false;
 
 time_t ed_globalAuxTimer = 0;
 char statusBarMessage[ED_STATUSBAR_WIDTH] = {'\0'};
+
 
 void ed_initConfig(int argc, char *argv[]){
     //f_defaultExtension
@@ -1360,6 +1362,65 @@ void ed_quickOpenFileDialog(){
     ed_renderEvent = true;
 }
 
+void ed_prepareSelectionTool(){
+    
+    if(currentFileArena && currentFileArena->file){
+        currentFileArena->file->oldLineNode = (struct Node *)currentFileArena->file->currentLineNode;
+        currentFileArena->file->oldLine = currentFileArena->file->cursorLine;
+        currentFileArena->file->oldCol = currentFileArena->file->cursorCol;
+    }
+}
 
+void ed_clearSelection(){
+    if(!currentFileArena || !currentFileArena->file) return;
+    currentFileArena->file->selectedStartNode = NULL;
+    currentFileArena->file->selectedEndNode = NULL;
+    currentFileArena->file->selectedStartX = 0;
+    currentFileArena->file->selectedEndX = 0;
+    currentFileArena->file->selectedStartLine = 0;
+    currentFileArena->file->selectedEndLine = 0;
+    on_selection_tool = false;
+}
+
+void ed_handleSelection() {
+    File *file;
+    bool isNav;
+
+    if(!currentFileArena || !currentFileArena->file) return;
+    
+    file = currentFileArena->file;
+
+    // Check if cursor actually moved
+    if (file->currentLineNode == file->oldLineNode && file->cursorCol == file->oldCol) {
+        return;
+    }
+
+    isNav = inp_isKeyDown(KEY_UP) || inp_isKeyDown(KEY_DOWN) ||
+            inp_isKeyDown(KEY_LEFT) || inp_isKeyDown(KEY_RIGHT) ||
+            inp_isKeyDown(KEY_HOME) || inp_isKeyDown(KEY_END) ||
+            inp_isKeyDown(KEY_PAGEUP) || inp_isKeyDown(KEY_PAGEDOWN);
+
+    if (isNav) {
+        if (inp_isKeyDown(KEY_LSHIFT) || inp_isKeyDown(KEY_RSHIFT)) {
+            // If selection is not active, anchor it at the old position
+            if (file->selectedStartNode == NULL) {
+                file->selectedStartNode =   file->oldLineNode;
+                file->selectedStartX = file->oldCol;
+                file->selectedStartLine = file->oldLine;
+            }
+            // Always update selection end to the new position
+            file->selectedEndNode = file->currentLineNode;
+            file->selectedEndX = file->cursorCol;
+            file->selectedEndLine = file->cursorLine;
+            on_selection_tool = true;
+        } else {
+            // Clear selection since we moved cursor without Shift
+            ed_clearSelection();
+        }
+    } else {
+        // Any other cursor movement (e.g. typing, backspace, new line) clears selection
+        ed_clearSelection();
+    }
+}
 
 

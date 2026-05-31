@@ -33,6 +33,10 @@ void t_drawDebugger(){
     dw_writeBuffer(textmemptr, "currentCursorX: %d", 60, 6, VIDEO_COLS - 1, 6, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentCursorX );
     dw_writeBuffer(textmemptr, "currentCursorY: %d", 60, 7, VIDEO_COLS - 1, 7, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentCursorY );
     dw_writeBuffer(textmemptr, "line length: %d", 60, 8, VIDEO_COLS - 1, 8, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentFileArena->file->currentLine->length);
+    dw_writeBuffer(textmemptr, "selectedStartX: %d", 60, 9, VIDEO_COLS - 1, 9, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentFileArena->file->selectedStartX);
+    dw_writeBuffer(textmemptr, "selectedEndX: %d", 60, 10, VIDEO_COLS - 1, 10, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentFileArena->file->selectedEndX);
+    dw_writeBuffer(textmemptr, "selectedStartLine: %d", 60, 11, VIDEO_COLS - 1, 11, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentFileArena->file->selectedStartLine);
+    dw_writeBuffer(textmemptr, "selectedEndLine: %d", 60, 12, VIDEO_COLS - 1, 12, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentFileArena->file->selectedEndLine);
 }
 
 /* ===================================================================*/

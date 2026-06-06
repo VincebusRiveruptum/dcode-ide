@@ -1423,4 +1423,62 @@ void ed_handleSelection() {
     }
 }
 
+// This is a small program for testing. 
+// The purpose is take a phrase and count the words.e
 
+int ed_wordCountInStr(char *str){
+	int wordCount = 0;
+	char *wordIndexPtr;
+	char *detectedStartOffset = NULL;
+	char *detectedEndOffset = NULL;
+	size_t detectedWordLen = 0;
+	char detectedWord[255] = {'\0'};
+	wordIndexPtr = str;
+	
+	
+	// No words!Wing by spac
+	if(*wordIndexPtr == '\0') return 0;
+
+	while(wordIndexPtr && *wordIndexPtr != '\0'){
+		// Buffer reset
+		
+		// Word start is when the previous char is empty space
+		// Word end is when next char is space
+		// We have to ignore escape chars
+		// We need to calculate the len between both detectedWord offsets.
+		if(!detectedStartOffset &&
+			isalpha(*wordIndexPtr)
+		){
+			detectedStartOffset = wordIndexPtr;
+		
+		// If is an space, we know that a word ended
+		}else if (*wordIndexPtr == ' ' || *(wordIndexPtr + 1) == '\0'){
+			detectedEndOffset = wordIndexPtr;
+			
+			wordCount++;
+			if(detectedEndOffset && detectedStartOffset){
+				detectedWordLen = detectedEndOffset - detectedStartOffset;
+				memcpy(detectedWord, detectedStartOffset, detectedWordLen);
+				detectedWord[detectedWordLen] = '\0';
+				//printf("\nDetected word: %s", detectedWord);
+			}
+			
+			detectedStartOffset = NULL;
+			detectedEndOffset = NULL;
+			memcpy(detectedWord, '\0', 255);
+			detectedWordLen = 0;
+		}
+		
+		wordIndexPtr++; 
+	}
+
+	return wordCount;
+}
+
+// Based on the previous function
+// However, for DCODE we need to iterate each line and analize each line buffer, then the function will retrieve
+// the detected's word pointer address.
+ 
+char *ed_findWord(char *src, char *word){
+	
+}

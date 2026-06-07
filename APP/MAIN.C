@@ -74,7 +74,6 @@ int main(int argc, char *argv[]){
 		// DELETE (forward)
 		if(inp_isKeyPressed(KEY_DELETE)) ed_supr();
 
-
 		/* FILE OPERATIONS */
 		
 		// CLOSE APP
@@ -98,6 +97,9 @@ int main(int argc, char *argv[]){
 		// SAVE FILE
 		if(inp_keysPressed(INP_TRIGGER_EDGE, 3, KEY_LCTRL, KEY_LSHIFT, KEY_S)) f_saveFile();
         
+		// SEARCH ...
+		ed_prepareSearchTool();
+		
 		// Getch approach, why? Because getch() reads and uses DOS routines for handling the keyboard
 		// so it translates the input scancode to the correct codepage value.
 		if(kbhit()){

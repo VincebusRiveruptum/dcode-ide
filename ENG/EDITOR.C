@@ -22,10 +22,10 @@ unsigned char currentCursorY = 0;
 
 bool ed_renderEvent = false;
 bool on_selection_tool = false;
+bool on_search_tool = false;
 
 time_t ed_globalAuxTimer = 0;
 char statusBarMessage[ED_STATUSBAR_WIDTH] = {'\0'};
-
 
 void ed_initConfig(int argc, char *argv[]){
     //f_defaultExtension
@@ -1475,10 +1475,144 @@ int ed_wordCountInStr(char *str){
 	return wordCount;
 }
 
-// Based on the previous function
-// However, for DCODE we need to iterate each line and analize each line buffer, then the function will retrieve
-// the detected's word pointer address.
- 
-char *ed_findWord(char *src, char *word){
+// This will find word matches according to the currentSearchMetadata
+// found word match
+void ed_findWord(){
+    char *detectedWordOffset = NULL;
+    char *wordIndexPtr = NULL;
+    char searchArenaName[32];
+    int wordLen = 0;
+    WordMetadata *matchBuffer = NULL;
+
+    Node *lineNode = currentFileArena->file->currentLineNode;
 	
+    if(!lineNode){
+        logger("[ed_findWord]: lineNode is NULL");
+        return;
+    }
+    
+    if(!currentFileSearch){
+        logger("[ed_findWord]: currentFileSearch is NULL");
+        return;
+    }
+
+    if(!currentFileSearch->arena || !currentFileSearch->arena->base){
+        sprintf(searchArenaName, "SRCH%d", currentFileArena->file->fileIndex);
+        currentFileSearch->arena = (MemoryArena *)mem_create_arena(searchArenaName, MEM_ARENA_METADATA, MEM_ARENA_2K);
+    } else {
+        mem_arena_reset(currentFileSearch->arena->name);
+    }
+
+    wordLen = strlen(currentFileSearch->dialogInputBuffer);
+
+    if (wordLen == 0) return;
+
+    currentFileSearch->wordCount = 0;
+    currentFileSearch->words = NULL;
+
+    // If searchMetadata atributes are NULl this means that there is no previous search done
+    // So we will begin the process.
+
+    // If there is already a metadata
+
+    // Depending on the orientation ( previous, next ) we will look forward or previous from the wordOffset and 
+    // the line index.
+    logger("[ed_findWord]: Current word! : %s", currentFileSearch->dialogInputBuffer);
+
+    while(lineNode != NULL){
+        
+        if(
+            !lineNode->data ||
+            !((Line*)lineNode->data)->buffer
+        ){
+            logger("[ed_findWord]: lineNode->data or lineNode->data->buffer is NULL");
+            return;
+        }
+        
+        wordIndexPtr = ((Line*)(lineNode->data))->buffer;
+        // No words!Wing by spac
+        if(*wordIndexPtr == '\0'){
+            lineNode = lineNode->next;
+            continue;
+        } 
+
+        detectedWordOffset = strstr(wordIndexPtr, currentFileSearch->dialogInputBuffer);
+        
+        while(detectedWordOffset){        
+            matchBuffer = (WordMetadata *) mem_arena_alloc(currentFileSearch->arena, NULL, sizeof(WordMetadata));
+     
+            if(!matchBuffer){
+                logger("[ed_findWord]: Line 1558, matchBuffer is NULL");
+                return;
+            }
+
+            matchBuffer->lineNode = lineNode;
+            matchBuffer->wordPtr = detectedWordOffset;
+        
+            addGenericNode(&currentFileSearch->words, matchBuffer, NULL, currentFileSearch->arena);
+            
+            currentFileSearch->wordCount++;
+            
+            logger("[ed_findWord]: wordCounting up %d", currentFileSearch->wordCount);
+
+            detectedWordOffset = strstr(detectedWordOffset + wordLen, currentFileSearch->dialogInputBuffer);
+        }
+                
+        lineNode = lineNode->next;
+    }
+}
+
+void ed_drawSearchTool(){
+    int i;
+    int vis_offset = 0, dialog_offset = 0, dialogStartY, dialogEndY, dialogHeight;
+    
+    vis_offset = (VIDEO_COLS / 4);
+    dialog_offset = vis_offset / 4;
+
+    dialogStartY = 2;
+    dialogEndY = 6; 
+    dialogHeight = dialogEndY - dialogStartY;
+
+    dw_rectangle(textmemptr, vis_offset, dialogStartY, VIDEO_COLS - vis_offset, dialogEndY, COLOR_BLUE, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_BLUE, false, DRAW_BORDER_SIMPLE, "Search...");
+    dw_writeBuffer(
+        textmemptr, 
+        "Found matches: %d", 
+        vis_offset + 1, 
+        dialogStartY + 2, 
+        vis_offset + 24, 
+        dialogStartY + 2, 
+        COLOR_WHITE, 
+        COLOR_BLUE, 
+        currentFileSearch->wordCount
+    );
+
+    ed_async_scanf(vis_offset + 1, 3, (2 * vis_offset) - 1, currentFileSearch->dialogInputBuffer, strlen(currentFileSearch->dialogInputBuffer), &(currentFileSearch->dialogInputIndex));
+            
+}
+
+void ed_searchMoveCursor(){
+    if(!currentFileSearch->words) return;
+
+
+}
+
+
+void ed_prepareSearchTool(){
+    if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_F)) on_search_tool = true;
+		
+    if(on_search_tool == true){
+        if(inp_isKeyDown(KEY_ESC)){
+
+            inp_waitForRelease();
+            inp_clearKeyboardBuffer();
+
+            on_search_tool = false;
+        }else{
+            ed_drawSearchTool();
+            ed_findWord();
+            //ed_searchMoveCursor();
+
+            ed_renderEvent = true;
+        }
+    } 
 }

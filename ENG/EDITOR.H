@@ -107,12 +107,11 @@
 
 /* Types ===================================================*/
 
-
-
-
 extern struct Container *root;
 extern bool ed_renderEvent;
 extern bool on_selection_tool;
+extern bool on_search_tool;
+
 extern time_t ed_globalAuxTimer;
 
 extern char statusBarMessage[ED_STATUSBAR_WIDTH];
@@ -152,6 +151,8 @@ void ed_quickOpenFileDialog();
 void ed_prepareSelectionTool();
 void ed_clearSelection();
 void ed_handleSelection();
+
+int ed_wordCountInStr(char *str);
 
 #endif
 

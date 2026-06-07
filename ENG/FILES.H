@@ -17,12 +17,40 @@
 
 /* Types =================================================================*/
 
+typedef struct WordMetadata{
+    struct Node *lineNode;
+    char *wordPtr;
+}WordMetadata;
+
+typedef struct SearchMetadata{
+    // Input buffer index for the search dialog
+    int dialogInputIndex;
+    
+    // Word to search (input from search dialog)
+    char dialogInputBuffer[255];
+    // Memory arena
+    MemoryArena *arena;
+    
+    // Count of matches
+    unsigned int wordCount;
+
+    // Current selected index
+    unsigned int currentWordIndex;
+
+    // List of WordMetadata.
+    List *words;
+
+} SearchMetadata;
+
 typedef struct Line {
     char *buffer;
     size_t length;
 } Line;
 
 typedef struct File {
+    // Meta helper, used by search functions, could be used for file opening/saving/closing too in the future.
+    int fileIndex;
+
     char *name;         // full name and path
     unsigned char ext;  // EXTENSION ID
 
@@ -71,6 +99,8 @@ typedef struct File {
 
     bool isModified;
     bool isActive;
+
+
 } File;
 
 typedef struct FileArena {
@@ -84,6 +114,10 @@ typedef struct FileArena {
 extern FileArena fileList[MAX_ARENAS];
 
 extern FileArena *currentFileArena;
+
+extern SearchMetadata fileListSearchMetadata[MAX_ARENAS];
+
+extern SearchMetadata *currentFileSearch;
 
 extern bool endProgram;
 

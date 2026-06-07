@@ -9,6 +9,9 @@
 
 /* ARENA SIZES =========================================================================*/
 
+#define MEM_ARENA_1K 1024    // 1kb
+#define MEM_ARENA_2K 1024 * 2 // 2kb
+#define MEM_ARENA_4K 1024 * 4 // 4kb
 #define MEM_ARENA_8K 1024 * 8 // 8kb
 #define MEM_ARENA_16K 1024 * 16 // 16kb
 #define MEM_ARENA_32K 1024 * 32 // 32kb
@@ -27,6 +30,7 @@
 #define MEM_ARENA_MAIN 1
 #define MEM_ARENA_FILE 2
 #define MEM_ARENA_TEST 3
+#define MEM_ARENA_METADATA 4
 
 /* TYPES ===========================================================================*/
 
@@ -51,6 +55,5 @@ void *mem_create_arena(char *name, unsigned char type, size_t size);
 void *mem_arena_alloc(MemoryArena *arenaPtr, char *name, size_t size);
 MemoryArena *mem_get_arena(char *name);
 void mem_arena_reset(char *name);
-void mem_arena_free(char *name);
-
+void mem_arena_free( MemoryArena *arenaPtr, char *name);
 #endif

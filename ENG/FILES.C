@@ -822,6 +822,7 @@ void f_flushSearchMetadata(){
 
     currentFileSearch->wordCount = 0;
     currentFileSearch->words = NULL;
+    currentFileSearch->currentWordNode = NULL;
 }
 
 void f_allocSearchMetadata(){
@@ -841,4 +842,5 @@ void f_allocSearchMetadata(){
 
     currentFileSearch->wordCount = 0;
     currentFileSearch->words = NULL;
+    currentFileSearch->currentWordNode = NULL;
 }

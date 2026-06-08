@@ -19,6 +19,8 @@
 
 typedef struct WordMetadata{
     struct Node *lineNode;
+    unsigned int lineIndex;
+    unsigned int wordIndex;
     char *wordPtr;
 }WordMetadata;
 
@@ -35,10 +37,11 @@ typedef struct SearchMetadata{
     unsigned int wordCount;
 
     // Current selected index
-    unsigned int currentWordIndex;
+   // unsigned int currentWordIndex;
 
     // List of WordMetadata.
     List *words;
+    Node *currentWordNode;
 
 } SearchMetadata;
 

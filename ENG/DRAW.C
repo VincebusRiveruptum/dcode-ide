@@ -45,6 +45,33 @@ bool dw_isCharSelected(struct File *file, int lineIndex, int colIndex) {
 
     return false;
 }
+bool dw_isCharFound(struct File *file, int lineIndex, int colIndex) {
+    int startLine, endLine, startCol, endCol, fileIndex;
+    SearchMetadata *fileSearch = NULL;
+    if (!file)
+        return false;
+    
+    fileIndex = file->fileIndex;
+    
+    fileSearch = &fileListSearchMetadata[fileIndex];
+
+    if(
+        !fileSearch ||
+        !fileSearch->currentWordNode ||
+        !fileSearch->currentWordNode->data
+    ) return false;
+    
+    if(
+        (lineIndex == ((WordMetadata *)fileSearch->currentWordNode->data)->cursorLine) &&
+        (colIndex >= ((WordMetadata *)fileSearch->currentWordNode->data)->cursorCol) &&
+        (colIndex < ((int) ((WordMetadata *)fileSearch->currentWordNode->data)->cursorCol) + strlen(fileSearch->dialogInputBuffer))
+    ) {
+        logger("LEN; %d", ((int)((WordMetadata *)fileSearch->currentWordNode->data)->cursorCol) + strlen(fileSearch->dialogInputBuffer));
+        return true;
+    }
+
+    return false;
+}
 
 // Private functions
 
@@ -409,7 +436,6 @@ void dw_rectangle(
     
         titleStartPos = x1 + (short) (width / 2) - (short) (titleLen / 2);
         titleEndPos = titleStartPos + (short) titleLen;
-        logger("TITLE POS, %d - %d", titleStartPos, titleEndPos);
     } 
 
     i = (y1 * VIDEO_COLS) + x1;
@@ -801,7 +827,10 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
                         if(*c == '\t'){
                             /// UGLYT TEST
                             for(t=0; t < 4 && screenX <= x2; t++){
-                                if (dw_isCharSelected(file, lineCount, linePos + file->scrollX)) {
+                                if (
+                                    dw_isCharSelected(file, lineCount, linePos + file->scrollX) ||
+                                    dw_isCharFound(file, lineCount, linePos + file->scrollX)
+                                ){
                                     tabAttrib = ((COLOR_LIGHT_GRAY << 4) | (COLOR_BLACK << 8));
                                 } else {
                                     tabAttrib = backgroundColor << 4 | ((t==3 && settings.TAB_INDICATOR == true) ? COLOR_DARK_GRAY : foregroundColor);
@@ -818,7 +847,10 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
                             linePos++;
                             continue;
                         } else {
-                            if (dw_isCharSelected(file, lineCount, linePos + file->scrollX)) {
+                            if (
+                                dw_isCharSelected(file, lineCount, linePos + file->scrollX) ||
+                                dw_isCharFound(file, lineCount, linePos + file->scrollX)
+                            ){
                                 charAttrib = ((COLOR_LIGHT_GRAY << 4) | (COLOR_BLACK << 8));
                             } else {
                                 charAttrib = backgroundColor << 4 | (specialWordColor ? specialWordColor : foregroundColor);
@@ -939,8 +971,10 @@ void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2
                         if(*c == '\t'){
                             /// UGLYT TEST
                             for(t=0; t < 4 && screenX <= x2; t++){
-                        
-                                if (dw_isCharSelected(file, lineCount, linePos + file->scrollX)) {
+                                if (
+                                    dw_isCharSelected(file, lineCount, linePos + file->scrollX) ||
+                                    dw_isCharFound(file, lineCount, linePos + file->scrollX)
+                                ){
                                     tabAttrib = ((COLOR_LIGHT_GRAY << 4) | (COLOR_BLACK << 8));
                                 } else {
                                     tabAttrib = backgroundColor << 4 | ((t==3 && settings.TAB_INDICATOR == true) ? COLOR_DARK_GRAY : foregroundColor);
@@ -957,8 +991,10 @@ void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2
                             linePos++;
                             continue;
                         } else {
-                           
-                            if (dw_isCharSelected(file, lineCount, linePos + file->scrollX)) {
+                            if (
+                                dw_isCharSelected(file, lineCount, linePos + file->scrollX) ||
+                                dw_isCharFound(file, lineCount, linePos + file->scrollX)
+                            ){
                                 charAttrib = ((COLOR_LIGHT_GRAY << 4) | (COLOR_BLACK << 8));
                             } else {
                                 charAttrib = backgroundColor << 4 | (specialWordColor ? specialWordColor : foregroundColor);

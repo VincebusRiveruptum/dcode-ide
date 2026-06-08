@@ -1484,8 +1484,20 @@ void ed_findWord(){
     int wordLen = 0;
     unsigned int lineIndex = 0;
     WordMetadata *matchBuffer = NULL;
+    Node *lineNode = NULL;
 
-    Node *lineNode = currentFileArena->file->currentLineNode;
+    if(
+        !currentFileArena ||
+        !currentFileArena->file ||
+        !currentFileArena->file->lines ||
+        !currentFileArena->file->lines->firstNode
+    ){
+
+        logger("[ed_findWord]: currentFileArena first line node is NULL");
+        return;
+    }
+
+    lineNode = currentFileArena->file->lines->firstNode;
 	
     if(!lineNode){
         logger("[ed_findWord]: lineNode is NULL");
@@ -1507,6 +1519,7 @@ void ed_findWord(){
     wordLen = strlen(currentFileSearch->dialogInputBuffer);
 
     if (wordLen == 0) return;
+
 
     currentFileSearch->wordCount = 0;
     currentFileSearch->words = NULL;
@@ -1535,6 +1548,7 @@ void ed_findWord(){
         // No words!Wing by spac
         if(*wordIndexPtr == '\0'){
             lineNode = lineNode->next;
+            lineIndex++;
             continue;
         } 
 
@@ -1548,19 +1562,20 @@ void ed_findWord(){
                 return;
             }
 
-            matchBuffer->lineIndex = lineIndex;
             matchBuffer->lineNode = lineNode;
+            matchBuffer->wordIndex = currentFileSearch->wordCount;
+    
+            matchBuffer->cursorLine = lineIndex;
+            logger("[ed_findWord]: matchBuffer->cursorLine = %d", lineIndex);
+
+            matchBuffer->cursorCol = detectedWordOffset - wordIndexPtr;
+            // Word position in line
             matchBuffer->wordPtr = detectedWordOffset;
             
-            // Word position in line
-            matchBuffer->wordIndex = detectedWordOffset - wordIndexPtr;
-        
             addGenericNode(&currentFileSearch->words, matchBuffer, NULL, currentFileSearch->arena);
             
             currentFileSearch->wordCount++;
-            
-            logger("[ed_findWord]: wordCounting up %d", currentFileSearch->wordCount);
-
+  
             detectedWordOffset = strstr(detectedWordOffset + wordLen, currentFileSearch->dialogInputBuffer);
         }
                 
@@ -1574,6 +1589,7 @@ void ed_findWord(){
         currentFileSearch->words->firstNode
         ? currentFileSearch->words->firstNode 
         : NULL ;
+
 
 }
 
@@ -1594,7 +1610,7 @@ void ed_drawSearchTool(){
         "Found matches: %d, Currently on result: %d", 
         vis_offset + 1, 
         dialogStartY + 2, 
-        vis_offset + 46, 
+        vis_offset + 48, 
         dialogStartY + 2, 
         COLOR_WHITE, 
         COLOR_BLUE, 
@@ -1602,7 +1618,7 @@ void ed_drawSearchTool(){
         (
             currentFileSearch->currentWordNode && 
             ((WordMetadata *)currentFileSearch->currentWordNode->data) 
-                ? ((WordMetadata *)currentFileSearch->currentWordNode->data)->lineIndex
+                ? ((WordMetadata *)currentFileSearch->currentWordNode->data)->wordIndex
                 : 0
         )
     );
@@ -1646,15 +1662,15 @@ void ed_searchMoveCursor(){
     currentFileArena->file->cursorCol = 
         currentFileSearch->currentWordNode &&
         currentFileSearch->currentWordNode->data &&
-        ((WordMetadata*) currentFileSearch->currentWordNode->data)->wordIndex
-        ? ((WordMetadata *)currentFileSearch->currentWordNode->data)->wordIndex
+        ((WordMetadata*) currentFileSearch->currentWordNode->data)->cursorCol
+        ? ((WordMetadata *)currentFileSearch->currentWordNode->data)->cursorCol
         : 0;
 
     currentFileArena->file->cursorLine =
         currentFileSearch->currentWordNode &&
         currentFileSearch->currentWordNode->data &&
-        ((WordMetadata*) currentFileSearch->currentWordNode->data)->lineIndex
-        ? ((WordMetadata *)currentFileSearch->currentWordNode->data)->lineIndex
+        ((WordMetadata*) currentFileSearch->currentWordNode->data)->cursorLine
+        ? ((WordMetadata *)currentFileSearch->currentWordNode->data)->cursorLine
         : 0;
 
     _updateCursor();

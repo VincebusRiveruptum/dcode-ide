@@ -19,8 +19,9 @@
 
 typedef struct WordMetadata{
     struct Node *lineNode;
-    unsigned int lineIndex;
     unsigned int wordIndex;
+    unsigned int cursorLine;
+    unsigned int cursorCol;
     char *wordPtr;
 }WordMetadata;
 

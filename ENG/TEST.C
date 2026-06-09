@@ -37,6 +37,7 @@ void t_drawDebugger(){
     dw_writeBuffer(textmemptr, "selectedEndX: %d", 60, 10, VIDEO_COLS - 1, 10, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentFileArena->file->selectedEndX);
     dw_writeBuffer(textmemptr, "selectedStartLine: %d", 60, 11, VIDEO_COLS - 1, 11, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentFileArena->file->selectedStartLine);
     dw_writeBuffer(textmemptr, "selectedEndLine: %d", 60, 12, VIDEO_COLS - 1, 12, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentFileArena->file->selectedEndLine);
+    dw_writeBuffer(textmemptr, "isActive: %d", 60, 13, VIDEO_COLS - 1, 13, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentFileArena->file->isActive);
 }
 
 /* ===================================================================*/

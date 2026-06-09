@@ -13,6 +13,16 @@
 #define ED_WORD_JUMP_NEXT 1
 #define ED_LINE_JUMP_UP 0
 #define ED_LINE_JUMP_DOWN 1
+
+// Activity values
+
+#define ED_ACTIVITY_TYPE 2
+#define ED_ACTIVITY_DEL 3
+#define ED_ACTIVITY_SUPR 4
+#define ED_ACTIVITY_NEWLINE 5
+#define ED_ACTIVITY_SWAP_DOWN 6
+
+
 /*
  * IBM PC / DOS Code Page 437
  * Line Drawing & Special Characters

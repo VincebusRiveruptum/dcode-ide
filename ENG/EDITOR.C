@@ -65,6 +65,16 @@ void ed_handleArguments(int argc, char *argv[]){
     ed_renderEvent = true;
 }
 
+void ed_resetActity(){
+    currentFileArena->file->isActive = false;
+    //f_flushSearchMetadata();
+}
+
+void ed_markActive(unsigned char activity){
+    // Push activity to editor clipboard
+
+    currentFileArena->file->isActive = true;
+}
 
 int _get_tab_counts_until(int col){
     int i = 0, tabCount = 0;
@@ -154,7 +164,13 @@ int _calculateTabStart(){
 
     return tabCount;
 }
-
+void _updateScrollY(){
+    if(currentFileArena->file->cursorLine > VIDEO_COLS - 1) {
+        currentFileArena->file->scrollY++;
+    }else if(currentFileArena->file->cursorLine <= currentFileArena->file->scrollY){
+        currentFileArena->file->scrollY--;
+    }
+}
 void _updateCurrentCursorY(){
      // If the cursor is closer to the bottom
     if(currentCursorY <=0) currentCursorY = 0;
@@ -423,6 +439,7 @@ void ed_typeChar(char c){
 
     currentFileArena->file->isModified = true;
     
+    ed_markActive(ED_ACTIVITY_TYPE);
     _ensureHorizontalScroll();
     _updateCursor();
 }
@@ -543,6 +560,8 @@ void ed_backspace(){
     }
 
     currentFileArena->file->isModified = true;      
+
+    ed_markActive(ED_ACTIVITY_DEL);
     _updateCursor();
 }
 void ed_supr(){
@@ -573,6 +592,8 @@ void ed_supr(){
     line->length--;
 
     currentFileArena->file->isModified = true;
+
+    ed_markActive(ED_ACTIVITY_SUPR);
     _updateCursor();
 }
 
@@ -737,7 +758,8 @@ void ed_newLine(){
 
     // activity flags
     currentFileArena->file->isModified = true;
-
+    
+    ed_markActive(ED_ACTIVITY_NEWLINE);
     _updateCursor();
 }
 
@@ -1147,7 +1169,10 @@ Node *tmpNext = NULL;
             break;
            
     }
-   _updateCursor();
+    
+    ed_markActive(lineJump);
+
+    _updateCursor();
 }
 
 void ed_showFileSwitcher(){
@@ -1477,6 +1502,9 @@ int ed_wordCountInStr(char *str){
 
 // This will find word matches according to the currentSearchMetadata
 // found word match
+
+// This will find word matches according to the currentSearchMetadata
+// found word match
 void ed_findWord(){
     char *detectedWordOffset = NULL;
     char *wordIndexPtr = NULL;
@@ -1634,7 +1662,7 @@ void ed_searchMoveCursor(){
         !currentFileSearch->currentWordNode->data
     ) return;
     
-    if(inp_isKeyPressed(KEY_ENTER)){
+    if(inp_isKeyDown(KEY_ENTER) && !inp_isKeyDown(KEY_LSHIFT)){
         // We go forward
         currentFileSearch->currentWordNode = 
             currentFileSearch->currentWordNode &&
@@ -1642,7 +1670,7 @@ void ed_searchMoveCursor(){
             ? currentFileSearch->currentWordNode->next
             : currentFileSearch->currentWordNode ;        
 
-    }else if (inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_ENTER, KEY_LSHIFT )){
+    }else if (inp_isKeyDown(KEY_ENTER) && inp_isKeyDown(KEY_LSHIFT)){
         // We go back         
         currentFileSearch->currentWordNode = 
             currentFileSearch->currentWordNode &&
@@ -1673,9 +1701,9 @@ void ed_searchMoveCursor(){
         ? ((WordMetadata *)currentFileSearch->currentWordNode->data)->cursorLine
         : 0;
 
+    _updateScrollY();
     _updateCursor();
 }
-
 void ed_prepareSearchTool(){
     if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_F)) on_search_tool = true;
 		
@@ -1688,12 +1716,11 @@ void ed_prepareSearchTool(){
             if(inp_isKeyPressed(KEY_ESC)){
                 on_search_tool = false;
                 ed_renderEvent = true;
-            }else{
-
+            }else if (!inp_isKeyDown(KEY_ENTER)){
                 ed_findWord();
-                
+                ed_renderEvent = true;
+            }else{                
                 ed_searchMoveCursor();
-                
                 ed_renderEvent = true;
             }
         }

@@ -817,8 +817,8 @@ void f_flushSearchMetadata(){
     mem_arena_free(currentFileSearch->arena, NULL);
     currentFileSearch->arena = NULL; // Ensure pointer is cleared
 
-    currentFileSearch->dialogInputIndex = 0;
-    memset(currentFileSearch->dialogInputBuffer, '\0', 255);
+    //currentFileSearch->dialogInputIndex = 0;
+    //memset(currentFileSearch->dialogInputBuffer, '\0', 255);
 
     currentFileSearch->wordCount = 0;
     currentFileSearch->words = NULL;

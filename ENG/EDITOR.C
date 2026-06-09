@@ -165,10 +165,10 @@ int _calculateTabStart(){
     return tabCount;
 }
 void _updateScrollY(){
-    if(currentFileArena->file->cursorLine > VIDEO_COLS - 1) {
-        currentFileArena->file->scrollY++;
+    if((currentFileArena->file->cursorLine - currentFileArena->file->scrollY) > VIDEO_ROWS - 1) {
+        currentFileArena->file->scrollY += currentFileArena->file->cursorLine - (VIDEO_ROWS - 1);
     }else if(currentFileArena->file->cursorLine <= currentFileArena->file->scrollY){
-        currentFileArena->file->scrollY--;
+        currentFileArena->file->scrollY = currentFileArena->file->cursorLine;
     }
 }
 void _updateCurrentCursorY(){

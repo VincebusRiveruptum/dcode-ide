@@ -2,6 +2,26 @@
 
 char currentWorkspacePath[255] = {'\0'};
 
+// Retruns the index until where the full filename string is 
+// just the directory part only .
+size_t fs_getFilePath(char *filename){
+    size_t filenameLen;
+    size_t pathIndex = 0;
+    char *filenameIndex = NULL;
+
+    if(!filename) return 0;
+
+    filenameLen = strlen(filename);
+    filenameIndex = filename + filenameLen;
+
+    while((*filenameIndex) != '\\' && filenameIndex > filename){
+        filenameIndex--;
+        pathIndex++;
+    }
+
+    return (filenameLen - pathIndex);
+}
+
 /* TEST FUNCTIONS */
 #if defined(__MSDOS__) || defined(__WATCOMC__)
 char *fs_getAbsoluteCurrentPath(char *strbuffer, size_t len){
@@ -141,8 +161,16 @@ Directory *fs_getDirectoryFileList(const char *path){
 #ifdef STANDALONE
 
 int main(){
+    char *testPath = "C:\\THIS\\IS\\A\\TEST\\PATH.EXE";
+    char onlyPath[255] = {'\0'};
+
     printf("Showing contents of current PATH.");
     fs_printContents(".");
+
+    strncpy(&onlyPath, testPath, fs_getFilePath(testPath));
+
+    printf("This is the path in question : %s", onlyPath);
+    
     return 0;
 }
 

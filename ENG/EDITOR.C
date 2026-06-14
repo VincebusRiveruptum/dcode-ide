@@ -42,6 +42,8 @@ void ed_initConfig(int argc, char *argv[]){
     logger("[ed_initConfig]: %d %s", argc, argv[1]);
     ed_handleArguments(argc, argv);
 
+    v_currentMode = settings.DEFAULT_VIDEO_MODE;
+
     ed_resetCursor();
 }
 
@@ -1747,6 +1749,8 @@ void ed_prepareSearchTool(){
 #if defined(__MSDOS__) || defined(__WATCOMC__)
 void ed_shellSpawn(){
     char *comspec = getenv("COMSPEC");
+    char cmd[255] = {'\0'};
+    char currPath[255] = {'\0'};
     int spawn_ret;
     int system_ret;
 
@@ -1760,9 +1764,13 @@ void ed_shellSpawn(){
 
     if (!comspec) comspec = "COMMAND.COM";
 
-    spawn_ret = spawnl(P_WAIT, comspec, comspec, NULL);
-    //printf("spawnl returned: %d, errno: %d\n", spawn_ret, errno);
+    strncpy(currPath, currentFileArena->file->name, fs_getFilePath(currentFileArena->file->name));
+    sprintf(cmd, "cd %s", currPath);
 
+    logger("[ed_shellSpawn]: %s", currPath);
+
+    spawnl(P_WAIT, comspec, comspec, "/K", cmd, NULL);
+    
     inp_initKeyboard();
     inp_clearKeyboardBuffer();
     

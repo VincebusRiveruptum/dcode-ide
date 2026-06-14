@@ -444,6 +444,17 @@ void ed_typeChar(char c){
     _updateCursor();
 }
 
+// Deletes a selectrion
+void ed_backspaceSelection(){
+
+    //if(currentFileArena->selectedStartLine == currentFileArena->selectedEndLine){
+        // We delete in the same line
+        // No line reuse   
+ 
+    //}    
+
+}
+
 void ed_backspace(){
         // We type the char at 
     // X : currentCursorX + LINE_COUNTER_WIDTH + 1
@@ -471,6 +482,10 @@ void ed_backspace(){
         return;
     }
 
+    if(on_selection_tool == true){
+        ed_backspaceSelection();
+        return;
+    }
     // Current character we are on
     // If we are at the first character of the line
     if(x == 0){
@@ -1726,3 +1741,33 @@ void ed_prepareSearchTool(){
         }
     } 
 }
+
+
+// Shell spawn.. 
+#if defined(__MSDOS__) || defined(__WATCOMC__)
+void ed_shellSpawn(){
+    char *comspec = getenv("COMSPEC");
+    int spawn_ret;
+    int system_ret;
+
+    inp_closeKeyboard();
+
+    v_set25Lines();
+    dw_cls(textmemptr);
+
+    //printf("COMSPEC: %s\n", comspec ? comspec : "NULL");
+    // TODO: SAVE FILE
+
+    if (!comspec) comspec = "COMMAND.COM";
+
+    spawn_ret = spawnl(P_WAIT, comspec, comspec, NULL);
+    //printf("spawnl returned: %d, errno: %d\n", spawn_ret, errno);
+
+    inp_initKeyboard();
+    inp_clearKeyboardBuffer();
+    
+    v_setVideoMode(v_currentMode, false);
+
+    ed_renderEvent = true;
+}
+#endif

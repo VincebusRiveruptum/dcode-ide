@@ -1,5 +1,4 @@
 
-
 #ifndef ENG_EDITOR_H
 #define ENG_EDITOR_H
 
@@ -163,6 +162,7 @@ void ed_clearSelection();
 void ed_handleSelection();
 
 int ed_wordCountInStr(char *str);
+void ed_shellSpawn();
 
 #endif
 

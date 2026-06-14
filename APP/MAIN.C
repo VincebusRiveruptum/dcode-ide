@@ -106,6 +106,9 @@ int main(int argc, char *argv[]){
 		// SAVE FILE
 		if(inp_keysPressed(INP_TRIGGER_EDGE, 3, KEY_LCTRL, KEY_LSHIFT, KEY_S)) f_saveFile();
  
+		// SHELL SPAWN
+		if(inp_isKeyPressed(KEY_F9)) ed_shellSpawn();
+ 
 		ed_resetActity();
 		
 		// Getch approach, why? Because getch() reads and uses DOS routines for handling the keyboard
@@ -167,3 +170,4 @@ int main(int argc, char *argv[]){
 	printf("96 Tears...\n");
 	return 0;
 }
+

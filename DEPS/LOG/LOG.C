@@ -62,7 +62,7 @@ void logger(const char *format, ...){ // Modified signature for variadic argumen
     va_end(args);
 
     if(config) {
-        logType = (char*)getEnv("LOGS");
+        logType = (char*)getEnv("LOGS", "file");
     }
 
     sprintf(dateString, "[%04d-%02d-%02d %02d:%02d:%02d]", 

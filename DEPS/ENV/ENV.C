@@ -157,18 +157,8 @@ Config *loadEnv() {
   unsigned char type;
   int i = 0;
 
-  log_init();
+  if (!fp) return NULL;
   
-  if (!fp) {
-    logger("[loadEnv]: %s not found, trying %s", ENV_FILENAME, CFG_FILENAME);
-    fp = fopen(CFG_FILENAME, "r");
-  }
-
-  if (!fp) {
-    logger("[loadEnv]: No config file found (%s or %s)", ENV_FILENAME, CFG_FILENAME);
-    return NULL;
-  }
-
   // We get the numeber of attributes in the config file
   while (fgets(tmpBuffer, sizeof(tmpBuffer), fp) != NULL) {
     i++;

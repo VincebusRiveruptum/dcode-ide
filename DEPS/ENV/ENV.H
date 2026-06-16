@@ -10,12 +10,6 @@
 #include <stdarg.h>
 #include <ctype.h>
 
-#if STANDALONE
-
-#include "..\LOG\LOG.H"
-
-#endif
-
 #define ENV_FILENAME ".env"
 #define CFG_FILENAME "default.cfg"
 

@@ -6,5 +6,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <conio.h>
+#include <limits.h>
 
 #endif

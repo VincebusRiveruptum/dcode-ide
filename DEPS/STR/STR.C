@@ -32,7 +32,67 @@
 
 // Splits string into array of string by a separator AND null terminated
 char *strsplit(char *str, const char *separator){
-	return NULL;
+	char **arr = NULL;
+	char *strIndex = NULL;
+	char *strFound = NULL;
+	char *strEnd = NULL;
+	size_t sepLen, sepCount = 0;
+	size_t strFoundLen = 0;
+	int i = 0;
+
+	if(!str) return NULL;;
+	if(!separator) return NULL;
+
+	strIndex = str;
+	strEnd = str + strlen(str);
+	sepLen = strlen(separator);
+	// Count separators found.
+	while(strIndex){
+		strIndex = strstr(strIndex, separator);
+	
+		if(strIndex + sepLen < strEnd){
+			strIndex += sepLen;
+			sepCount++;
+		}else{
+			continue;
+		}
+
+		printf("\n%s", strIndex);
+	}
+	
+	printf("\nWe reached here");
+	abort();
+	// stdup on each found string.
+	arr = (char**)malloc(sizeof(char*) * sepCount + 1);
+	
+	if (!arr) return NULL;
+
+	// We reuse strIndex 
+
+	strIndex = str;
+	
+
+	for(i=0; i< sepCount ; i++){
+		strFoundLen = strIndex - str;
+		
+		arr[i] = (char*)malloc(sizeof(strFoundLen));
+
+		if(!arr[i]) return NULL;
+
+		memset(arr[i], '\0', strFoundLen);
+
+		if (i == sepCount - 1){
+			strncpy(arr[i], strIndex + sepLen, strFoundLen);
+		}else{
+			strncpy(arr[i], str, strFoundLen);
+		}
+		strIndex = strstr(strIndex, separator);
+	}
+
+	// NULL-terminated pointer array.
+	arr[sepCount] = NULL;
+
+	return arr;
 }
 
 // Reverses an string
@@ -251,19 +311,85 @@ char *strjoin(void *arr,unsigned char type, size_t arrlen,  char *separator){
 	return NULL;
 }
 
-// Removes left spaces
+// Removes right spaces
 char *strltrim(char *str){
-	return NULL;
+	size_t len;
+	char *strptr;
+	char *newstr;
+
+	if(!str) return NULL;
+
+	strptr = str;
+
+	while((*strptr) != '\0' && isspace((unsigned char)*strptr)) {
+		strptr++;
+	}
+
+	len = strlen(strptr);
+
+	newstr = (char*)malloc(len);
+
+	if (!newstr) return NULL;
+
+	memset(newstr, '\0', len);
+	strncpy(newstr, strptr, len);
+
+	return newstr;
 }
 
-// Removes right spaces
+// Removes left spaces
 char *strrtrim(char *str){
-	return NULL;
+	size_t len;
+	char *strptr;
+	char *newstr;
+
+	if(!str) return NULL;
+
+	len = strlen(str) + 1;
+	strptr = str + len ;
+
+	while(strptr && (isspace((unsigned char)*strptr) || (*strptr) == '\0')) {
+		strptr--;
+	}
+
+	len = strptr - str + 1 ;
+
+	newstr = (char*)malloc(len);
+	memset(newstr, '\0', len);
+	strncpy(newstr, str, len);
+
+	*(newstr + len) = '\0';
+
+	return newstr;
 }
+
 
 // Removes spaces from both sides
 char *strtrim(char *str){
-	return NULL;
+	size_t len;
+	char *start, *end, *newstr;
+
+	if(!str) return NULL;
+
+	start = str;
+
+	while((*start) != '\0' && isspace((unsigned char)*start)) {
+		start++;
+	}
+
+	end = str + strlen(str);
+
+	while(end && (isspace((unsigned char)*end) || (*end) == '\0')) {
+		end--;
+	}
+
+	len = end - start + 1;
+
+	newstr = (char*)malloc(len);
+	memset(newstr, '\0', len);
+	strncpy(newstr,start, len);
+
+	return newstr;
 }
 
 // Iterative version
@@ -316,6 +442,10 @@ char *strnslice(char *str, size_t from, size_t step, size_t strlen ){
 int main(){
 	char str[64] = "This is another string";
 	char *renastr = "WHo's Renamon?";
+	char *renastr2 = "Renamon, is, a, furry, fox, digimon, known, in, the, furry, community.";
+	char *arrStr2 = NULL;
+
+	int i = 0;
 	int testnums[11] = {10, 25,40, 8, 1, 3, 0 ,666, -5, -5999};
 	float testfloats[4] = { 1.8, 4.32, 7.14, 83.33 };
 	double testdoubles[4] = { 0.25, 3.14693, 16.666, 89.362 };
@@ -346,7 +476,20 @@ int main(){
 	printf("\n[%s]", strjoin(teststrs, TYPE_STR, 5, ", "));
 	printf("\n[%s]", strjoin(testfloats, TYPE_FLOAT, 4, ", "));
 	printf("\n[%s]", strjoin(testdoubles, TYPE_DOUBLE, 4, ", "));
+	
+	// Trim
+	printf("\n{%s}", strltrim(strLong));
+	printf("\n{%s}", strrtrim(strLong2));
+	printf("\n{%s}", strtrim(strLong3));
 
+	arrStr2 = strsplit(renastr2, ", ");
+
+	while(arrStr2[i] != NULL){
+		printf("\n%s", arrStr2[i]);
+		i++;
+	};
+
+	
 	free(teststrs[0]);
 	free(teststrs[1]);
 	free(teststrs[2]);

@@ -34,7 +34,7 @@
 char *strsplit(char *str, const char *separator){
 	char **arr = NULL;
 	char *strIndex = NULL;
-	char *strFound = NULL;
+	char *strStart = NULL;
 	char *strEnd = NULL;
 	size_t sepLen, sepCount = 0;
 	size_t strFoundLen = 0;
@@ -46,53 +46,50 @@ char *strsplit(char *str, const char *separator){
 	strIndex = str;
 	strEnd = str + strlen(str);
 	sepLen = strlen(separator);
-	// Count separators found.
-	while(strIndex){
-		strIndex = strstr(strIndex, separator);
-	
-		if(strIndex + sepLen < strEnd){
-			strIndex += sepLen;
-			sepCount++;
-		}else{
-			continue;
-		}
 
-		printf("\n%s", strIndex);
+	// Count separators found.
+	while(strIndex && (strIndex + sepLen) < strEnd){
+		strIndex = strstr(strIndex + sepLen, separator);
+		sepCount++;
 	}
+
+	//sepCount -= 1;
 	
-	printf("\nWe reached here");
-	abort();
 	// stdup on each found string.
-	arr = (char**)malloc(sizeof(char*) * sepCount + 1);
+	//arr = (char**)malloc(sizeof(char*) * sepCount + 1);
+	arr = (char**)malloc(sizeof(char*) * sepCount);
 	
 	if (!arr) return NULL;
 
 	// We reuse strIndex 
-
-	strIndex = str;
+	strStart = str;
 	
 
-	for(i=0; i< sepCount ; i++){
-		strFoundLen = strIndex - str;
+	for(i=0; i< sepCount && strStart < str ; i++){
+		// Start
+		// End
+		strEnd = strstr(strStart, separator);
+		strFoundLen = strEnd - strStart;
+		//Len calculation
 		
-		arr[i] = (char*)malloc(sizeof(strFoundLen));
+		arr[i] = (char*)malloc(strFoundLen);
 
 		if(!arr[i]) return NULL;
 
 		memset(arr[i], '\0', strFoundLen);
 
-		if (i == sepCount - 1){
-			strncpy(arr[i], strIndex + sepLen, strFoundLen);
-		}else{
-			strncpy(arr[i], str, strFoundLen);
-		}
-		strIndex = strstr(strIndex, separator);
+		printf("\n%s", arr[i]);
+
+		strncpy(arr[i], strStart + sepLen, strFoundLen);
+		
+		strStart = strEnd + sepLen;
+
 	}
 
 	// NULL-terminated pointer array.
 	arr[sepCount] = NULL;
 
-	return arr;
+	return *arr;
 }
 
 // Reverses an string
@@ -443,7 +440,7 @@ int main(){
 	char str[64] = "This is another string";
 	char *renastr = "WHo's Renamon?";
 	char *renastr2 = "Renamon, is, a, furry, fox, digimon, known, in, the, furry, community.";
-	char *arrStr2 = NULL;
+	char **arrStr2 = NULL;
 
 	int i = 0;
 	int testnums[11] = {10, 25,40, 8, 1, 3, 0 ,666, -5, -5999};

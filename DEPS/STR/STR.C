@@ -31,65 +31,66 @@
 #define TYPE_STR 4
 
 // Splits string into array of string by a separator AND null terminated
-char *strsplit(char *str, const char *separator){
+char **strsplit(char *str, const char *separator){
 	char **arr = NULL;
-	char *strIndex = NULL;
 	char *strStart = NULL;
 	char *strEnd = NULL;
-	size_t sepLen, sepCount = 0;
+	size_t sepLen = 0;
+	size_t sepCount = 0;
 	size_t strFoundLen = 0;
 	int i = 0;
+	int j = 0;
 
-	if(!str) return NULL;;
+	if(!str) return NULL;
 	if(!separator) return NULL;
 
-	strIndex = str;
-	strEnd = str + strlen(str);
 	sepLen = strlen(separator);
+	if(sepLen == 0) return NULL;
 
 	// Count separators found.
-	while(strIndex && (strIndex + sepLen) < strEnd){
-		strIndex = strstr(strIndex + sepLen, separator);
+	strStart = str;
+	while((strStart = strstr(strStart, separator)) != NULL){
 		sepCount++;
+		strStart += sepLen;
 	}
-
-	//sepCount -= 1;
 	
-	// stdup on each found string.
-	//arr = (char**)malloc(sizeof(char*) * sepCount + 1);
-	arr = (char**)malloc(sizeof(char*) * sepCount);
+	// Allocate string pointer array plus NULL terminator.
+	arr = (char**)malloc(sizeof(char*) * (sepCount + 2));
 	
 	if (!arr) return NULL;
 
-	// We reuse strIndex 
 	strStart = str;
 	
-
-	for(i=0; i< sepCount && strStart < str ; i++){
-		// Start
-		// End
+	for(i=0; i <= sepCount; i++){
 		strEnd = strstr(strStart, separator);
-		strFoundLen = strEnd - strStart;
-		//Len calculation
+		if (strEnd) {
+			strFoundLen = strEnd - strStart;
+		} else {
+			strFoundLen = strlen(strStart);
+		}
 		
-		arr[i] = (char*)malloc(strFoundLen);
+		arr[i] = (char*)malloc(strFoundLen + 1);
 
-		if(!arr[i]) return NULL;
+		if(!arr[i]){
+			for(j = 0; j < i; j++){
+				free(arr[j]);
+			}
+			free(arr);
+			return NULL;
+		}
 
-		memset(arr[i], '\0', strFoundLen);
-
-		printf("\n%s", arr[i]);
-
-		strncpy(arr[i], strStart + sepLen, strFoundLen);
+		strncpy(arr[i], strStart, strFoundLen);
+		arr[i][strFoundLen] = '\0';
 		
-		strStart = strEnd + sepLen;
-
+		if (strEnd) {
+			strStart = strEnd + sepLen;
+		}
 	}
 
 	// NULL-terminated pointer array.
-	arr[sepCount] = NULL;
+	arr[sepCount + 1] = NULL;
 
-	return *arr;
+	return arr;
 }
 
 // Reverses an string
@@ -481,18 +482,25 @@ int main(){
 
 	arrStr2 = strsplit(renastr2, ", ");
 
+	i = 0;
 	while(arrStr2[i] != NULL){
 		printf("\n%s", arrStr2[i]);
 		i++;
-	};
+	}
 
-	
 	free(teststrs[0]);
 	free(teststrs[1]);
 	free(teststrs[2]);
 	free(teststrs[3]);
 	free(teststrs[4]);
-	free(teststrs);
+
+	// Free the array of strings returned by strsplit
+	i = 0;
+	while(arrStr2[i] != NULL){
+		free(arrStr2[i]);
+		i++;
+	}
+	free(arrStr2);
 
 	return 0;
 }

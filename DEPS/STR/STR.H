@@ -18,7 +18,7 @@
 #define TYPE_DOUBLE 3
 #define TYPE_STR 4
 
-char *strsplit(char *str, const char *separator);
+char **strsplit(char *str, const char *separator);
 char *strinv(char *str);
 char *strjoinint(int *arr, size_t arrlen, char *separator);
 char *strjoinfloat(float *arr, size_t arrlen, char *separator);

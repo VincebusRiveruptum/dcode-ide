@@ -1,0 +1,7 @@
+system dos4g
+name SORT.EXE
+file .\SORT.OBJ
+file .\DATA.OBJ
+file .\MEM.OBJ
+file .\LOG.OBJ
+library clib3r.lib

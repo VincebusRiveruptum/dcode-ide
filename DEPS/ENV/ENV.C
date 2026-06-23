@@ -157,7 +157,11 @@ Config *loadEnv() {
   unsigned char type;
   int i = 0;
 
-  if (!fp) return NULL;
+  if (!fp)
+    fp = fopen(CFG_FILENAME, "r");
+  
+  if (!fp)
+    return NULL;
   
   // We get the numeber of attributes in the config file
   while (fgets(tmpBuffer, sizeof(tmpBuffer), fp) != NULL) {

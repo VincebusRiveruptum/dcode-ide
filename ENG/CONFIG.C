@@ -10,8 +10,7 @@ bool cfg_loadConfig(){
 
     log_enable = false;
 
-    if(!loadEnv()) return false;
-
+    loadEnv();
 
     settings.DEBUG                          
         = (unsigned char)atoi(getEnv("DEBUG", "0"));

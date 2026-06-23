@@ -2,7 +2,14 @@
 #ifndef MEM_H
 #define MEM_H
 
-#include "STD.H"
+#include <STDIO.H>
+#include <STDLIB.H>
+#include <CONIO.H>
+#include <STRING.H>
+#include <DOS.H>    
+#include <i86.h>
+#include <errno.h>
+
 #include "../LOG/LOG.H"
 
 #define MAX_ARENAS 32

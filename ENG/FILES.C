@@ -170,7 +170,9 @@ void f_dumpBufferTofile(char *buffer, size_t bufferLength, char *filename){
         return;
     }
     
-    for(i=0; i < bufferLength; i++){
+    // We ignore the last character, as it is a line jump, this could
+    // add a new line each time we save...
+    for(i=0; i < bufferLength - 1; i++){
         fputc(buffer[i], fp);
     }
     
@@ -244,7 +246,7 @@ size_t _copyLines(FileArena *old, FileArena *new){
     Line *oldLine, *newLine;
     size_t offset = 0;
     size_t lengthSum = 0;
-
+    size_t lineLen=0;
     new->file->lines = NULL;
     
     currentNode = old->file->lines->firstNode;
@@ -255,8 +257,12 @@ size_t _copyLines(FileArena *old, FileArena *new){
         newLine = (Line *)mem_arena_alloc(new->arena, NULL, sizeof(Line));
         newLine->buffer = (char *)mem_arena_alloc(new->arena, NULL, sizeof(char) * MAX_FILE_LINE_LENGTH);
         memset(newLine->buffer, '\0', sizeof(char) * MAX_FILE_LINE_LENGTH);
-        sprintf(newLine->buffer, "%s", oldLine->buffer);
-        newLine->length = strlen(newLine->buffer);
+
+        lineLen = strlen(oldLine->buffer);
+
+        strncpy(newLine->buffer, oldLine->buffer, lineLen);
+        newLine->buffer[lineLen + 1] = '\0';
+        newLine->length = lineLen;
 
         addGenericNode(&new->file->lines, (void *)newLine, NULL, new->arena);
         

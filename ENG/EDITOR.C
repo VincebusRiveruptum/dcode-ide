@@ -568,10 +568,16 @@ void ed_backspace(){
         if(currentFileArena->file->cursorCol > 0){
             c = currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1];
 
-            memcpy(currentFileArena->file->currentLine->buffer + x - 1, currentFileArena->file->currentLine->buffer + x, currentFileArena->file->currentLine->length - x);
+            memcpy(
+                currentFileArena->file->currentLine->buffer + x - 1,
+                currentFileArena->file->currentLine->buffer + x, 
+                currentFileArena->file->currentLine->length - x
+            );
+
             currentFileArena->file->currentLine->length--;
-            
+            currentFileArena->file->currentLine->buffer[currentFileArena->file->currentLine->length] = '\0';
             currentFileArena->file->cursorCol--;
+
             _ensureHorizontalScroll();
         }
     }
@@ -607,6 +613,7 @@ void ed_supr(){
     
     memcpy(line->buffer + x, line->buffer + x + 1, line->length - x);    
     line->length--;
+    line->buffer[line->length] = '\0';
 
     currentFileArena->file->isModified = true;
 

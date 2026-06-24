@@ -17,12 +17,11 @@ typedef struct Settings{
     unsigned char TAB_INDICATOR;
     unsigned char TAB_SPACE_INDICATOR;
 
-    char DEFAULT_EXTENSION[16];
+    char *DEFAULT_EXTENSION;
     unsigned char AUTOSAVE;
     unsigned char MOUSE;
-    // VIDEO SETTINGS
-    // 1 = default,   2= 43 lines, 3=50 lines
-    unsigned char VIDEO_MODE;
+
+    unsigned char DEFAULT_VIDEO_MODE;
     // CUSTOMIZATION
     unsigned char STATUSBAR_COLOR_BG;
     unsigned char STATUSBAR_COLOR_TEXT;

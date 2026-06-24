@@ -1,5 +1,4 @@
 
-
 #ifndef ENG_EDITOR_H
 #define ENG_EDITOR_H
 
@@ -8,7 +7,21 @@
 // THIS REQUIRE THE INPUT DEPS
 #include "..\APP\MAIN.H"
 
-#define ED_STATUSBAR_WIDTH 80
+#define ED_STATUSBAR_WIDTH 132
+#define ED_WORD_JUMP_PREV 0
+#define ED_WORD_JUMP_NEXT 1
+#define ED_LINE_JUMP_UP 0
+#define ED_LINE_JUMP_DOWN 1
+
+// Activity values
+
+#define ED_ACTIVITY_TYPE 2
+#define ED_ACTIVITY_DEL 3
+#define ED_ACTIVITY_SUPR 4
+#define ED_ACTIVITY_NEWLINE 5
+#define ED_ACTIVITY_SWAP_DOWN 6
+
+
 /*
  * IBM PC / DOS Code Page 437
  * Line Drawing & Special Characters
@@ -103,11 +116,11 @@
 
 /* Types ===================================================*/
 
-
-
-
 extern struct Container *root;
 extern bool ed_renderEvent;
+extern bool on_selection_tool;
+extern bool on_search_tool;
+
 extern time_t ed_globalAuxTimer;
 
 extern char statusBarMessage[ED_STATUSBAR_WIDTH];
@@ -115,7 +128,7 @@ extern char statusBarMessage[ED_STATUSBAR_WIDTH];
 
 void ed_initConfig(int argc, char *argv[]);
 void ed_handleArguments(int argc, char *argv[]);
-void ed_updateCursor();
+
 void ed_putCursor(unsigned char x, unsigned char y);
 void ed_moveCursor(short x, short y);
 void ed_typeChar(char c);
@@ -123,8 +136,11 @@ void ed_backspace();
 void ed_supr();
 void ed_tab();
 
+void ed_resetCursor();
+
 char *ed_getDefaultExtension();
 char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars);
+char *ed_async_scanf(unsigned char x, unsigned char y, unsigned char maxChars, char *buffer, size_t bufflen, int *stepIndex);
 
 void ed_putCursorEnd();
 void ed_putCursorStart();
@@ -134,6 +150,19 @@ void ed_putCursorLastLine();
 void ed_statusBarMessage(const char *format,  ...);
 bool ed_checkStatusBarMessage();
 void ed_statusBar();
+
+void ed_wordJump(short wordJump);
+void ed_swapLine(short lineJump);
+
+void ed_showFileSwitcher();
+void ed_quickOpenFileDialog();
+
+void ed_prepareSelectionTool();
+void ed_clearSelection();
+void ed_handleSelection();
+
+int ed_wordCountInStr(char *str);
+void ed_shellSpawn();
 
 #endif
 

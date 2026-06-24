@@ -2,10 +2,10 @@
 #include "TEST.H"
 
 void _colorRectangles(){
-    dw_rectangle(textmemptr, 3, 3, 20, 10, COLOR_CYAN, COLOR_BLACK, 219, COLOR_CYAN, COLOR_BLACK, true, DRAW_BORDER_SIMPLE);
-    dw_rectangle(textmemptr, 30, 7, 50, 20, COLOR_MAGENTA, COLOR_BLACK, 219, COLOR_MAGENTA, COLOR_BLACK, true, DRAW_BORDER_SIMPLE);
-    dw_rectangle(textmemptr, 23, 23, 40, 40, COLOR_RED, COLOR_BLACK, 219, COLOR_RED, COLOR_BLACK, true, DRAW_BORDER_SIMPLE);
-    dw_rectangle(textmemptr, 60, 20, 70, 30, COLOR_LIGHT_YELLOW, COLOR_BLACK, 219, COLOR_BROWN, COLOR_BLACK, true, DRAW_BORDER_SIMPLE);
+    dw_rectangle(textmemptr, 3, 3, 20, 10, COLOR_CYAN, COLOR_BLACK, 219, COLOR_CYAN, COLOR_BLACK, true, DRAW_BORDER_SIMPLE, NULL);
+    dw_rectangle(textmemptr, 30, 7, 50, 20, COLOR_MAGENTA, COLOR_BLACK, 219, COLOR_MAGENTA, COLOR_BLACK, true, DRAW_BORDER_SIMPLE, NULL);
+    dw_rectangle(textmemptr, 23, 23, 40, 40, COLOR_RED, COLOR_BLACK, 219, COLOR_RED, COLOR_BLACK, true, DRAW_BORDER_SIMPLE, NULL);
+    dw_rectangle(textmemptr, 60, 20, 70, 30, COLOR_LIGHT_YELLOW, COLOR_BLACK, 219, COLOR_BROWN, COLOR_BLACK, true, DRAW_BORDER_SIMPLE, NULL);
 
     dw_writeBuffer(textmemptr, "Hello World", 5, 6, 20, 10, COLOR_WHITE, COLOR_BLACK);
     dw_writeBuffer(textmemptr, "John D. Carmack II[1] (born August 21,[a] 1970)[1] is an American computer programmer and video game developer. He co-founded the video game company id Software and was the lead programmer of its 1990s games Commander Keen, Wolfenstein 3D, Doom, Quake, and their sequels. Carmack made innovations in 3D computer graphics, such as his Carmack's Reverse algorithm for shadow volumes.", 32, 12, 50, 18, COLOR_WHITE, COLOR_BLACK);
@@ -33,6 +33,13 @@ void t_drawDebugger(){
     dw_writeBuffer(textmemptr, "currentCursorX: %d", 60, 6, VIDEO_COLS - 1, 6, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentCursorX );
     dw_writeBuffer(textmemptr, "currentCursorY: %d", 60, 7, VIDEO_COLS - 1, 7, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentCursorY );
     dw_writeBuffer(textmemptr, "line length: %d", 60, 8, VIDEO_COLS - 1, 8, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentFileArena->file->currentLine->length);
+    dw_writeBuffer(textmemptr, "selectedStartX: %d", 60, 9, VIDEO_COLS - 1, 9, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentFileArena->file->selectedStartX);
+    dw_writeBuffer(textmemptr, "selectedEndX: %d", 60, 10, VIDEO_COLS - 1, 10, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentFileArena->file->selectedEndX);
+    dw_writeBuffer(textmemptr, "selectedStartLine: %d", 60, 11, VIDEO_COLS - 1, 11, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentFileArena->file->selectedStartLine);
+    dw_writeBuffer(textmemptr, "selectedEndLine: %d", 60, 12, VIDEO_COLS - 1, 12, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentFileArena->file->selectedEndLine);
+    dw_writeBuffer(textmemptr, "oldCol: %d", 60, 13, VIDEO_COLS - 1, 13, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentFileArena->file->oldCol);
+    dw_writeBuffer(textmemptr, "oldLine: %d", 60, 14, VIDEO_COLS - 1, 14, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentFileArena->file->oldLine);
+    dw_writeBuffer(textmemptr, "isActive: %d", 60, 15, VIDEO_COLS - 1, 15, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentFileArena->file->isActive);
 }
 
 /* ===================================================================*/

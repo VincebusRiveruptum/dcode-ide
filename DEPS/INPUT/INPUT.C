@@ -9,6 +9,7 @@ volatile unsigned char inp_state[256];          /* Current physical status */
 volatile unsigned char inp_pressed[256];        /* Event counter: just pressed */
 volatile unsigned char inp_released[256];       /* Event counter: just released */
 volatile unsigned char inp_justPressed[256];    /* Frame-specific pressed flag */
+volatile unsigned char inp_justPressedPending[256]; /* Latch for asynchronous key presses */
 
 const unsigned char *inp_keyboardMap[256] = {
     NULL,
@@ -133,7 +134,7 @@ static void __interrupt __far keyISR() {
         /* Make code */
         if (!inp_state[sc]) {
             if (inp_pressed[sc] < 255) inp_pressed[sc]++;
-            inp_justPressed[sc] = 1;
+            inp_justPressedPending[sc] = 1;
         }
         inp_state[sc] = 1;
     } else {
@@ -154,12 +155,52 @@ static void __interrupt __far keyISR() {
     oldKeyISR();
 }
 
+// Used for clearing the buffers after pressing a keystroke combination for a dialog or
+// certain function
+void inp_clearKeyboardBuffer() {
+    int i;
+    _disable();
+    for (i = 0; i < 256; i++) {
+        inp_pressed[i] = 0;
+        inp_released[i] = 0;
+        inp_justPressed[i] = 0;
+        inp_justPressedPending[i] = 0;
+    }
+    _enable();
+    
+    /* Drain BIOS keyboard buffer */
+    while (kbhit()) {
+        getch();
+    }
+}
+
+void inp_waitForRelease(){
+    char pressed = 0;
+    int i=0;
+
+    do{
+        pressed = 0;
+        _disable();
+        for (i = 0; i < 256; i++) {
+            pressed =
+                inp_state[i];
+
+            if(pressed) break;
+        }
+        _enable();
+    }while(pressed);
+
+    inp_clearKeyboardBuffer();
+}
+
 void inp_initKeyboard() {
     int i;
     for (i = 0; i < 256; i++) {
         inp_state[i] = 0;
         inp_pressed[i] = 0;
         inp_released[i] = 0;
+        inp_justPressed[i] = 0;
+        inp_justPressedPending[i] = 0;
     }
     oldKeyISR = _dos_getvect(0x09);
     _dos_setvect(0x09, keyISR);
@@ -177,11 +218,14 @@ void inp_updateKeyboard() {
     int i;
     _disable();
     for(i = 0; i < 256; i++) {
+        /* Latch pending presses to be consumed during the next frame */
+        inp_justPressed[i] = inp_justPressedPending[i];
+        inp_justPressedPending[i] = 0;
+
         /* Only clear keys that aren't usually used as shortcuts 
            or if the queue is getting too long. */
         if (inp_pressed[i] > 10) inp_pressed[i] = 0;
         inp_released[i] = 0; 
-        inp_justPressed[i] = 0;
     }
     _enable();
 }
@@ -286,3 +330,4 @@ int main(){
     return 0;
 }
 #endif
+

@@ -5,35 +5,10 @@ void el_renderFiles_test(){
     FileArena *fileArena = NULL;
     File *file = NULL;
     int j=0;
-    /* For now we will use this way of list travel
-        altrough we know its O(N) we will use it for now
-    */
 
-    // Workspace background
-    dw_fill(editormemptr, COLOR_BLUE, COLOR_LIGHT_BLUE, '°');
-    
-    for(i; i < MAX_ARENAS; i++){
-        fileArena = &fileList[i];    
-
-        if(!fileArena || !fileArena->file || !fileArena->arena) continue;
-
-        file = fileArena->file;
-        /*
-            In this place, instead of drawing directly the buffer on screen, 
-            there should be a layer between that a window element handles that buffer
-            somehow.
-        */
-        //logger("\n[el_renderFiles_test]: Rendering %s", file->buffer);
-        dw_writeBufferEditorFormatted(&editormemptr, 0, 0, VIDEO_COLS - 1, VIDEO_ROWS - 2, COLOR_LIGHT_GRAY, COLOR_BLACK, file) ;
+    dw_writeBufferEditorFormatted(&editormemptr, 0, 0, VIDEO_COLS - 1, VIDEO_ROWS - 2, COLOR_LIGHT_GRAY, COLOR_BLACK, currentFileArena->file) ;
      
-    }
-
-    // COPY FROM EDITOR --> VIDEO
-
-    // This will trasnate line jumps and tabs, becaues in memeory these are special chars and by copying directly to memory these are not translated 
-    // and will look wrong
-
-    for(i=0; i < VIDEO_BUFFER_SIZE; i++){
+    for(i=0; i < v_getVideoBufferSize(); i++){
         textmemptr[i] = editormemptr[i];
     }
 }
@@ -41,24 +16,29 @@ void el_renderFiles_test(){
 void el_renderContainer(Container *container){
     return;
 }
+
 void el_renderLabel(Label *label){
     // Put the cursor on labels coordinates
     // Print the text with the color attributes
 
     return;
 }
+
 void el_renderButton(Button *button){
     // Put the cursor on the button coordinates
     // Draw a rectangle with the color attributes at the position
     // Print the text with the color attributes
     return;
 }
+
 void el_renderInput(Input *input){
     return;
 }
+
 void el_renderStatusbar(Statusbar *menu){
     return;
 }
+
 void el_renderMenu(Menu *menu){
     return;
 }

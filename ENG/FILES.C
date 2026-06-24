@@ -261,7 +261,7 @@ size_t _copyLines(FileArena *old, FileArena *new){
         lineLen = strlen(oldLine->buffer);
 
         strncpy(newLine->buffer, oldLine->buffer, lineLen);
-        newLine->buffer[lineLen + 1] = '\0';
+        newLine->buffer[lineLen] = '\0';
         newLine->length = lineLen;
 
         addGenericNode(&new->file->lines, (void *)newLine, NULL, new->arena);

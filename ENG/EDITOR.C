@@ -68,14 +68,15 @@ void ed_handleArguments(int argc, char *argv[]){
 }
 
 void ed_resetActity(){
-    currentFileArena->file->isActive = false;
+    if(currentFileArena && currentFileArena->file)
+        currentFileArena->file->isActive = false;
     //f_flushSearchMetadata();
 }
 
 void ed_markActive(unsigned char activity){
     // Push activity to editor clipboard
-
-    currentFileArena->file->isActive = true;
+    if(currentFileArena && currentFileArena->file)
+        currentFileArena->file->isActive = true;
 }
 
 int _get_tab_counts_until(int col){
@@ -1511,10 +1512,10 @@ int ed_wordCountInStr(char *str){
 				detectedWord[detectedWordLen] = '\0';
 				//printf("\nDetected word: %s", detectedWord);
 			}
-			
+            
 			detectedStartOffset = NULL;
 			detectedEndOffset = NULL;
-			memcpy(detectedWord, '\0', 255);
+			memset(detectedWord, '\0', 255);
 			detectedWordLen = 0;
 		}
 		
@@ -1761,6 +1762,8 @@ void ed_shellSpawn(){
     int spawn_ret;
     int system_ret;
 
+    if(!currentFileArena || !currentFileArena->file) return;
+    
     inp_closeKeyboard();
 
     v_set25Lines();

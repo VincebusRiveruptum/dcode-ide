@@ -5,21 +5,14 @@ char currentWorkspacePath[255] = {'\0'};
 // Retruns the index until where the full filename string is 
 // just the directory part only .
 size_t fs_getFilePath(char *filename){
-    size_t filenameLen;
-    size_t pathIndex = 0;
-    char *filenameIndex = NULL;
+    char *last_slash;
 
     if(!filename) return 0;
 
-    filenameLen = strlen(filename);
-    filenameIndex = filename + filenameLen;
+    last_slash = strrchr(filename, '\\');
+    if(!last_slash) return 0;
 
-    while((*filenameIndex) != '\\' && filenameIndex > filename){
-        filenameIndex--;
-        pathIndex++;
-    }
-
-    return (filenameLen - pathIndex);
+    return (size_t)(last_slash - filename);
 }
 
 /* TEST FUNCTIONS */

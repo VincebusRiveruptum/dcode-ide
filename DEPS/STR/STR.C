@@ -63,29 +63,29 @@ char **strsplit(char *str, const char *separator){
         strStart = str;
         
         for(i=0; i <= sepCount; i++){
-                strEnd = strstr(strStart, separator);
-                if (strEnd) {
-                        strFoundLen = strEnd - strStart;
-                } else {
-                        strFoundLen = strlen(strStart);
-                }
-                
-                arr[i] = (char*)malloc(strFoundLen + 1);
+			strEnd = strstr(strStart, separator);
+			if (strEnd) {
+					strFoundLen = strEnd - strStart;
+			} else {
+					strFoundLen = strlen(strStart);
+			}
+			
+			arr[i] = (char*)malloc(strFoundLen + 1);
 
-                if(!arr[i]){
-                        for(j = 0; j < i; j++){
-                                free(arr[j]);
-                        }
-                        free(arr);
-                        return NULL;
-                }
+			if(!arr[i]){
+					for(j = 0; j < i; j++){
+							free(arr[j]);
+					}
+					free(arr);
+					return NULL;
+			}
 
-                strncpy(arr[i], strStart, strFoundLen);
-                arr[i][strFoundLen] = '\0';
-                
-                if (strEnd) {
-                        strStart = strEnd + sepLen;
-                }
+			strncpy(arr[i], strStart, strFoundLen);
+			arr[i][strFoundLen] = '\0';
+			
+			if (strEnd) {
+					strStart = strEnd + sepLen;
+			}
         }
 
         // NULL-terminated pointer array.
@@ -129,7 +129,7 @@ char *strjoinint(int *arr, size_t arrlen, char *separator){
         size_t len = 0;
         int i;
         char numbuff[48];
-        int numlen;
+        int numlen = 0;
 
         if(!separator) return NULL;
 
@@ -255,7 +255,7 @@ char *strjoinstr(char **arr, size_t arrlen, char *separator){
         char *newstr = NULL;
         size_t len = 0;
         int i;
-        size_t bufflen;
+        size_t bufflen = 0;
 
         if(!separator) return NULL;
 
@@ -264,7 +264,7 @@ char *strjoinstr(char **arr, size_t arrlen, char *separator){
         for(i=0; i<arrlen; i++){
                 if(!arr[i]) continue;
 
-                bufflen += (strlen(arr + i) + strlen(separator));
+                bufflen += (strlen(arr[i]) + strlen(separator));
         }
 
         newstr = (char*)malloc(sizeof(char)*bufflen);
@@ -377,6 +377,8 @@ char *strtrim(char *str){
         }
 
         end = str + strlen(str);
+
+        if(end == start) return str;
 
         while(end && (isspace((unsigned char)*end) || (*end) == '\0')) {
                 end--;

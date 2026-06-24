@@ -119,9 +119,9 @@ bool isfloat(const char *str) {
     return has_digit;
 }
 
-unsigned char getConfigType(char *value) {
+char getConfigType(char *value) {
   if (!value)
-    return NULL;
+    return -1;
 
   if (isdigit(value[0]))
     return ENV_TYPE_INT;
@@ -142,7 +142,7 @@ unsigned char getConfigType(char *value) {
   if(isalpha(value[0]))
     return ENV_TYPE_STRING;
 
-  return NULL;
+  return -1;
 }
 
 Config *loadEnv() {
@@ -228,7 +228,7 @@ void freeConf(Config *conf) {
 
 char *getEnv(char *key, const char *defaultValueFormat, ...){
   int i=0;
-  char defvalue[255] = {'\0'};
+  static char defvalue[255] = {'\0'};
   char *value = NULL;
   
   va_list args;

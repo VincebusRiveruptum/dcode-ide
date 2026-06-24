@@ -98,9 +98,8 @@ char **strsplit(char *str, const char *separator){
 char *strinv(char *str){
         size_t len;
         char *newstr = NULL;
-        char *stroffset;
-        char *strptr;
-        char *strbuff = NULL;
+        size_t i, j;
+        char temp;
 
         if(!str) return NULL;
 
@@ -108,21 +107,17 @@ char *strinv(char *str){
 
         if(!newstr) return NULL;
         
-        strptr = newstr;
-        
         len = strlen(newstr);
-        strbuff = strdup(newstr);
-        stroffset = newstr + len - 1;
+        if (len == 0) return newstr;
 
-        while((*strbuff) != '\0'){
-                *(stroffset--) = *(strbuff++);
+        for (i = 0, j = len - 1; i < j; i++, j--) {
+                temp = newstr[i];
+                newstr[i] = newstr[j];
+                newstr[j] = temp;
         }
-
-        free(strbuff);
 
         return newstr;
 }
-
 // Joins array into a string by a separator
 char *strjoinint(int *arr, size_t arrlen, char *separator){
         char *newstr = NULL;

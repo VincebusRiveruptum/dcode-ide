@@ -5,33 +5,9 @@ void el_renderFiles_test(){
     FileArena *fileArena = NULL;
     File *file = NULL;
     int j=0;
-    /* For now we will use this way of list travel
-        altrough we know its O(N) we will use it for now
-    */
 
-    // Workspace background
-    //dw_fill(editormemptr, COLOR_BLUE, COLOR_LIGHT_BLUE, '°');
-    
-    //for(i; i < MAX_ARENAS; i++){
-        //fileArena = &fileList[i];    
-
-//        if(!fileArena || !fileArena->file || !fileArena->arena) continue;
-
-//        file = fileArena->file;
-        /*
-            In this place, instead of drawing directly the buffer on screen, 
-            there should be a layer between that a window element handles that buffer
-            somehow.
-        */
-        dw_writeBufferEditorFormatted(&editormemptr, 0, 0, VIDEO_COLS - 1, VIDEO_ROWS - 2, COLOR_LIGHT_GRAY, COLOR_BLACK, currentFileArena->file) ;
+    dw_writeBufferEditorFormatted(&editormemptr, 0, 0, VIDEO_COLS - 1, VIDEO_ROWS - 2, COLOR_LIGHT_GRAY, COLOR_BLACK, currentFileArena->file) ;
      
-    //}
-
-    // COPY FROM EDITOR --> VIDEO
-
-    // This will trasnate line jumps and tabs, becaues in memeory these are special chars and by copying directly to memory these are not translated 
-    // and will look wrong
-
     for(i=0; i < v_getVideoBufferSize(); i++){
         textmemptr[i] = editormemptr[i];
     }

@@ -1,4 +1,6 @@
-/* ENV/CFG handling by Vincebus - 2025
+/* ENV/CFG handling by Vincebus - 2026
+
+-- JUNE Revision ---
 
 As in August 2025. the Configuration entries are hardcoded and if you want more
 settings you have to modify the Config data structure, displayConf and the
@@ -117,52 +119,30 @@ bool isfloat(const char *str) {
     return has_digit;
 }
 
-char *getConfigType(char *value) {
+char getConfigType(char *value) {
   if (!value)
-    return NULL;
+    return -1;
 
   if (isdigit(value[0]))
-    return INT;
+    return ENV_TYPE_INT;
 
-  if (value[0] == 't' || value[0] == 'f')
-    return BOOL;
+  if (
+    strcmp(value, "true") == 0 ||
+    strcmp(value, "True") == 0 ||
+    strcmp(value, "TRUE") == 0 ||
+    strcmp(value, "false") == 0 ||
+    strcmp(value, "False") == 0 ||
+    strcmp(value, "FALSE") == 0
+  )
+    return ENV_TYPE_BOOL;
 
   if (isfloat(value))
-    return FLOAT;
+    return ENV_TYPE_FLOAT;
 
   if(isalpha(value[0]))
-    return STRING;
+    return ENV_TYPE_STRING;
 
-  return NULL;
-}
-
-bool parseConfigValue(char *key, char *type, char *value) {
-  ConfigEntry *entry;
-
-  if (!key || !type || !value)
-    return false;
-
-  entry = (ConfigEntry *)malloc(sizeof(ConfigEntry));
-
-  entry->key = strdup(key);
- 
-  if (strcmp(type, INT) == 0) {
-    entry->value = (void *)strdup(value);
-  }
-
-  if (strcmp(type, BOOL) == 0) {
-    entry->value = (void *)strdup(value);
-  }
-
-  if (strcmp(type, FLOAT) == 0) {
-    entry->value = (void *)strdup(value);
-  }
-
-  if (strcmp(type, STRING) == 0) {
-    entry->value = (void *)strdup(value);
-  }
-
-  return true;
+  return -1;
 }
 
 Config *loadEnv() {
@@ -174,19 +154,15 @@ Config *loadEnv() {
   char tmpBuffer[256];
   char *key;
   char *value;
-  char *type;
+  unsigned char type;
   int i = 0;
 
-  if (!fp) {
-    logger("[loadEnv]: %s not found, trying %s", ENV_FILENAME, CFG_FILENAME);
+  if (!fp)
     fp = fopen(CFG_FILENAME, "r");
-  }
-
-  if (!fp) {
-    logger("[loadEnv]: No config file found (%s or %s)", ENV_FILENAME, CFG_FILENAME);
+  
+  if (!fp)
     return NULL;
-  }
-
+  
   // We get the numeber of attributes in the config file
   while (fgets(tmpBuffer, sizeof(tmpBuffer), fp) != NULL) {
     i++;
@@ -208,12 +184,14 @@ Config *loadEnv() {
   
   // We parse the config file
   while (fgets(tmpBuffer, sizeof(tmpBuffer), fp) != NULL) {
+    // ignore comments
     if (tmpBuffer[0] == '#' || tmpBuffer[0] == '\n' || tmpBuffer[0] == '\r') continue;
     
     key = getConfigKey(tmpBuffer);
     if (!key) continue;
     
     value = getConfigValue(tmpBuffer);
+
     if (!value) {
         free(key);
         continue;
@@ -235,15 +213,6 @@ Config *loadEnv() {
   return config;
 }
 
-void displayConf(Config *conf) {
-  int i=0;
-
-  printf("\nConfiguration content:\n");
-
-  for(i=0; i< conf->length; i++) {
-    printf("%s: %s\n", conf->entries[i].key, conf->entries[i].value); 
-  }
-}
 
 void freeConf(Config *conf) {
   int i=0;
@@ -257,21 +226,66 @@ void freeConf(Config *conf) {
   free(conf);
 }
 
-void *getEnv(char *key){
+char *getEnv(char *key, const char *defaultValueFormat, ...){
   int i=0;
+  static char defvalue[255] = {'\0'};
+  char *value = NULL;
+  
+  va_list args;
 
-  if(!config) return NULL;
-
-  for(i=0; i< config->length; i++) {
-    if (config->entries[i].key && strcmp(config->entries[i].key, key) == 0) {
-      return config->entries[i].value;
+  if(config){ 
+    for(i=0; i< config->length; i++) {
+      if (config->entries[i].key && strcmp(config->entries[i].key, key) == 0) {
+        return config->entries[i].value;
+      }
     }
   }
 
-  return NULL;
+  if(defaultValueFormat){
+    va_start(args, defaultValueFormat);
+    vsprintf(defvalue, defaultValueFormat, args); 
+    va_end(args);
+    
+    value = defvalue;
+
+  }else{
+    value = "";
+  }
+  
+  if(value == defvalue){
+    return strdup(defvalue);  
+  }else{
+    return value;
+  }
+
+  return value;
 }
 
 #ifdef STANDALONE
+
+void displayConf(Config *conf) {
+  int i=0;
+
+  printf("\nConfiguration content:\n");
+
+  for(i=0; i< conf->length; i++) {
+    switch(conf->entries[i].type){
+      case ENV_TYPE_INT:
+        printf("%s: %s [INT]\n", conf->entries[i].key, conf->entries[i].value); 
+        break;
+      case ENV_TYPE_FLOAT:
+        printf("%s: %s [FLOAT]\n", conf->entries[i].key, conf->entries[i].value); 
+        break;
+      case ENV_TYPE_BOOL:
+        printf("%s: %s [BOOL]\n", conf->entries[i].key, conf->entries[i].value); 
+        break;
+      case ENV_TYPE_STRING:
+        printf("%s: %s [STRING]\n", conf->entries[i].key, conf->entries[i].value); 
+        break;
+    }
+  }
+}
+
 int main() {
   printf("\n\n.ENV/CFG File reader");
   printf("\nVincebus Riveruptum, 2025.");
@@ -282,10 +296,10 @@ int main() {
     printf("\nNo ENV/CFG file found!.");
     return 0;
   }
-  /*
-  printf("\nASSETS_PATH: %s", (char*)getEnv("ASSETS_PATH"));
-  printf("\nENV_PATH: %s", (char*)getEnv("ENV"));
-  */
+  
+  displayConf(config);
+
+  freeConf(config);
 
   return 0;
 }

@@ -1,5 +1,4 @@
 
-
 #ifndef ENG_EDITOR_H
 #define ENG_EDITOR_H
 
@@ -13,6 +12,16 @@
 #define ED_WORD_JUMP_NEXT 1
 #define ED_LINE_JUMP_UP 0
 #define ED_LINE_JUMP_DOWN 1
+
+// Activity values
+
+#define ED_ACTIVITY_TYPE 2
+#define ED_ACTIVITY_DEL 3
+#define ED_ACTIVITY_SUPR 4
+#define ED_ACTIVITY_NEWLINE 5
+#define ED_ACTIVITY_SWAP_DOWN 6
+
+
 /*
  * IBM PC / DOS Code Page 437
  * Line Drawing & Special Characters
@@ -107,11 +116,11 @@
 
 /* Types ===================================================*/
 
-
-
-
 extern struct Container *root;
 extern bool ed_renderEvent;
+extern bool on_selection_tool;
+extern bool on_search_tool;
+
 extern time_t ed_globalAuxTimer;
 
 extern char statusBarMessage[ED_STATUSBAR_WIDTH];
@@ -147,6 +156,13 @@ void ed_swapLine(short lineJump);
 
 void ed_showFileSwitcher();
 void ed_quickOpenFileDialog();
+
+void ed_prepareSelectionTool();
+void ed_clearSelection();
+void ed_handleSelection();
+
+int ed_wordCountInStr(char *str);
+void ed_shellSpawn();
 
 #endif
 

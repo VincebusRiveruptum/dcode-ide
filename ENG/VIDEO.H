@@ -120,7 +120,8 @@ extern unsigned char VIDEO_COLS;
 extern unsigned char VIDEO_ROWS;
 extern unsigned char currentCursorX;
 extern unsigned char currentCursorY;
-    
+extern int v_currentMode;
+     
 void v_init_video();
 unsigned char v_setVideoMode(unsigned char mode, unsigned char show_msg);
 void v_close_video();

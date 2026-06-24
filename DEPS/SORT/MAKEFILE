@@ -6,7 +6,7 @@ CFLAGS = -dSORT_STANDALONE -i..\DATA  /4r /s /otexan
 OBJDIR = .
 
 # Object files in BIN
-OBJS = $(OBJDIR)\$(APPNAME).OBJ $(OBJDIR)\DATA.OBJ
+OBJS = $(OBJDIR)\$(APPNAME).OBJ $(OBJDIR)\DATA.OBJ $(OBJDIR)\MEM.OBJ $(OBJDIR)\LOG.OBJ
 
 # Linker directive file
 LNK = $(OBJDIR)\$(APPNAME).lnk
@@ -24,6 +24,14 @@ $(APPNAME).EXE: $(OBJS)
 # Compile rules for each .c -> .obj in BIN
 # External DEPS
 $(OBJDIR)\DATA.OBJ: ..\DATA\DATA.C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+# External DEPS
+$(OBJDIR)\MEM.OBJ: ..\MEM\MEM.C
+    if not exist $(OBJDIR) mkdir $(OBJDIR)
+    $(CC) $(CFLAGS) -fo=$@ $<
+# External DEPS
+$(OBJDIR)\LOG.OBJ: ..\LOG\LOG.C
     if not exist $(OBJDIR) mkdir $(OBJDIR)
     $(CC) $(CFLAGS) -fo=$@ $<
 

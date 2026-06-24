@@ -25,7 +25,7 @@ void mem_shutdown() {
 
     for(i=0; i<MAX_ARENAS; i++){
         if(memoryArenas[i].name != NULL){
-            mem_arena_free(memoryArenas[i].name);
+            mem_arena_free(memoryArenas[i].name, NULL);
         }
     }
 }
@@ -122,9 +122,14 @@ void mem_arena_reset(char *name){
     }
 }
 
-void mem_arena_free(char *name){
+void mem_arena_free(MemoryArena *arenaPtr,char *name){
     MemoryArena *arena = NULL;
-    arena = mem_get_arena(name);
+
+    if(!arenaPtr){
+        arena = mem_get_arena(name);
+    }else{
+        arena = arenaPtr;
+    }
 
     if(arena && arena->base){
         logger("\n[mem_arena_free]: Freeing arena %s", arena->name);

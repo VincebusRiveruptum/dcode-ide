@@ -33,11 +33,32 @@ int main(int argc, char *argv[]){
 	ed_renderEvent = true;
     
 	while(endProgram == false){
+		/*
+		struct Node *oldLineNode = NULL;
+		unsigned short oldCol = 0;
+		unsigned short oldLine = 0;
+		
+		if(currentFileArena && currentFileArena->file){
+			oldLineNode = (struct Node *)currentFileArena->file->currentLineNode;
+			oldCol = currentFileArena->file->cursorCol;
+			oldLine = currentFileArena->file->cursorLine;
+		}
+		*/
+		ed_prepareSelectionTool();
+		
+		// SEARCH TOOl
+		ed_prepareSearchTool();
 
 		// ACTION KEYS HANDLING
 		// This is uses ISR approach, not getch()
-		if(inp_isKeyPressed(KEY_F11)) {v_cycleVideoModes(); ed_renderEvent = true;}
-		if(inp_isKeyPressed(KEY_F12)){mem_vis_mem();};
+		if(inp_isKeyPressed(KEY_F11)) {
+			v_cycleVideoModes();
+			ed_renderEvent = true;
+		}
+
+		if(inp_isKeyPressed(KEY_F12))
+			mem_vis_mem();
+		
 
 		if(inp_isKeyPressed(KEY_HOME)) ed_putCursorStart();
 		if(inp_isKeyPressed(KEY_END)) ed_putCursorEnd();
@@ -45,7 +66,6 @@ int main(int argc, char *argv[]){
 		if(inp_isKeyPressed(KEY_PAGEUP)) ed_putCursorFistLine();
 		if(inp_isKeyPressed(KEY_PAGEDOWN)) ed_putCursorLastLine();
         
-
 		// Switch files
 		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_LSHIFT)) ed_showFileSwitcher();        
 
@@ -53,15 +73,15 @@ int main(int argc, char *argv[]){
 		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_RIGHT)) ed_wordJump(ED_WORD_JUMP_NEXT);
 		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_LEFT)) ed_wordJump(ED_WORD_JUMP_PREV);
 
-		// Line Jumping
+		// Line swapping
 		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_UP)) ed_swapLine(ED_LINE_JUMP_UP);
 		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_DOWN)) ed_swapLine(ED_LINE_JUMP_DOWN);
 
-
+		// SPACE
 		if(inp_isKeyDown(KEY_SPACE)) ed_renderEvent = true;
         
+		// DELETE (forward)
 		if(inp_isKeyPressed(KEY_DELETE)) ed_supr();
-        
 
 		/* FILE OPERATIONS */
 		
@@ -85,9 +105,15 @@ int main(int argc, char *argv[]){
 
 		// SAVE FILE
 		if(inp_keysPressed(INP_TRIGGER_EDGE, 3, KEY_LCTRL, KEY_LSHIFT, KEY_S)) f_saveFile();
-        
+ 
+		// SHELL SPAWN
+		if(inp_isKeyPressed(KEY_F9)) ed_shellSpawn();
+ 
+		ed_resetActity();
+		
 		// Getch approach, why? Because getch() reads and uses DOS routines for handling the keyboard
 		// so it translates the input scancode to the correct codepage value.
+
 		if(kbhit()){
 			c = getch();
             
@@ -118,10 +144,14 @@ int main(int argc, char *argv[]){
 			}
 		}
 
+		if(currentFileArena && currentFileArena->file){
+			ed_handleSelection();
+		}
+
 		// Draw statusbar
 		ed_statusBar();
         
-		//t_drawDebugger();
+		if(settings.DEBUG == true) t_drawDebugger();
 
 		if(ed_renderEvent == true){
 			ed_renderElements();

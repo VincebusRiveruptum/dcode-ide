@@ -130,3 +130,4 @@ void v_cycleVideoModes(){
 
     v_setVideoMode(v_currentMode, SHOW_MSG);
 }
+

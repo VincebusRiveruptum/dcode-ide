@@ -8,7 +8,7 @@
 
 #include "..\DEPS\DATA\DATA.H"
 #include "..\DEPS\LOG\LOG.H"
-#include ".\FILES.H"
+
 
 #if defined(__MSDOS__) || defined(__WATCOMC__)
 #include <dos.h>
@@ -31,6 +31,7 @@ typedef struct Directory{
 
 extern char currentWorkspacePath[255];
 
+size_t fs_getFilePath(char *filename);
 char *fs_getAbsoluteCurrentPath(char *strbuffer, size_t len);
 Directory *fs_getDirectoryFileList(const char *path);
 void fs_freeDirectory(Directory *d);

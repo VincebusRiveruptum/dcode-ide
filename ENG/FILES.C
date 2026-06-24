@@ -3,8 +3,12 @@
 #include "CONFIG.H"
 
 FileArena fileList[MAX_ARENAS];
+SearchMetadata fileListSearchMetadata[MAX_ARENAS];
+
 MemoryArena *tmpPtrArena = NULL;
 FileArena *currentFileArena = NULL;
+SearchMetadata *currentFileSearch = NULL;
+
 bool endProgram = false;
 
 /* File arena managing and utlis ======================================================*/
@@ -35,6 +39,11 @@ FileArena *f_addFileArena(FileArena *fileArena){
     for(i; i < MAX_ARENAS; i++){
         if(fileList[i].file == NULL && fileList[i].arena == NULL){
             fileList[i] = *fileArena;
+            
+            // We update the fileIndex, this is used for accessing quickly to the 
+            // fileArena array.
+            fileArena->file->fileIndex = i;
+
             return &fileList[i];
         }
     }
@@ -46,9 +55,10 @@ void f_closeFile(FileArena *fileArena){
     sprintf(arenaName, "%s", fileArena->arena->name);
 
     fileArena->file = NULL;
+    
+    mem_arena_free(fileArena->arena, NULL);
+    
     fileArena->arena = NULL;
-
-    mem_arena_free(arenaName);
 
     logger("[f_closeFile]: File %s closed successfully", arenaName);    
 }
@@ -160,7 +170,9 @@ void f_dumpBufferTofile(char *buffer, size_t bufferLength, char *filename){
         return;
     }
     
-    for(i=0; i < bufferLength; i++){
+    // We ignore the last character, as it is a line jump, this could
+    // add a new line each time we save...
+    for(i=0; i < bufferLength - 1; i++){
         fputc(buffer[i], fp);
     }
     
@@ -234,7 +246,7 @@ size_t _copyLines(FileArena *old, FileArena *new){
     Line *oldLine, *newLine;
     size_t offset = 0;
     size_t lengthSum = 0;
-
+    size_t lineLen=0;
     new->file->lines = NULL;
     
     currentNode = old->file->lines->firstNode;
@@ -245,8 +257,12 @@ size_t _copyLines(FileArena *old, FileArena *new){
         newLine = (Line *)mem_arena_alloc(new->arena, NULL, sizeof(Line));
         newLine->buffer = (char *)mem_arena_alloc(new->arena, NULL, sizeof(char) * MAX_FILE_LINE_LENGTH);
         memset(newLine->buffer, '\0', sizeof(char) * MAX_FILE_LINE_LENGTH);
-        sprintf(newLine->buffer, "%s", oldLine->buffer);
-        newLine->length = strlen(newLine->buffer);
+
+        lineLen = strlen(oldLine->buffer);
+
+        strncpy(newLine->buffer, oldLine->buffer, lineLen);
+        newLine->buffer[lineLen] = '\0';
+        newLine->length = lineLen;
 
         addGenericNode(&new->file->lines, (void *)newLine, NULL, new->arena);
         
@@ -263,6 +279,7 @@ void f_newFile(char *filename){
     FileArena *newFileArena;
     
     char tempName[MAX_FILE_NAME] = {'\0'};
+    char searchArenaName[32] = {'\0'};
     int newFileCounter;
     Line *firstLine;
 
@@ -360,11 +377,26 @@ void f_newFile(char *filename){
     newFileArena->file->prevChar = 0;
     newFileArena->file->currentChar = 0;
     newFileArena->file->nextChar = 0;
+
+    // Selection metadata
+    newFileArena->file->selectedStartX = 0;
+    newFileArena->file->selectedEndX = 0;
+    newFileArena->file->selectedStartLine = 0;
+    newFileArena->file->selectedEndLine = 0;
     
+    newFileArena->file->selectedStartNode = NULL;
+    newFileArena->file->selectedEndNode = NULL;
+
     newFileArena->file->isModified = false;
     newFileArena->file->isActive = false;
+    
 
     currentFileArena = f_addFileArena(newFileArena);
+    currentFileSearch = &fileListSearchMetadata[currentFileArena->file->fileIndex];
+
+    sprintf(searchArenaName, "SRCH%d", currentFileArena->file->fileIndex);
+    currentFileSearch->arena = mem_create_arena (searchArenaName, MEM_ARENA_METADATA, MEM_ARENA_2K);
+    
     ed_statusBarMessage("Created a new file.");
 
     ed_resetCursor();
@@ -380,7 +412,8 @@ bool f_openFile(char *filename){
     FileArena *fileArena = NULL;
     char *shortFileName = NULL;
     char *fileParsingBuffer = NULL;
-    
+    char searchArenaName[32] = {'\0'};
+
     // We are creating an arena per file
     if(fp == NULL){
         logger("\n[f_openFile]: Error: Could not open file %s", filename);
@@ -412,6 +445,16 @@ bool f_openFile(char *filename){
     file->prevChar = NULL;
     file->currentChar = NULL;
     file->nextChar = NULL;
+
+    // Selection metadata
+    file->selectedStartX = 0;
+    file->selectedEndX = 0;
+    file->selectedStartLine = 0;
+    file->selectedEndLine = 0;
+    
+    file->selectedStartNode = NULL;
+    file->selectedEndNode = NULL;
+
 
     if(!file->name){
         logger("\n[f_openFile]: Error: Could not allocate memory for file details");
@@ -454,6 +497,10 @@ bool f_openFile(char *filename){
 
     // So the after opening hte file, it becomes the current file active
     currentFileArena = f_addFileArena(fileArena);
+    currentFileSearch = &fileListSearchMetadata[currentFileArena->file->fileIndex];
+
+    sprintf(searchArenaName, "SRCH%d", currentFileArena->file->fileIndex);
+    currentFileSearch->arena = mem_create_arena (searchArenaName, MEM_ARENA_METADATA, MEM_ARENA_2K);
     
     f_splitIntoLines(fileParsingBuffer, file->bufferLength, file, arena);
 
@@ -566,6 +613,15 @@ void f_saveFile(){
 
     newFileArena->file->isActive = oldFileArena->file->isActive;
     
+    // Selection metadata, it will be reseted for now
+    newFileArena->file->selectedStartX = 0;
+    newFileArena->file->selectedEndX = 0;
+    newFileArena->file->selectedStartLine = 0;
+    newFileArena->file->selectedEndLine = 0;
+    
+    newFileArena->file->selectedStartNode = NULL;
+    newFileArena->file->selectedEndNode = NULL;
+    
     // We are going to travel the old file lines and copy them to the new file buffer
     currentNode = oldFileArena->file->lines->firstNode;
     lengthSum = _copyLines(oldFileArena, newFileArena);
@@ -628,6 +684,8 @@ void f_saveFile(){
     
     // We add the new file arena and set it as the current file arena
     currentFileArena = f_addFileArena(newFileArena);
+
+    currentFileSearch = &fileListSearchMetadata[newFileArena->file->fileIndex];
 
     newFileArena->file->isModified = false;
     sprintf(newFileArena->arena->name, "%s", newFileArena->file->name + f_getFileName(newFileArena->file->name));
@@ -712,7 +770,9 @@ void f_closeCurrentFile(){
     if(!currentFileArena) return;
 
     strncpy(oldFileName, currentFileArena->file->name, 255);
+
     f_closeFile(currentFileArena);    
+    f_flushSearchMetadata();
 
     // We find the next opened file
     i = 0;
@@ -725,6 +785,7 @@ void f_closeCurrentFile(){
         currentFileArena = NULL;
     }else{
         currentFileArena = &fileList[i];
+        currentFileSearch = &fileListSearchMetadata[i];
     }
 
     ed_statusBarMessage("%s closed successfully.", oldFileName);
@@ -734,4 +795,58 @@ void f_closeCurrentFile(){
     ed_renderEvent = true;
 
     return;
+}
+
+// ==== SEARCH BEHAVIOR ==================================
+
+// * Each file arena has its own fileSearchMetadata, its not insidie the File definition because this could cause memory usage issues when
+// there are many Word matches, so it separate for better memory perfomance and control
+
+// * The search metadata stores all matches in a pointer array. So,
+
+// * Every time the file changes the searchMetadata of the currentFile
+// MUST be flush, so there are no dangling pointers nor references to a word
+// address that changed.
+
+// * The fileListSearchMetadata INDEX is parallel to fileList currentFileArena
+// this makes sure there are no collisions when flushing or filling the 
+// metadata of an already opened file.
+
+// The access to the current search meta data index is easy with 
+// currentFileArena->file->fileindex
+
+// FLUSH METADATA
+
+void f_flushSearchMetadata(){
+    if(!currentFileSearch) return;
+
+    mem_arena_free(currentFileSearch->arena, NULL);
+    currentFileSearch->arena = NULL; // Ensure pointer is cleared
+
+    //currentFileSearch->dialogInputIndex = 0;
+    //memset(currentFileSearch->dialogInputBuffer, '\0', 255);
+
+    currentFileSearch->wordCount = 0;
+    currentFileSearch->words = NULL;
+    currentFileSearch->currentWordNode = NULL;
+}
+
+void f_allocSearchMetadata(){
+    if(currentFileSearch) return;
+    if( !currentFileArena ||
+        !currentFileArena->file ||
+        !currentFileArena->file->name
+    ){
+        logger("[f_allocSearchMetadat]: No valid currentFile data");
+        return;
+    }
+    
+    mem_arena_init(currentFileSearch->arena , currentFileArena->file->name, MEM_ARENA_METADATA, MEM_ARENA_2K);
+    
+    currentFileSearch->dialogInputIndex = 0;
+    memset(currentFileSearch->dialogInputBuffer, '\0', 255);
+
+    currentFileSearch->wordCount = 0;
+    currentFileSearch->words = NULL;
+    currentFileSearch->currentWordNode = NULL;
 }

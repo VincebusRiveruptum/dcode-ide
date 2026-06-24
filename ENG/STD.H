@@ -11,4 +11,10 @@
 #include <errno.h>
 #include <time.h>
 
+#if defined(__MSDOS__) || defined(__WATCOMC__)
+
+#include <process.h>
+
+#endif
+
 #endif

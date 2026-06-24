@@ -21,6 +21,8 @@ unsigned char currentCursorX = 0;
 unsigned char currentCursorY = 0;
 
 bool ed_renderEvent = false;
+bool on_selection_tool = false;
+bool on_search_tool = false;
 
 time_t ed_globalAuxTimer = 0;
 char statusBarMessage[ED_STATUSBAR_WIDTH] = {'\0'};
@@ -39,6 +41,8 @@ void ed_initConfig(int argc, char *argv[]){
     log_init();   
     logger("[ed_initConfig]: %d %s", argc, argv[1]);
     ed_handleArguments(argc, argv);
+
+    v_currentMode = settings.DEFAULT_VIDEO_MODE;
 
     ed_resetCursor();
 }
@@ -63,6 +67,17 @@ void ed_handleArguments(int argc, char *argv[]){
     ed_renderEvent = true;
 }
 
+void ed_resetActity(){
+    if(currentFileArena && currentFileArena->file)
+        currentFileArena->file->isActive = false;
+    //f_flushSearchMetadata();
+}
+
+void ed_markActive(unsigned char activity){
+    // Push activity to editor clipboard
+    if(currentFileArena && currentFileArena->file)
+        currentFileArena->file->isActive = true;
+}
 
 int _get_tab_counts_until(int col){
     int i = 0, tabCount = 0;
@@ -152,7 +167,13 @@ int _calculateTabStart(){
 
     return tabCount;
 }
-
+void _updateScrollY(){
+    if((currentFileArena->file->cursorLine - currentFileArena->file->scrollY) > VIDEO_ROWS - 1) {
+        currentFileArena->file->scrollY += currentFileArena->file->cursorLine - (VIDEO_ROWS - 1);
+    }else if(currentFileArena->file->cursorLine <= currentFileArena->file->scrollY){
+        currentFileArena->file->scrollY = currentFileArena->file->cursorLine;
+    }
+}
 void _updateCurrentCursorY(){
      // If the cursor is closer to the bottom
     if(currentCursorY <=0) currentCursorY = 0;
@@ -421,8 +442,20 @@ void ed_typeChar(char c){
 
     currentFileArena->file->isModified = true;
     
+    ed_markActive(ED_ACTIVITY_TYPE);
     _ensureHorizontalScroll();
     _updateCursor();
+}
+
+// Deletes a selectrion
+void ed_backspaceSelection(){
+
+    //if(currentFileArena->selectedStartLine == currentFileArena->selectedEndLine){
+        // We delete in the same line
+        // No line reuse   
+ 
+    //}    
+
 }
 
 void ed_backspace(){
@@ -452,6 +485,10 @@ void ed_backspace(){
         return;
     }
 
+    if(on_selection_tool == true){
+        ed_backspaceSelection();
+        return;
+    }
     // Current character we are on
     // If we are at the first character of the line
     if(x == 0){
@@ -532,15 +569,23 @@ void ed_backspace(){
         if(currentFileArena->file->cursorCol > 0){
             c = currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1];
 
-            memcpy(currentFileArena->file->currentLine->buffer + x - 1, currentFileArena->file->currentLine->buffer + x, currentFileArena->file->currentLine->length - x);
+            memcpy(
+                currentFileArena->file->currentLine->buffer + x - 1,
+                currentFileArena->file->currentLine->buffer + x, 
+                currentFileArena->file->currentLine->length - x
+            );
+
             currentFileArena->file->currentLine->length--;
-            
+            currentFileArena->file->currentLine->buffer[currentFileArena->file->currentLine->length] = '\0';
             currentFileArena->file->cursorCol--;
+
             _ensureHorizontalScroll();
         }
     }
 
     currentFileArena->file->isModified = true;      
+
+    ed_markActive(ED_ACTIVITY_DEL);
     _updateCursor();
 }
 void ed_supr(){
@@ -569,8 +614,11 @@ void ed_supr(){
     
     memcpy(line->buffer + x, line->buffer + x + 1, line->length - x);    
     line->length--;
+    line->buffer[line->length] = '\0';
 
     currentFileArena->file->isModified = true;
+
+    ed_markActive(ED_ACTIVITY_SUPR);
     _updateCursor();
 }
 
@@ -735,7 +783,8 @@ void ed_newLine(){
 
     // activity flags
     currentFileArena->file->isModified = true;
-
+    
+    ed_markActive(ED_ACTIVITY_NEWLINE);
     _updateCursor();
 }
 
@@ -1145,7 +1194,10 @@ Node *tmpNext = NULL;
             break;
            
     }
-   _updateCursor();
+    
+    ed_markActive(lineJump);
+
+    _updateCursor();
 }
 
 void ed_showFileSwitcher(){
@@ -1360,6 +1412,380 @@ void ed_quickOpenFileDialog(){
     ed_renderEvent = true;
 }
 
+void ed_prepareSelectionTool(){
+    
+    if(currentFileArena && currentFileArena->file){
+        currentFileArena->file->oldLineNode = (struct Node *)currentFileArena->file->currentLineNode;
+        currentFileArena->file->oldLine = currentFileArena->file->cursorLine;
+        currentFileArena->file->oldCol = currentFileArena->file->cursorCol;
+    }
+}
+
+void ed_clearSelection(){
+    if(!currentFileArena || !currentFileArena->file) return;
+    currentFileArena->file->selectedStartNode = NULL;
+    currentFileArena->file->selectedEndNode = NULL;
+    currentFileArena->file->selectedStartX = 0;
+    currentFileArena->file->selectedEndX = 0;
+    currentFileArena->file->selectedStartLine = 0;
+    currentFileArena->file->selectedEndLine = 0;
+    on_selection_tool = false;
+}
+
+void ed_handleSelection() {
+    File *file;
+    bool isNav;
+
+    if(!currentFileArena || !currentFileArena->file) return;
+    
+    file = currentFileArena->file;
+
+    // Check if cursor actually moved
+    if (file->currentLineNode == file->oldLineNode && file->cursorCol == file->oldCol) {
+        return;
+    }
+
+    isNav = inp_isKeyDown(KEY_UP) || inp_isKeyDown(KEY_DOWN) ||
+            inp_isKeyDown(KEY_LEFT) || inp_isKeyDown(KEY_RIGHT) ||
+            inp_isKeyDown(KEY_HOME) || inp_isKeyDown(KEY_END) ||
+            inp_isKeyDown(KEY_PAGEUP) || inp_isKeyDown(KEY_PAGEDOWN);
+
+    if (isNav) {
+        if (inp_isKeyDown(KEY_LSHIFT) || inp_isKeyDown(KEY_RSHIFT)) {
+            // If selection is not active, anchor it at the old position
+            if (file->selectedStartNode == NULL) {
+                file->selectedStartNode =   file->oldLineNode;
+                file->selectedStartX = file->oldCol;
+                file->selectedStartLine = file->oldLine;
+            }
+            // Always update selection end to the new position
+            file->selectedEndNode = file->currentLineNode;
+            file->selectedEndX = file->cursorCol;
+            file->selectedEndLine = file->cursorLine;
+            on_selection_tool = true;
+        } else {
+            // Clear selection since we moved cursor without Shift
+            ed_clearSelection();
+        }
+    } else {
+        // Any other cursor movement (e.g. typing, backspace, new line) clears selection
+        ed_clearSelection();
+    }
+}
+
+// This is a small program for testing. 
+// The purpose is take a phrase and count the words.e
+
+int ed_wordCountInStr(char *str){
+	int wordCount = 0;
+	char *wordIndexPtr;
+	char *detectedStartOffset = NULL;
+	char *detectedEndOffset = NULL;
+	size_t detectedWordLen = 0;
+	char detectedWord[255] = {'\0'};
+	wordIndexPtr = str;
+	
+	
+	// No words!Wing by spac
+	if(*wordIndexPtr == '\0') return 0;
+
+	while(wordIndexPtr && *wordIndexPtr != '\0'){
+		// Buffer reset
+		
+		// Word start is when the previous char is empty space
+		// Word end is when next char is space
+		// We have to ignore escape chars
+		// We need to calculate the len between both detectedWord offsets.
+		if(!detectedStartOffset &&
+			isalpha(*wordIndexPtr)
+		){
+			detectedStartOffset = wordIndexPtr;
+		
+		// If is an space, we know that a word ended
+		}else if (*wordIndexPtr == ' ' || *(wordIndexPtr + 1) == '\0'){
+			detectedEndOffset = wordIndexPtr;
+			
+			wordCount++;
+			if(detectedEndOffset && detectedStartOffset){
+				detectedWordLen = detectedEndOffset - detectedStartOffset;
+				memcpy(detectedWord, detectedStartOffset, detectedWordLen);
+				detectedWord[detectedWordLen] = '\0';
+				//printf("\nDetected word: %s", detectedWord);
+			}
+            
+			detectedStartOffset = NULL;
+			detectedEndOffset = NULL;
+			memset(detectedWord, '\0', 255);
+			detectedWordLen = 0;
+		}
+		
+		wordIndexPtr++; 
+	}
+
+	return wordCount;
+}
+
+// This will find word matches according to the currentSearchMetadata
+// found word match
+
+// This will find word matches according to the currentSearchMetadata
+// found word match
+void ed_findWord(){
+    char *detectedWordOffset = NULL;
+    char *wordIndexPtr = NULL;
+    char searchArenaName[32];
+    int wordLen = 0;
+    unsigned int lineIndex = 0;
+    WordMetadata *matchBuffer = NULL;
+    Node *lineNode = NULL;
+
+    if(
+        !currentFileArena ||
+        !currentFileArena->file ||
+        !currentFileArena->file->lines ||
+        !currentFileArena->file->lines->firstNode
+    ){
+
+        logger("[ed_findWord]: currentFileArena first line node is NULL");
+        return;
+    }
+
+    lineNode = currentFileArena->file->lines->firstNode;
+	
+    if(!lineNode){
+        logger("[ed_findWord]: lineNode is NULL");
+        return;
+    }
+    
+    if(!currentFileSearch){
+        logger("[ed_findWord]: currentFileSearch is NULL");
+        return;
+    }
+
+    if(!currentFileSearch->arena || !currentFileSearch->arena->base){
+        sprintf(searchArenaName, "SRCH%d", currentFileArena->file->fileIndex);
+        currentFileSearch->arena = (MemoryArena *)mem_create_arena(searchArenaName, MEM_ARENA_METADATA, MEM_ARENA_2K);
+    } else {
+        mem_arena_reset(currentFileSearch->arena->name);
+    }
+
+    wordLen = strlen(currentFileSearch->dialogInputBuffer);
+
+    if (wordLen == 0) return;
 
 
+    currentFileSearch->wordCount = 0;
+    currentFileSearch->words = NULL;
+    currentFileSearch->currentWordNode = NULL;
 
+    // If searchMetadata atributes are NULl this means that there is no previous search done
+    // So we will begin the process.
+
+    // If there is already a metadata
+
+    // Depending on the orientation ( previous, next ) we will look forward or previous from the wordOffset and 
+    // the line index.
+    logger("[ed_findWord]: Current word! : %s", currentFileSearch->dialogInputBuffer);
+
+    while(lineNode != NULL){
+        
+        if(
+            !lineNode->data ||
+            !((Line*)lineNode->data)->buffer
+        ){
+            logger("[ed_findWord]: lineNode->data or lineNode->data->buffer is NULL");
+            return;
+        }
+        
+        wordIndexPtr = ((Line*)(lineNode->data))->buffer;
+        // No words!Wing by spac
+        if(*wordIndexPtr == '\0'){
+            lineNode = lineNode->next;
+            lineIndex++;
+            continue;
+        } 
+
+        detectedWordOffset = strstr(wordIndexPtr, currentFileSearch->dialogInputBuffer);
+        
+        while(detectedWordOffset){        
+            matchBuffer = (WordMetadata *) mem_arena_alloc(currentFileSearch->arena, NULL, sizeof(WordMetadata));
+     
+            if(!matchBuffer){
+                logger("[ed_findWord]: Line 1558, matchBuffer is NULL");
+                return;
+            }
+
+            matchBuffer->lineNode = lineNode;
+            matchBuffer->wordIndex = currentFileSearch->wordCount;
+    
+            matchBuffer->cursorLine = lineIndex;
+            logger("[ed_findWord]: matchBuffer->cursorLine = %d", lineIndex);
+
+            matchBuffer->cursorCol = detectedWordOffset - wordIndexPtr;
+            // Word position in line
+            matchBuffer->wordPtr = detectedWordOffset;
+            
+            addGenericNode(&currentFileSearch->words, matchBuffer, NULL, currentFileSearch->arena);
+            
+            currentFileSearch->wordCount++;
+  
+            detectedWordOffset = strstr(detectedWordOffset + wordLen, currentFileSearch->dialogInputBuffer);
+        }
+                
+        lineNode = lineNode->next;
+        lineIndex++;
+    }
+
+    // We set the first found word as current word
+    currentFileSearch->currentWordNode =
+        currentFileSearch->words &&
+        currentFileSearch->words->firstNode
+        ? currentFileSearch->words->firstNode 
+        : NULL ;
+
+
+}
+
+void ed_drawSearchTool(){
+    int i;
+    int vis_offset = 0, dialog_offset = 0, dialogStartY, dialogEndY, dialogHeight;
+    
+    vis_offset = (VIDEO_COLS / 4);
+    dialog_offset = vis_offset / 4;
+
+    dialogStartY = 2;
+    dialogEndY = 6; 
+    dialogHeight = dialogEndY - dialogStartY;
+
+    dw_rectangle(textmemptr, vis_offset, dialogStartY, VIDEO_COLS - vis_offset, dialogEndY, COLOR_BLUE, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_BLUE, false, DRAW_BORDER_SIMPLE, "Search...");
+    dw_writeBuffer(
+        textmemptr, 
+        "Found matches: %d, Currently on result: %d", 
+        vis_offset + 1, 
+        dialogStartY + 2, 
+        vis_offset + 48, 
+        dialogStartY + 2, 
+        COLOR_WHITE, 
+        COLOR_BLUE, 
+        currentFileSearch->wordCount,
+        (
+            currentFileSearch->currentWordNode && 
+            ((WordMetadata *)currentFileSearch->currentWordNode->data) 
+                ? ((WordMetadata *)currentFileSearch->currentWordNode->data)->wordIndex
+                : 0
+        )
+    );
+
+    ed_async_scanf(vis_offset + 1, 3, (2 * vis_offset) - 1, currentFileSearch->dialogInputBuffer, strlen(currentFileSearch->dialogInputBuffer), &(currentFileSearch->dialogInputIndex));
+            
+}
+
+void ed_searchMoveCursor(){
+    if(
+        !currentFileSearch->words ||
+        !currentFileSearch->currentWordNode ||
+        !currentFileSearch->currentWordNode->data
+    ) return;
+    
+    if(inp_isKeyDown(KEY_ENTER) && !inp_isKeyDown(KEY_LSHIFT)){
+        // We go forward
+        currentFileSearch->currentWordNode = 
+            currentFileSearch->currentWordNode &&
+            currentFileSearch->currentWordNode->next
+            ? currentFileSearch->currentWordNode->next
+            : currentFileSearch->currentWordNode ;        
+
+    }else if (inp_isKeyDown(KEY_ENTER) && inp_isKeyDown(KEY_LSHIFT)){
+        // We go back         
+        currentFileSearch->currentWordNode = 
+            currentFileSearch->currentWordNode &&
+            currentFileSearch->currentWordNode->prev
+            ? currentFileSearch->currentWordNode->prev
+            : currentFileSearch->currentWordNode ;        
+    }
+
+    // We update the cursor
+    currentFileArena->file->currentLineNode = 
+        currentFileSearch->currentWordNode &&
+        currentFileSearch->currentWordNode->data &&
+        ((WordMetadata*) currentFileSearch->currentWordNode->data)->lineNode
+        ? ((WordMetadata *)currentFileSearch->currentWordNode->data)->lineNode
+        : NULL;
+
+    currentFileArena->file->cursorCol = 
+        currentFileSearch->currentWordNode &&
+        currentFileSearch->currentWordNode->data &&
+        ((WordMetadata*) currentFileSearch->currentWordNode->data)->cursorCol
+        ? ((WordMetadata *)currentFileSearch->currentWordNode->data)->cursorCol
+        : 0;
+
+    currentFileArena->file->cursorLine =
+        currentFileSearch->currentWordNode &&
+        currentFileSearch->currentWordNode->data &&
+        ((WordMetadata*) currentFileSearch->currentWordNode->data)->cursorLine
+        ? ((WordMetadata *)currentFileSearch->currentWordNode->data)->cursorLine
+        : 0;
+
+    _updateScrollY();
+    _updateCursor();
+}
+void ed_prepareSearchTool(){
+    if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_F)) on_search_tool = true;
+		
+    if(on_search_tool == true){
+        if(inp_isKeyPressed(KEY_ESC)){
+            on_search_tool = false;
+            ed_renderEvent = true;
+        }else{
+            ed_drawSearchTool();
+            if(inp_isKeyPressed(KEY_ESC)){
+                on_search_tool = false;
+                ed_renderEvent = true;
+            }else if (!inp_isKeyDown(KEY_ENTER)){
+                ed_findWord();
+                ed_renderEvent = true;
+            }else{                
+                ed_searchMoveCursor();
+                ed_renderEvent = true;
+            }
+        }
+    } 
+}
+
+
+// Shell spawn.. 
+#if defined(__MSDOS__) || defined(__WATCOMC__)
+void ed_shellSpawn(){
+    char *comspec = getenv("COMSPEC");
+    char cmd[255] = {'\0'};
+    char currPath[255] = {'\0'};
+    int spawn_ret;
+    int system_ret;
+
+    if(!currentFileArena || !currentFileArena->file) return;
+    
+    inp_closeKeyboard();
+
+    v_set25Lines();
+    dw_cls(textmemptr);
+
+    //printf("COMSPEC: %s\n", comspec ? comspec : "NULL");
+    // TODO: SAVE FILE
+
+    if (!comspec) comspec = "COMMAND.COM";
+
+    strncpy(currPath, currentFileArena->file->name, fs_getFilePath(currentFileArena->file->name));
+    sprintf(cmd, "cd %s", currPath);
+
+    logger("[ed_shellSpawn]: %s", currPath);
+
+    spawnl(P_WAIT, comspec, comspec, "/K", cmd, NULL);
+    
+    inp_initKeyboard();
+    inp_clearKeyboardBuffer();
+    
+    v_setVideoMode(v_currentMode, false);
+
+    ed_renderEvent = true;
+}
+#endif

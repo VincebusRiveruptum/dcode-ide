@@ -953,13 +953,12 @@ void f_quickOpenFileDialog(){
     int entryScrollY = 0;
     int selectedEntryScrollY = 0;
 
+    char scrollChar;
     fs_getAbsoluteCurrentPath(currentPath, 255);
     
     if(currentPath[0] == '\0'){
         logger("[ed_quickOpenFileDialog]: Failed to retrieve currentPath");
     }
-
-    logger("[ed_quickOpenFileDialog]: currentPath : %s", currentPath);
 
     strcat(currentPath, "\\" );
 
@@ -987,8 +986,6 @@ void f_quickOpenFileDialog(){
             if(selectedEntry - entryScrollY <= 0)
                 entryScrollY--;
 
-            logger("[f_quickOpenFileDialog] UP selectedEntry : %d, scrollY : %d", selectedEntry, entryScrollY);
-
         }else if(inp_isKeyPressed(KEY_DOWN)){
             selectedEntry = 
                 selectedEntry < entriesLen
@@ -999,7 +996,6 @@ void f_quickOpenFileDialog(){
             if(selectedEntry - entryScrollY - 2 > listHeight )
                 entryScrollY++;
                 
-            logger("[f_quickOpenFileDialog] DOWN selectedEntry : %d, scrollY : %d", selectedEntry, entryScrollY);
         }else if(inp_isKeyPressed(KEY_ENTER)){
             // If we press enter, we have to detect if the entry is either a directory or a file
             // 
@@ -1057,10 +1053,7 @@ void f_quickOpenFileDialog(){
                     : 1;
                 
                 isSelected = (entryIndex == selectedEntry) ? true : false;
-                
-                logger(
-                    "[ed_quickOpenFileDialog]: isSelected %d , sey : %d ",isSelected, selectedEntryScrollY);
-                
+                        
                 if(selectedEntryScrollY <= 0) continue;
                     // We mar the selected item or not
                 if(isSelected == true){
@@ -1088,6 +1081,32 @@ void f_quickOpenFileDialog(){
                         COLOR_WHITE, 
                         COLOR_BLUE, 
                         fileEntry->name
+                    );
+                }
+
+                // Draw scrollbar if there are more items than the 
+                // the height of the list
+                if(entriesLen - 2 > listHeight){
+                    // UP ARROW
+                    if((selectedEntryScrollY - 1) == 0){
+                        scrollChar = 0x1E;
+                    // DOWN ARROW
+                    }else if(selectedEntryScrollY - 2 == listHeight){
+                        scrollChar = 0x1F;
+                    }else{
+                        scrollChar = 0xB1;
+                    }
+
+                    dw_writeBuffer(
+                        textmemptr,
+                        "%c", 
+                        VIDEO_COLS - vis_offset - 1, 
+                        3 + selectedEntryScrollY + 1, 
+                        VIDEO_COLS - vis_offset - 1, 
+                        3 + selectedEntryScrollY + 1, 
+                        COLOR_BLUE, 
+                        COLOR_LIGHT_GRAY, 
+                        scrollChar
                     );
                 }
 

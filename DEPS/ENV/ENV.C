@@ -19,8 +19,7 @@ Config *config = NULL;
 
 int findIndex(char *str) {
   int i = 0;
-  int index = 0;
-  int length;
+  int length = 0;
 
   if (!str)
     return -1;

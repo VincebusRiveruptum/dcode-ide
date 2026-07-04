@@ -25,3 +25,5 @@ errors.txt
 books
 BOOKS
 PGROUND
+
+**/*.o

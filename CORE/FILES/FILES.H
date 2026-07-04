@@ -1,9 +1,9 @@
 #ifndef APP_FILES_H
 #define APP_FILES_H
 
-#include "..\STD.H"
-#include "..\..\APP\MAIN.H"
-#include "..\..\DEPS\DATA\DATA.H"
+#include "../STD.H"
+#include "../../APP/MAIN.H"
+#include "../../DEPS/DATA/DATA.H"
 
 /* Const. ================================================================*/
 
@@ -140,7 +140,7 @@ char *f_getFileExtension(char *filename);
 void f_splitIntoLines(char *buffer, size_t bufferLength, File *file, MemoryArena *arena);
 
 void f_init();
-void f_newFile();
+void f_newFile(char *filename);
 bool f_openFile(char *filename);
 void f_saveFile();
 void f_triggerClose(bool end_program);

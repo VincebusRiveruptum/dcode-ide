@@ -23,7 +23,11 @@ int main(int argc, char *argv[]){
 	hal_inp_initKeyboard();
 	hal_vid_init();
 
-	logger("[main]: %d %s", argc, argv[1]);
+	if (argc > 1) {
+		logger("[main]: %d %s", argc, argv[1]);
+	} else {
+		logger("[main]: %d (no args)", argc);
+	}
     
 	ed_renderEvent = true;
     
@@ -119,12 +123,12 @@ int main(int argc, char *argv[]){
 		// Getch approach, why? Because getch() reads and uses DOS routines for handling the keyboard
 		// so it translates the input scancode to the correct codepage value.
 
-		if(kbhit()){
-			c = getch();
+		if(hal_inp_kbhit()){
+			c = hal_inp_getch();
             
 			if(c == 0 || (unsigned char)c == 0xE0){
 				// CURSOR ARROW HANDLING
-				c = getch(); /* Consume extended byte and arrows */
+				c = hal_inp_getch(); /* Consume extended byte and arrows */
 
 				/*
 					If the cursor is currently inside the text area, we are in TEXT MODE
@@ -162,6 +166,7 @@ int main(int argc, char *argv[]){
 			ed_renderEvent = false;
 			ed_renderElements();
 			ed_resetCursor();
+			hal_vid_refresh();
 		}
 
 		hal_inp_updateKeyboard();

@@ -1,14 +1,16 @@
-
 #ifndef MEM_H
 #define MEM_H
 
-#include <STDIO.H>
-#include <STDLIB.H>
-#include <CONIO.H>
-#include <STRING.H>
-#include <DOS.H>    
-#include <i86.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <errno.h>
+
+#if defined(__MSDOS__) || defined(__WATCOMC__)
+#include <conio.h>
+#include <dos.h>    
+#include <i86.h>
+#endif
 
 #include "../LOG/LOG.H"
 

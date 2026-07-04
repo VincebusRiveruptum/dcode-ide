@@ -1,9 +1,11 @@
 #ifndef ENG_DRAW_H
 #define ENG_DRAW_H
 
-#include "..\STD.H"
+#include "../STD.H"
 
-#include "..\..\APP\MAIN.H"
+#include "../../APP/MAIN.H"
+
+struct File;
 
 #define COLOR_BLACK 0x00
 #define COLOR_BLUE 0x01

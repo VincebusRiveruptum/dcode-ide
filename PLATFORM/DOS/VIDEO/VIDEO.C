@@ -1,4 +1,5 @@
 #include "VIDEO.H"
+#include "VGAREGS.H"
 #include "..\..\..\CORE\DRAW\DRAW.H"
 #include "..\..\..\CORE\EDITOR\EDITOR.H"
 
@@ -127,6 +128,23 @@ void hal_vid_cycleVideoModes(void){
     if(v_currentMode > 8) v_currentMode = 0;
 
     hal_vid_setVideoMode(v_currentMode, HAL_SHOW_MSG);
+}
+
+void hal_vid_refresh(void){
+    /* DOS writing to textmemptr is direct, no-op needed */
+}
+
+void hal_vid_putCursor(unsigned char x, unsigned char y){
+    unsigned short temp;
+
+    currentCursorX = x;
+    currentCursorY = y;
+    temp = currentCursorY * VIDEO_COLS + currentCursorX;
+
+    outPortb(0x3D4, 14);
+    outPortb(0x3D5, temp >> 8);
+    outPortb(0x3D4, 15);
+    outPortb(0x3D5, temp);
 }
 
 void hal_vid_close(void){

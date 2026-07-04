@@ -2,10 +2,10 @@
 #ifndef ENG_EDITOR_H
 #define ENG_EDITOR_H
 
-#include "..\STD.H"
+#include "../STD.H"
 
 // THIS REQUIRE THE INPUT DEPS
-#include "..\..\APP\MAIN.H"
+#include "../../APP/MAIN.H"
 
 #define ED_STATUSBAR_WIDTH 132
 #define ED_WORD_JUMP_PREV 0
@@ -135,6 +135,9 @@ void ed_typeChar(char c);
 void ed_backspace();
 void ed_supr();
 void ed_tab();
+void ed_newLine();
+void ed_resetActity();
+void ed_prepareSearchTool();
 
 void ed_resetCursor();
 
@@ -160,6 +163,8 @@ void ed_handleSelection();
 
 int ed_wordCountInStr(char *str);
 void ed_shellSpawn();
+void ed_renderElements();
+void _updateCursor();
 
 #endif
 

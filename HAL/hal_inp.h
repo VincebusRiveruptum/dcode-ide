@@ -124,6 +124,25 @@
 #define HAL_CHAR_ESCAPE     0x1B
 #define HAL_CHAR_DELETE     0x7F
 
+/* Legacy Aliases for backward compatibility in CORE engine */
+#define CHAR_BACKSPACE      HAL_CHAR_BACKSPACE
+#define CHAR_TAB            HAL_CHAR_TAB
+#define CHAR_ENTER          HAL_CHAR_ENTER
+#define CHAR_SPACE          HAL_CHAR_SPACE
+#define CHAR_ESCAPE         HAL_CHAR_ESCAPE
+#define CHAR_DELETE         HAL_CHAR_DELETE
+
+#define KEY_UP              HAL_KEY_UP
+#define KEY_DOWN            HAL_KEY_DOWN
+#define KEY_LEFT            HAL_KEY_LEFT
+#define KEY_RIGHT           HAL_KEY_RIGHT
+#define KEY_HOME            HAL_KEY_HOME
+#define KEY_END             HAL_KEY_END
+#define KEY_PAGEUP          HAL_KEY_PAGEUP
+#define KEY_PAGEDOWN        HAL_KEY_PAGEDOWN
+#define KEY_INSERT          HAL_KEY_INSERT
+#define KEY_DELETE          HAL_KEY_DELETE
+
 #define HAL_INP_TRIGGER_LEVEL 0
 #define HAL_INP_TRIGGER_EDGE  1
 
@@ -142,5 +161,9 @@ bool hal_inp_isKeyReleased(unsigned char key);
 unsigned char hal_inp_keysPressed(int triggerType, int nKeys, ...);
 unsigned char hal_inp_keysDown(int nKeys, ...);
 void hal_inp_waitForRelease(void);
+
+bool hal_inp_kbhit(void);
+char hal_inp_getch(void);
+void hal_sleep_ms(int ms);
 
 #endif

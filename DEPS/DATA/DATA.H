@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-#include "..\MEM\MEM.H"
+#include "../MEM/MEM.H"
 
 #include "TYPES.H"
 

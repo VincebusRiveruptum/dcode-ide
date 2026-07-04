@@ -32,6 +32,8 @@ unsigned char hal_vid_setVideoMode(unsigned char mode, unsigned char show_msg);
 void hal_vid_close(void);
 void hal_vid_clearBuffer(unsigned short *buffer);
 void hal_vid_cycleVideoModes(void);
+void hal_vid_refresh(void);
+void hal_vid_putCursor(unsigned char x, unsigned char y);
 
 /* Low-level register/assembly operations */
 void hal_vid_set25Lines(void);

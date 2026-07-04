@@ -9,7 +9,7 @@
 */
 
 #include "EDITOR.H"
-#include "..\FILES\FILES.H"
+#include "../FILES/FILES.H"
 
 //unsigned char attrib = 0x07; // Default attribute: White on Black
 struct Container *root;
@@ -75,16 +75,18 @@ void ed_resetActity(){
 
 void ed_markActive(unsigned char activity){
     // Push activity to editor clipboard
+    (void)activity;
     if(currentFileArena && currentFileArena->file)
         currentFileArena->file->isActive = true;
 }
 
 int _get_tab_counts_until(int col){
-    int i = 0, tabCount = 0;
+    int i = 0;
+    int tabCount = 0;
 
     if (!currentFileArena->file->currentLine) return 0;
 
-    while(i < col && i < currentFileArena->file->currentLine->length){
+    while(i < col && i < (int)currentFileArena->file->currentLine->length){
         if(currentFileArena->file->currentLine->buffer[i] == CHAR_TAB) tabCount++;
         i++; 
     }
@@ -93,11 +95,12 @@ int _get_tab_counts_until(int col){
 }
 
 int _get_tab_counts_someline(Line *someLine, int col){
-    int i = 0, tabCount = 0;
+    int i = 0;
+    int tabCount = 0;
 
     if (!someLine) return 0;
 
-    while(i < col && i < someLine->length){
+    while(i < col && i < (int)someLine->length){
         if(someLine->buffer[i] == CHAR_TAB) tabCount++;
         i++; 
     }
@@ -106,8 +109,9 @@ int _get_tab_counts_someline(Line *someLine, int col){
 }
 
 int _get_auto_close_pos(){
-    int tabCount = 0;
-    Node *travelingBackwards = currentFileArena->file->currentLineNode;
+    Node *travelingBackwards = NULL;
+
+    travelingBackwards = currentFileArena->file->currentLineNode;
 
     if(!travelingBackwards) return 0;
     
@@ -147,8 +151,10 @@ int _calculateTabCount(){
 }
 
 int _calculateTabStart(){
-    int i = 0, tabCount = 0;
-    char c, cnext;
+    int i = 0;
+    int tabCount = 0;
+    char c = '\0';
+    char cnext = '\0';
 
     do{
         c = currentFileArena->file->currentLine->buffer[i];
@@ -158,7 +164,7 @@ int _calculateTabStart(){
 
             cnext = currentFileArena->file->currentLine->buffer[i + 1];
 
-            if(cnext == NULL && cnext != CHAR_TAB){
+            if(cnext == '\0' && cnext != CHAR_TAB){
                 return tabCount;
             }
         }
@@ -168,6 +174,8 @@ int _calculateTabStart(){
     return tabCount;
 }
 void _updateScrollY(){
+    if (!currentFileArena || !currentFileArena->file) return;
+
     if((currentFileArena->file->cursorLine - currentFileArena->file->scrollY) > VIDEO_ROWS - 1) {
         currentFileArena->file->scrollY += currentFileArena->file->cursorLine - (VIDEO_ROWS - 1);
     }else if(currentFileArena->file->cursorLine <= currentFileArena->file->scrollY){
@@ -175,6 +183,8 @@ void _updateScrollY(){
     }
 }
 void _updateCurrentCursorY(){
+    if (!currentFileArena || !currentFileArena->file) return;
+
      // If the cursor is closer to the bottom
     if(currentCursorY <=0) currentCursorY = 0;
     
@@ -188,6 +198,8 @@ void _updateCurrentCursorX(){
     int visualCursor = 0;
     int visualScroll = 0;
     
+    if (!currentFileArena || !currentFileArena->file) return;
+
     visualCursor = _calculateVisualOffset(currentFileArena->file->cursorCol);
     visualScroll = _calculateVisualOffset(currentFileArena->file->scrollX);
 
@@ -210,13 +222,19 @@ void _updateCurrentCursorX(){
     currentFileArena->file->nextChar = 
         currentFileArena->file->cursorCol < currentFileArena->file->currentLine->length
         ? currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol + 1]
-        : currentFileArena->file->currentLine->length;
+        : 0;
 }
 
 void _ensureHorizontalScroll(){
-    int visualCursor = _calculateVisualOffset(currentFileArena->file->cursorCol);
-    int visualScroll = _calculateVisualOffset(currentFileArena->file->scrollX);
-    int displayWidth = VIDEO_COLS - LINE_COUNTER_WIDTH;
+    int visualCursor = 0;
+    int visualScroll = 0;
+    int displayWidth = 0;
+
+    if (!currentFileArena || !currentFileArena->file) return;
+
+    visualCursor = _calculateVisualOffset(currentFileArena->file->cursorCol);
+    visualScroll = _calculateVisualOffset(currentFileArena->file->scrollX);
+    displayWidth = VIDEO_COLS - LINE_COUNTER_WIDTH;
 
     // If cursor is to the left of the visible area
     if (visualCursor < visualScroll) {
@@ -232,6 +250,8 @@ void _ensureHorizontalScroll(){
 }
 
 void _updateCursor(){
+    if (!currentFileArena || !currentFileArena->file) return;
+
     _updateCurrentCursorY();
     _updateCurrentCursorX();
 
@@ -240,6 +260,7 @@ void _updateCursor(){
 }
 // We reset the cursor to X:0 Y:0 relative to the active currentFileArena text area
 void ed_resetCursor(){
+    if (!currentFileArena || !currentFileArena->file) return;
 
     // In th future, when the text area became a movable element we will have to 
     // calculate the cursor position relative to the text area position.
@@ -247,36 +268,14 @@ void ed_resetCursor(){
 }
 
 void ed_putCursor(unsigned char x, unsigned char y){
-    unsigned short temp;
-
-    currentCursorX = x;
-    currentCursorY = y;
-    /* The equation for finding the index in a linear
-    *  chunk of memory can be represented by:
-    *  Index = [(y * width) + x] */
-    temp = currentCursorY * VIDEO_COLS + currentCursorX;
-
-    /* This sends a command to indicies 14 and 15 in the
-    *  CRT Control Register of the VGA controller. These
-    *  are the high and low bytes of the index that show
-    *  where the hardware cursor is to be 'blinking'. To
-    *  learn more, you should look up some VGA specific
-    *  programming documents. A great start to graphics:
-    *  http://www.brackeen.com/home/vga */
-    outPortb(0x3D4, 14);
-    outPortb(0x3D5, temp >> 8);
-    outPortb(0x3D4, 15);
-    outPortb(0x3D5, temp);
+    hal_vid_putCursor(x, y);
 }
 
 /*
     This is the cursor behavior when is inside a TEXT AREA
 */
 void ed_moveCursor(short x, short y){
-    Node *tempNode;
-    Line *tempLine;
-    int nextLineStartIndex = 0, prevLineStartIndex = 0;
-    char c;
+    Node *tempNode = NULL;
 
     // If the number of lines is less than the screen heightc
     // and the current Y cursor position is less than the nmber of lines
@@ -375,7 +374,7 @@ void ed_moveCursor(short x, short y){
             currentFileArena->file->cursorCol = 0;
         } else if(
             currentFileArena->file->cursorCol + x > 0 && 
-            currentFileArena->file->cursorCol + x <= currentFileArena->file->currentLine->length
+            currentFileArena->file->cursorCol + x <= (int)currentFileArena->file->currentLine->length
         ){  
             currentFileArena->file->cursorCol +=x;
 
@@ -410,15 +409,11 @@ void ed_typeChar(char c){
     // We type the char at 
     // X : currentCursorX + LINE_COUNTER_WIDTH + 1
     // Y : currentCursorY + file->scrollY + 1 
-    Node *node;
-    Line *line;
-
     int x = 0;
     int y = 0;
-    int i;
-
-    File *file;
-    file = currentFileArena->file;
+    int i = 0;
+    Node *node = NULL;
+    Line *line = NULL;
 
     x = currentFileArena->file->cursorCol;
     y = currentFileArena->file->cursorLine;
@@ -469,14 +464,14 @@ void ed_backspace(){
         // We type the char at 
     // X : currentCursorX + LINE_COUNTER_WIDTH + 1
     // Y : currentCursorY + file->scrollY + 1 
-    Node *node, *prevNode;
-    Line *line, *prevLine;
-    char c;
-
     int x = 0;
     int y = 0;
+    Node *node = NULL;
+    Node *prevNode = NULL;
+    Line *line = NULL;
+    Line *prevLine = NULL;
+    File *file = NULL;
 
-    File *file;
     file = currentFileArena->file;
 
     x = file->cursorCol;
@@ -574,8 +569,6 @@ void ed_backspace(){
 
     }else{
         if(currentFileArena->file->cursorCol > 0){
-            c = currentFileArena->file->currentLine->buffer[currentFileArena->file->cursorCol - 1];
-
             memcpy(
                 currentFileArena->file->currentLine->buffer + x - 1,
                 currentFileArena->file->currentLine->buffer + x, 
@@ -599,21 +592,15 @@ void ed_supr(){
         // We type the char at 
     // X : currentCursorX + LINE_COUNTER_WIDTH + 1
     // Y : currentCursorY + file->scrollY + 1 
-    Node *node;
-    Line *line;
+    unsigned short x = 0;
+    Node *node = NULL;
+    Line *line = NULL;
+    File *file = NULL;
 
-    int x = 0;
-    int y = 0;
-
-    File *file;
     file = currentFileArena->file;
 
     x = currentFileArena->file->cursorCol;
-    y = currentFileArena->file->cursorLine;
     
-    if (x < 0) x = 0;
-    if (y < 0) y = 0;
-
     node = file->currentLineNode;
     line = (Line *)node->data;
     
@@ -632,14 +619,14 @@ void ed_supr(){
 void ed_newLine(){
     unsigned int x = 0;
     size_t copyLen = 0;
-    Node *currentLineNode, *newLineNode;
-    Line *newLine;
-    MemoryArena *arena;
-    bool isIndent = false;
-    bool isAutoClose = false;
     int prevLineTabs = 0;
     int autoClosePos = 0;
     int autoIdentMovement = 0;
+    bool isIndent = false;
+    bool isAutoClose = false;
+    Node *newLineNode = NULL;
+    Line *newLine = NULL;
+    MemoryArena *arena = NULL;
     
 
     arena = currentFileArena->arena;
@@ -797,7 +784,9 @@ void ed_newLine(){
 
 // PROMPT ELEMENT
 char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
-    int i = 0, j = 0, lenbuff = 0;
+    int i = 0;
+    int j = 0;
+    int lenbuff = 0;
     char c = 0;
     bool esc = false;
 
@@ -808,16 +797,16 @@ char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
     ed_putCursor(x,y);    
 
     while(c != CHAR_ENTER && !(esc = hal_inp_isKeyPressed(HAL_KEY_ESC) == true)){
-        c = getch();
+        c = hal_inp_getch();
 
         if(c == 0 || (unsigned char)c == 0xE0){
-            c = getch();
+            c = hal_inp_getch();
 
             if(c == KEY_LEFT && i > 0){
                 i--;
                 ed_putCursor(x + i, y);
             } 
-            if(c == KEY_RIGHT && i < strlen(buffer)){
+            if(c == KEY_RIGHT && i < (int)strlen(buffer)){
                 i++;
                 ed_putCursor(x + i, y);
             } 
@@ -887,10 +876,11 @@ char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
 // This is async, i mean, each loop step like in the original function
 // in ed_scanf, is done outside the function call.
 char *ed_async_scanf(unsigned char x, unsigned char y, unsigned char maxChars, char *buffer, size_t bufflen, int *stepIndex){
-    int j = 0, lenbuff = 0;
+    int j = 0;
+    int lenbuff = 0;
+    int charLimit = 0;
     char c = 0;
     bool esc = false;
-    int charLimit;
 
     charLimit = bufflen >= maxChars ? maxChars : bufflen + 2;
     
@@ -898,23 +888,23 @@ char *ed_async_scanf(unsigned char x, unsigned char y, unsigned char maxChars, c
     
     // Redraw he entire prompt by copying the buffer content to the screen buffer
     for(j=0;j < maxChars; j++){
-        if(j > bufflen){
+        if(j > (int)bufflen){
             dw_charXY(textmemptr,' ', x+j, y);
         }else{
             dw_charXY(textmemptr,buffer[j], x+j, y);
         }
     }       
 
-    c = getch();
+    c = hal_inp_getch();
 
     if(c == 0 || (unsigned char)c == 0xE0){
-        c = getch();
+        c = hal_inp_getch();
 
         if(c == KEY_LEFT && (*stepIndex) > 0){
             (*stepIndex)--;
             ed_putCursor(x + (*stepIndex), y);
         } 
-        if(c == KEY_RIGHT && (*stepIndex) < strlen(buffer)){
+        if(c == KEY_RIGHT && (*stepIndex) < (int)strlen(buffer)){
             (*stepIndex)++;
             ed_putCursor(x + (*stepIndex), y);
         } 
@@ -982,7 +972,6 @@ void ed_putCursorStart(){
 }
 
 void ed_putCursorFistLine(){
-    Line *tmpLine;
     int lineposX;
 
     currentFileArena->file->currentLineNode = currentFileArena->file->lines->firstNode;
@@ -1008,9 +997,9 @@ void ed_putCursorFistLine(){
         ;
     
     lineposX = 
-        currentFileArena->file->currentLine->length - 1 < currentCursorX - LINE_COUNTER_WIDTH
+        (int)currentFileArena->file->currentLine->length - 1 < currentCursorX - LINE_COUNTER_WIDTH
         ?
-            LINE_COUNTER_WIDTH + currentFileArena->file->currentLine->length - 1
+            LINE_COUNTER_WIDTH + (int)currentFileArena->file->currentLine->length - 1
         :
             currentCursorX
         ;
@@ -1121,15 +1110,20 @@ bool ed_checkStatusBarMessage(){
 void ed_statusBar(){
     if(ed_checkStatusBarMessage() == true){
         dw_writeBuffer(textmemptr, "%s", 0, VIDEO_ROWS - 1, VIDEO_COLS - 1, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, statusBarMessage);            
-    }else{
+    }else if (currentFileArena && currentFileArena->file) {
         dw_writeBuffer(textmemptr, "Line %d, Col %d %c", 0, VIDEO_ROWS - 1, 39, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, currentFileArena->file->cursorLine + 1, currentFileArena->file->cursorCol + 1, 179, currentFileArena->file->currentLine->length);
         dw_writeBuffer(textmemptr, " %s", 40, VIDEO_ROWS - 1, VIDEO_COLS - 1, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, currentFileArena->file->name);
+    }else{
+        dw_writeBuffer(textmemptr, "No open files", 0, VIDEO_ROWS - 1, VIDEO_COLS - 1, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG);
     }        
 }
 
 void ed_wordJump(short wordJump){
-    unsigned short currentCharPos = currentFileArena->file->cursorCol;
-    char *currentLineBuffer = currentFileArena->file->currentLine->buffer;
+    size_t currentCharPos = 0;
+    char *currentLineBuffer = NULL;
+
+    currentCharPos = currentFileArena->file->cursorCol;
+    currentLineBuffer = currentFileArena->file->currentLine->buffer;
 
     switch(wordJump){
         case ED_WORD_JUMP_PREV:
@@ -1442,17 +1436,13 @@ void ed_findWord(){
 }
 
 void ed_drawSearchTool(){
-    int i;
-    int vis_offset = 0, dialog_offset = 0, dialogStartY, dialogEndY, dialogHeight;
+    int vis_offset = 0;
+    int dialogStartY = 0;
     
     vis_offset = (VIDEO_COLS / 4);
-    dialog_offset = vis_offset / 4;
-
     dialogStartY = 2;
-    dialogEndY = 6; 
-    dialogHeight = dialogEndY - dialogStartY;
 
-    dw_rectangle(textmemptr, vis_offset, dialogStartY, VIDEO_COLS - vis_offset, dialogEndY, COLOR_BLUE, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_BLUE, false, DRAW_BORDER_SIMPLE, "Search...");
+    dw_rectangle(textmemptr, vis_offset, dialogStartY, VIDEO_COLS - vis_offset, 6, COLOR_BLUE, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_BLUE, false, DRAW_BORDER_SIMPLE, "Search...");
     dw_writeBuffer(
         textmemptr, 
         "Found matches: %d, Currently on result: %d", 
@@ -1549,13 +1539,19 @@ void ed_prepareSearchTool(){
 
 
 // Shell spawn.. 
-#if defined(__MSDOS__) || defined(__WATCOMC__)
 void ed_shellSpawn(){
-    char *comspec = getenv("COMSPEC");
-    char cmd[255] = {'\0'};
-    char currPath[255] = {'\0'};
-    int spawn_ret;
-    int system_ret;
+    char cmd[255];
+    char currPath[255];
+    char *comspec = NULL;
+
+    memset(cmd, '\0', 255);
+    memset(currPath, '\0', 255);
+
+#if defined(__MSDOS__) || defined(__WATCOMC__)
+    comspec = getenv("COMSPEC");
+#else
+    comspec = getenv("SHELL");
+#endif
 
     if(!currentFileArena || !currentFileArena->file) return;
     
@@ -1564,17 +1560,29 @@ void ed_shellSpawn(){
     hal_vid_set25Lines();
     dw_cls(textmemptr);
 
-    //printf("COMSPEC: %s\n", comspec ? comspec : "NULL");
     // TODO: SAVE FILE
 
+#if defined(__MSDOS__) || defined(__WATCOMC__)
     if (!comspec) comspec = "COMMAND.COM";
+#else
+    if (!comspec) comspec = "/bin/bash";
+#endif
 
     strncpy(currPath, currentFileArena->file->name, hal_fs_getFilePath(currentFileArena->file->name));
+
+#if defined(__MSDOS__) || defined(__WATCOMC__)
     sprintf(cmd, "cd %s", currPath);
 
     logger("[ed_shellSpawn]: %s", currPath);
 
     spawnl(P_WAIT, comspec, comspec, "/K", cmd, NULL);
+#else
+    sprintf(cmd, "cd %s && %s", currPath, comspec);
+
+    logger("[ed_shellSpawn]: %s", currPath);
+
+    system(cmd);
+#endif
     
     hal_inp_initKeyboard();
     hal_inp_clearKeyboardBuffer();
@@ -1583,4 +1591,3 @@ void ed_shellSpawn(){
 
     ed_renderEvent = true;
 }
-#endif

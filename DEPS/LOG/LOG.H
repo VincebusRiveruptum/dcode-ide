@@ -2,18 +2,20 @@
 #define ENGINE_LOG_LOG_H
 
 #include <stdarg.h>
-#include <STDIO.H>
-#include <STDLIB.H>
-#include <CONIO.H>
-#include <STRING.H>
-#include <DOS.H>    
-#include <MEM.H>
-#include <i86.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 #include <time.h>
 
-#include "..\ENV\ENV.H"
-#include <time.h>
+#if defined(__MSDOS__) || defined(__WATCOMC__)
+#include <CONIO.H>
+#include <DOS.H>    
+#include <MEM.H>
+#include <i86.h>
+#endif
+
+#include "../ENV/ENV.H"
 
 extern FILE *logFp;
 extern unsigned char log_enable;

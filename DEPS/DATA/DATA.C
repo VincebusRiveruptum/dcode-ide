@@ -1,4 +1,4 @@
-#include "data.h"
+#include "DATA.H"
 
 Node *createNode(void *data, char *arenaName){
     Node *newNode;
@@ -115,7 +115,7 @@ void softDeleteByIndex(List **list, int index){
 Node *insertByIndex(List **list, Node *newNode, unsigned int index){
     Node *temp = NULL;
 
-    if((*list) != NULL && ((index - 1) < (*list)->length)){        
+    if((*list) != NULL && ((index - 1) < (unsigned int)(*list)->length)){        
         temp = getNodeByIndex(list, index);
 
         if(temp != NULL){
@@ -261,7 +261,7 @@ Node *insertGenericNode(List **list, void *data, MemoryArena *arena, unsigned in
     }
 
     /* Check bounds: can insert at any index from 0 to length inclusive (appending) */
-    if(index > (*list)->length){
+    if(index > (unsigned int)(*list)->length){
         logger("[data/insertGenericNode]: index %d out of bounds (length %d)", index, (*list)->length);
         return NULL;
     }
@@ -283,7 +283,7 @@ Node *insertGenericNode(List **list, void *data, MemoryArena *arena, unsigned in
         if((*list)->lastNode == NULL){
             (*list)->lastNode = newNode;
         }
-    } else if(index == (*list)->length){
+    } else if(index == (unsigned int)(*list)->length){
         /* Append at the end */
         newNode->next = NULL;
         newNode->prev = (*list)->lastNode;

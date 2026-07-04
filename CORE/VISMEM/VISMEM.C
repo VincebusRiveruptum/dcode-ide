@@ -79,8 +79,8 @@ void mem_vis_mem(){
     
         //Checks for end loop
         if(hal_inp_isKeyDown(HAL_KEY_ESC)) endvis = true;
-        if(!kbhit()){
-            getch();
+        if(!hal_inp_kbhit()){
+            hal_inp_getch();
         }
     }
 }

@@ -1,5 +1,7 @@
 #include "MEM.H"
 
+void _null_arena(char *name);
+
 /* Now it iwll handle dynamic arenas  */
 
 /*
@@ -24,8 +26,8 @@ void mem_shutdown() {
     int i=0;
 
     for(i=0; i<MAX_ARENAS; i++){
-        if(memoryArenas[i].name != NULL){
-            mem_arena_free(memoryArenas[i].name, NULL);
+        if(memoryArenas[i].name[0] != '\0'){
+            mem_arena_free(&memoryArenas[i], NULL);
         }
     }
 }
@@ -64,7 +66,6 @@ void *mem_create_arena(char *name, unsigned char type, size_t size){
 // If is not in the same scope, you pass the name of the arena and the function itself
 // will search for it
 void *mem_arena_alloc(MemoryArena *arenaPtr, char *name, size_t size){
-    int i=0;
     void *ptr = NULL;
     MemoryArena *arena = NULL;
 
@@ -138,11 +139,17 @@ void mem_arena_free(MemoryArena *arenaPtr,char *name){
         arena->offset = 0;
         arena->size = 0;
     }
+
+    if(name == NULL && arena != NULL){
+        name = arena->name;
+    }
+
     _null_arena(name);
 }
 
 void _null_arena(char *name){
-    int i=0;
+    int i = 0;
+    if (!name) return;
     for(i=0; i<MAX_ARENAS; i++){
         if(!strcmp(memoryArenas[i].name, name)){
             memoryArenas[i].base = NULL;

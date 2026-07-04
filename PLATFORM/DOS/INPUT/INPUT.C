@@ -183,3 +183,15 @@ unsigned char hal_inp_keysDown(int nKeys, ...) {
     va_end(args);
     return 1;
 }
+
+bool hal_inp_kbhit(void) {
+    return kbhit() != 0;
+}
+
+char hal_inp_getch(void) {
+    return getch();
+}
+
+void hal_sleep_ms(int ms) {
+    delay(ms);
+}

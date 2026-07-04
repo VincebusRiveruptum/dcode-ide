@@ -1,10 +1,15 @@
 #ifndef DATA_TYPES_H
 #define DATA_TYPES_H
 
-#define true 1
-#define false 0
-
-typedef unsigned char bool;
+#if defined(__MSDOS__) || defined(__WATCOMC__)
+  #ifndef __cplusplus
+    typedef unsigned char bool;
+    #define true 1
+    #define false 0
+  #endif
+#else
+  #include <stdbool.h>
+#endif
 
 typedef struct Node{
     void *data;

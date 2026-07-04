@@ -1,6 +1,8 @@
 
 #include "FILES.H"
-#include "..\CONFIG\CONFIG.H"
+#include "../CONFIG/CONFIG.H"
+
+void f_flushSearchMetadata();
 
 FileArena fileList[MAX_ARENAS];
 SearchMetadata fileListSearchMetadata[MAX_ARENAS];
@@ -18,25 +20,25 @@ void f_init(){
 }
 
 void f_initFileArenas(){
-    int i=0;
-    for(i; i < MAX_ARENAS; i++){
+    int i = 0;
+    for(i = 0; i < MAX_ARENAS; i++){
         fileList[i].file = NULL;
         fileList[i].arena = NULL;
     }
 }
 
 FileArena *f_getFileArena(char *filename){
-    unsigned short i=0;
+    unsigned short i = 0;
     
-    for(i; i < MAX_ARENAS; i++){
+    for(i = 0; i < MAX_ARENAS; i++){
         if(fileList[i].file && !strcmp(fileList[i].file->name, filename)) return &fileList[i];
     }   
     return NULL;
 }
 FileArena *f_addFileArena(FileArena *fileArena){
-    unsigned short i=0;
+    unsigned short i = 0;
     
-    for(i; i < MAX_ARENAS; i++){
+    for(i = 0; i < MAX_ARENAS; i++){
         if(fileList[i].file == NULL && fileList[i].arena == NULL){
             fileList[i] = *fileArena;
             
@@ -163,8 +165,10 @@ void f_dumpToFile(char *filename){
 }
 
 void f_dumpBufferTofile(char *buffer, size_t bufferLength, char *filename){
-    FILE *fp = fopen(filename, "w");
-    int i=0;
+    size_t i = 0;
+    FILE *fp = NULL;
+
+    fp = fopen(filename, "w");
     if(fp == NULL){
         logger("\n[f_dumpBufferTofile]: Error: Could not open file %s", filename);
         return;
@@ -242,11 +246,12 @@ char *f_getFileExtension(char *filename){
 }
 
 size_t _copyLines(FileArena *old, FileArena *new){
-    Node *currentNode;
-    Line *oldLine, *newLine;
-    size_t offset = 0;
     size_t lengthSum = 0;
-    size_t lineLen=0;
+    size_t lineLen = 0;
+    Node *currentNode = NULL;
+    Line *oldLine = NULL;
+    Line *newLine = NULL;
+
     new->file->lines = NULL;
     
     currentNode = old->file->lines->firstNode;
@@ -260,8 +265,7 @@ size_t _copyLines(FileArena *old, FileArena *new){
 
         lineLen = strlen(oldLine->buffer);
 
-        strncpy(newLine->buffer, oldLine->buffer, lineLen);
-        newLine->buffer[lineLen] = '\0';
+        memcpy(newLine->buffer, oldLine->buffer, lineLen + 1);
         newLine->length = lineLen;
 
         addGenericNode(&new->file->lines, (void *)newLine, NULL, new->arena);
@@ -292,9 +296,9 @@ void f_newFile(char *filename){
             return;
         }
     
-        sprintf(&tempName, "newfile%d%s", newFileCounter, settings.DEFAULT_EXTENSION);
+        sprintf(tempName, "newfile%d%s", newFileCounter, settings.DEFAULT_EXTENSION);
     }else{
-        sprintf(&tempName, "%s", filename);
+        sprintf(tempName, "%s", filename);
     }
 
     newArena = (MemoryArena *)mem_create_arena(tempName, MEM_ARENA_FILE, MEM_ARENA_512K);
@@ -406,13 +410,16 @@ void f_newFile(char *filename){
 /* OPEN FILE ==============================================================================*/
 
 bool f_openFile(char *filename){
-    FILE *fp = fopen(filename, "r");
+    char searchArenaName[32];
+    FILE *fp = NULL;
     File *file = NULL;
     MemoryArena *arena = NULL;
     FileArena *fileArena = NULL;
-    char *shortFileName = NULL;
     char *fileParsingBuffer = NULL;
-    char searchArenaName[32] = {'\0'};
+
+    memset(searchArenaName, '\0', 32);
+
+    fp = fopen(filename, "r");
 
     // We are creating an arena per file
     if(fp == NULL){
@@ -442,9 +449,9 @@ bool f_openFile(char *filename){
     file->scrollX = 0;
     file->cursorLine = 0;
     file->cursorCol = 0;
-    file->prevChar = NULL;
-    file->currentChar = NULL;
-    file->nextChar = NULL;
+    file->prevChar = '\0';
+    file->currentChar = '\0';
+    file->nextChar = '\0';
 
     // Selection metadata
     file->selectedStartX = 0;
@@ -525,7 +532,7 @@ bool f_openFile(char *filename){
         : 
         NULL ;
 
-    currentFileArena->file->prevChar = NULL;
+    currentFileArena->file->prevChar = '\0';
     currentFileArena->file->currentChar = 
         currentFileArena->file->currentLine->buffer[0] 
         ? currentFileArena->file->currentLine->buffer[0]
@@ -699,11 +706,10 @@ void f_saveFile(){
 /* CLOSE FILE ==================================================================*/
 
 void f_triggerClose(bool end_program){
-    char input;
-    char *filename;
     int len = 0;
-    bool esc;
-    int status;
+    char input = '\0';
+    bool esc = false;
+    char *filename = NULL;
     // endProgram IS A GLOBAL VARIABLE THO
     endProgram = end_program;
 
@@ -723,7 +729,7 @@ void f_triggerClose(bool end_program){
             (esc = hal_inp_isKeyPressed(HAL_KEY_ESC) == true) 
 
         )){
-            input = getch();
+            input = hal_inp_getch();
         }
 
         if(esc == true) return;
@@ -763,13 +769,15 @@ void f_triggerClose(bool end_program){
 }
 
 void f_closeCurrentFile(){
-    int i=0;
-    char oldFileName[255] = {'\0'};
+    int i = 0;
+    char oldFileName[255];
+
+    memset(oldFileName, '\0', 255);
 
     // If there are no current file opened, we fallback
     if(!currentFileArena) return;
 
-    strncpy(oldFileName, currentFileArena->file->name, 255);
+    strcpy(oldFileName, currentFileArena->file->name);
 
     f_closeFile(currentFileArena);    
     f_flushSearchMetadata();
@@ -900,7 +908,7 @@ void f_showFileSwitcher(){
         hal_inp_updateKeyboard();
         
         /* En DOS es bueno dar un brevísimo retardo/yield aquí para no saturar la CPU */
-        delay(10); /* O similar */
+        hal_sleep_ms(10); /* O similar */
     }
 
     ed_renderEvent = true;
@@ -937,27 +945,28 @@ int _goBackPath(char *path){
     The file list will be reactive depending on hte detected path from the input prompt.
 */
 void f_quickOpenFileDialog(){
-    int i, stepIndex;
-    int vis_offset = 0, dialog_offset = 0, dialogStartY, dialogEndY, dialogHeight;
+    int stepIndex = 0;
+    int vis_offset = 0;
+    int dialogStartY = 0;
+    int dialogEndY = 0;
     int entriesLen = 0;
     int selectedEntry = 0;
-    int selectedIndex = 0;
-    int entryIndex;
+    int entryIndex = 0;
     int clearMarkPoint = 0;
     int listHeight = 11;
     int entryScrollY = 0;
     int selectedEntryScrollY = 0;
-    
-    char selectedEntryFullPath[255] = {'\0'};
-    char scrollChar;
-    char currentPath[255] = {'\0'};
-    
+    char scrollChar = '\0';
+    char selectedEntryFullPath[512];
+    char currentPath[255];
     bool isSelected = false;
-
     Directory *currPathDirectory = NULL;
     Node *node = NULL;
     FileEntry *fileEntry = NULL;
     FileEntry *selectedFileEntry = NULL;
+
+    memset(selectedEntryFullPath, '\0', 512);
+    memset(currentPath, '\0', 255);
 
     hal_fs_getAbsoluteCurrentPath(currentPath, 255);
     
@@ -970,11 +979,9 @@ void f_quickOpenFileDialog(){
     }
 
     vis_offset = (VIDEO_COLS / 4);
-    dialog_offset = vis_offset / 4;
 
     dialogStartY = 2;
     dialogEndY = 18; 
-    dialogHeight = dialogEndY - dialogStartY;
 
     dw_rectangle(textmemptr, vis_offset, dialogStartY, VIDEO_COLS - vis_offset, dialogEndY, COLOR_BLUE, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_BLUE, false, DRAW_BORDER_SIMPLE, "OPEN FILE");
 

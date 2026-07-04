@@ -18,7 +18,15 @@ typedef enum {
     SORT_TYPE_CHAR
 } SortType;
 
-typedef unsigned char bool;
+#if defined(__MSDOS__) || defined(__WATCOMC__)
+  #ifndef __cplusplus
+    typedef unsigned char bool;
+    #define true 1
+    #define false 0
+  #endif
+#else
+  #include <stdbool.h>
+#endif
 
 /* 
  * Macro to simplify sorting. 

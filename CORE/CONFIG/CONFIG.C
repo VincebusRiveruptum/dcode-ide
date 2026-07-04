@@ -6,8 +6,6 @@
 Settings settings;
 
 bool cfg_loadConfig(){
-    char *ext;
-
     log_enable = false;
 
     loadEnv();

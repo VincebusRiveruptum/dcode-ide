@@ -1,0 +1,38 @@
+CC = gcc
+CFLAGS = -Wall -Wextra -O2 -IHAL -IAPP -ICORE -IDEPS/DATA -IDEPS/SORT -IDEPS/ENV -IDEPS/MEM -IDEPS/LOG -IDEPS/EXT -IPLATFORM/LINUX/INPUT -IPLATFORM/LINUX/VIDEO -IPLATFORM/LINUX/FS
+TARGET = dcode
+
+SRCS = PLATFORM/LINUX/INPUT/input.c \
+       PLATFORM/LINUX/VIDEO/video.c \
+       PLATFORM/LINUX/FS/fs.c \
+       DEPS/DATA/DATA.C \
+       DEPS/SORT/SORT.C \
+       DEPS/ENV/ENV.C \
+       DEPS/MEM/MEM.C \
+       DEPS/LOG/LOG.C \
+       CORE/VISMEM/VISMEM.C \
+       CORE/TEST/TEST.C \
+       CORE/FILES/FILES.C \
+       CORE/EDITOR/EDITOR.C \
+       CORE/CONFIG/CONFIG.C \
+       CORE/DRAW/DRAW.C \
+       APP/MAIN.C
+
+OBJS = $(SRCS:.c=.o)
+OBJS := $(OBJS:.C=.o)
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(OBJS) -o $(TARGET)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+%.o: %.C
+	$(CC) $(CFLAGS) -x c -c $< -o $@
+
+clean:
+	rm -f $(OBJS) $(TARGET)
+
+.PHONY: all clean

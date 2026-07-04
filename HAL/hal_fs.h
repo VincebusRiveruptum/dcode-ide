@@ -2,7 +2,7 @@
 #define HAL_FS_H
 
 #include "STD.H"
-#include "..\DEPS\DATA\DATA.H"
+#include "../DEPS/DATA/DATA.H"
 
 typedef struct FileEntry{
     char name[256];

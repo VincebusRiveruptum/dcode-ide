@@ -36,7 +36,7 @@ $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -x c -c $< -o $@
 
 clean:
-	@cp ./$(TARGET) ./bin/ 
+	@cp ./$(TARGET) ./bin/linux/ 
 	@rm ./$(TARGET) 
 	@rm -f $(OBJS) $(TARGET)
 

@@ -90,8 +90,8 @@ void *mem_arena_alloc(MemoryArena *arenaPtr, char *name, size_t size){
         return NULL;
     }
 
-    // Align to 4 bytes for 32-bit performance
-    size = (size + 3) & ~3;
+    /* Align to 16 bytes for 64-bit/SSE safety on Linux and DOS */
+    size = (size + 15) & ~15;
 
     if(arena->offset + size > arena->size){
         logger("\n[mem_arena_alloc]: Error: Arena %s out of memory (request: %d, left: %d)", 

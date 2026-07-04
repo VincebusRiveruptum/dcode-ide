@@ -144,8 +144,11 @@ Node *pop(List **list){
     ){
         popped = (*list)->lastNode;
         (*list)->lastNode = (*list)->lastNode->prev;
-        (*list)->lastNode->next = NULL;
-        
+        if ((*list)->lastNode) {
+            (*list)->lastNode->next = NULL;
+        } else {
+            (*list)->firstNode = NULL;
+        }
         
         (*list)->length--;
 

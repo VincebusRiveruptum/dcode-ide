@@ -720,6 +720,7 @@ void f_triggerClose(bool end_program){
 
     if(currentFileArena->file->isModified == true){
         dw_writeBuffer(textmemptr, "File modified, save? Y/N ",0,VIDEO_ROWS - 1 ,26, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
+        hal_vid_refresh();
         
         while(!(
             input == 'n' ||
@@ -744,6 +745,7 @@ void f_triggerClose(bool end_program){
         
         if(f_isDefaultFileName() == true){
             dw_writeBuffer(textmemptr, "File name: ",0,VIDEO_ROWS - 1, 10,VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
+            hal_vid_refresh();
             
             while((len <= 3 || len > 12)){
                 dw_writeBuffer(textmemptr, "",11,VIDEO_ROWS - 1, VIDEO_COLS - 1, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
@@ -756,6 +758,7 @@ void f_triggerClose(bool end_program){
                 ed_renderElements();
                 if(len <= 3 || len > 12){
                     dw_writeBuffer(textmemptr, "Invalid filename! Try again",0,VIDEO_ROWS - 1,30, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
+                    hal_vid_refresh();
                 }
             }
             if(esc == true) return;
@@ -907,9 +910,7 @@ void f_showFileSwitcher(){
         /* 4. Actualizar el buffer del teclado manualmente en este bucle */
         hal_vid_refresh();
         hal_inp_updateKeyboard();
-        
-        /* En DOS es bueno dar un brevísimo retardo/yield aquí para no saturar la CPU */
-        hal_sleep_ms(10); /* O similar */
+
     }
 
     ed_renderEvent = true;

@@ -157,6 +157,10 @@ int main(int argc, char *argv[]){
 			ed_handleSelection();
 		}
 
+		// Independent from render-event. as it always poll
+		// globalAuxTimer if there is any timer activated.
+		ed_statusBar();	
+
 		if(ed_renderEvent == true){
 			
 			ed_renderElements();
@@ -173,9 +177,7 @@ int main(int argc, char *argv[]){
 			ed_renderEvent = false;
 		}
 
-		// Independent from render-event. as it always poll
-		// globalAuxTimer if there is any timer activated.
-		ed_statusBar();	
+
 		
 		hal_inp_updateKeyboard();
 	}

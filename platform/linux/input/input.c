@@ -63,10 +63,19 @@ static void poll_stdin(void) {
     char buf[64];
     int n = read_stdin_timeout(buf, 64, 10);
     if (n > 0) {
+        inp_state[HAL_KEY_LALT] = 0;
+        inp_state[HAL_KEY_LSHIFT] = 0;
+        inp_state[HAL_KEY_LCTRL] = 0;
         int i = 0;
         while (i < n) {
             if (buf[i] == 27) { // ESC
                 if (i + 1 < n) {
+                    if (buf[i+1] == 27) {
+                        inp_state[HAL_KEY_LALT] = 1;
+                        inp_pressed[HAL_KEY_LALT] = 1;
+                        i++;
+                        continue;
+                    }
                     if (buf[i+1] == '[') {
                         int seq_end = i + 2;
                         while (seq_end < n && 
@@ -76,36 +85,39 @@ static void poll_stdin(void) {
                             seq_end++;
                         }
                         if (seq_end < n) {
-                            if (buf[i+2] == 'A') { fifo_push(0); fifo_push(HAL_KEY_UP); }
-                            else if (buf[i+2] == 'B') { fifo_push(0); fifo_push(HAL_KEY_DOWN); }
-                            else if (buf[i+2] == 'C') { fifo_push(0); fifo_push(HAL_KEY_RIGHT); }
-                            else if (buf[i+2] == 'D') { fifo_push(0); fifo_push(HAL_KEY_LEFT); }
-                            else if (buf[i+2] == 'H') { fifo_push(0); fifo_push(HAL_KEY_HOME); }
-                            else if (buf[i+2] == 'F') { fifo_push(0); fifo_push(HAL_KEY_END); }
-                            else if (strncmp(&buf[i+2], "5~", seq_end - (i+2) + 1) == 0) { fifo_push(0); fifo_push(HAL_KEY_PAGEUP); }
-                            else if (strncmp(&buf[i+2], "6~", seq_end - (i+2) + 1) == 0) { fifo_push(0); fifo_push(HAL_KEY_PAGEDOWN); }
-                            else if (strncmp(&buf[i+2], "2~", seq_end - (i+2) + 1) == 0) { fifo_push(0); fifo_push(HAL_KEY_INSERT); }
-                            else if (strncmp(&buf[i+2], "3~", seq_end - (i+2) + 1) == 0) { fifo_push(0); fifo_push(HAL_KEY_DELETE); }
-                            else if (strncmp(&buf[i+2], "11~", seq_end - (i+2) + 1) == 0) { inp_pressed[HAL_KEY_F1] = 1; }
-                            else if (strncmp(&buf[i+2], "12~", seq_end - (i+2) + 1) == 0) { inp_pressed[HAL_KEY_F2] = 1; }
-                            else if (strncmp(&buf[i+2], "20~", seq_end - (i+2) + 1) == 0) { inp_pressed[HAL_KEY_F9] = 1; }
-                            else if (strncmp(&buf[i+2], "23~", seq_end - (i+2) + 1) == 0) { inp_pressed[HAL_KEY_F11] = 1; }
-                            else if (strncmp(&buf[i+2], "24~", seq_end - (i+2) + 1) == 0) { inp_pressed[HAL_KEY_F12] = 1; }
+                            if (buf[i+2] == 'A') { fifo_push(0); fifo_push(HAL_KEY_UP); inp_state[HAL_KEY_UP] = 1; inp_pressed[HAL_KEY_UP] = 1; }
+                            else if (buf[i+2] == 'B') { fifo_push(0); fifo_push(HAL_KEY_DOWN); inp_state[HAL_KEY_DOWN] = 1; inp_pressed[HAL_KEY_DOWN] = 1; }
+                            else if (buf[i+2] == 'C') { fifo_push(0); fifo_push(HAL_KEY_RIGHT); inp_state[HAL_KEY_RIGHT] = 1; inp_pressed[HAL_KEY_RIGHT] = 1; }
+                            else if (buf[i+2] == 'D') { fifo_push(0); fifo_push(HAL_KEY_LEFT); inp_state[HAL_KEY_LEFT] = 1; inp_pressed[HAL_KEY_LEFT] = 1; }
+                            else if (buf[i+2] == 'H') { fifo_push(0); fifo_push(HAL_KEY_HOME); inp_state[HAL_KEY_HOME] = 1; inp_pressed[HAL_KEY_HOME] = 1; }
+                            else if (buf[i+2] == 'F') { fifo_push(0); fifo_push(HAL_KEY_END); inp_state[HAL_KEY_END] = 1; inp_pressed[HAL_KEY_END] = 1; }
+                            else if (strncmp(&buf[i+2], "5~", seq_end - (i+2) + 1) == 0) { fifo_push(0); fifo_push(HAL_KEY_PAGEUP); inp_state[HAL_KEY_PAGEUP] = 1; inp_pressed[HAL_KEY_PAGEUP] = 1; }
+                            else if (strncmp(&buf[i+2], "6~", seq_end - (i+2) + 1) == 0) { fifo_push(0); fifo_push(HAL_KEY_PAGEDOWN); inp_state[HAL_KEY_PAGEDOWN] = 1; inp_pressed[HAL_KEY_PAGEDOWN] = 1; }
+                            else if (strncmp(&buf[i+2], "2~", seq_end - (i+2) + 1) == 0) { fifo_push(0); fifo_push(HAL_KEY_INSERT); inp_state[HAL_KEY_INSERT] = 1; inp_pressed[HAL_KEY_INSERT] = 1; }
+                            else if (strncmp(&buf[i+2], "3~", seq_end - (i+2) + 1) == 0) { fifo_push(0); fifo_push(HAL_KEY_DELETE); inp_state[HAL_KEY_DELETE] = 1; inp_pressed[HAL_KEY_DELETE] = 1; }
+                            else if (strncmp(&buf[i+2], "11~", seq_end - (i+2) + 1) == 0) { inp_state[HAL_KEY_F1] = 1; inp_pressed[HAL_KEY_F1] = 1; }
+                            else if (strncmp(&buf[i+2], "12~", seq_end - (i+2) + 1) == 0) { inp_state[HAL_KEY_F2] = 1; inp_pressed[HAL_KEY_F2] = 1; }
+                            else if (strncmp(&buf[i+2], "20~", seq_end - (i+2) + 1) == 0) { inp_state[HAL_KEY_F9] = 1; inp_pressed[HAL_KEY_F9] = 1; }
+                            else if (strncmp(&buf[i+2], "23~", seq_end - (i+2) + 1) == 0) { inp_state[HAL_KEY_F11] = 1; inp_pressed[HAL_KEY_F11] = 1; }
+                            else if (strncmp(&buf[i+2], "24~", seq_end - (i+2) + 1) == 0) { inp_state[HAL_KEY_F12] = 1; inp_pressed[HAL_KEY_F12] = 1; }
                             else if (buf[i+2] == '1' && buf[i+3] == ';') {
                                 char mod = buf[i+4];
                                 char key = buf[i+5];
                                 if (mod == '2') { // Shift
                                     inp_state[HAL_KEY_LSHIFT] = 1;
-                                    if (key == 'A') { fifo_push(0); fifo_push(HAL_KEY_UP); }
-                                    else if (key == 'B') { fifo_push(0); fifo_push(HAL_KEY_DOWN); }
-                                    else if (key == 'C') { fifo_push(0); fifo_push(HAL_KEY_RIGHT); }
-                                    else if (key == 'D') { fifo_push(0); fifo_push(HAL_KEY_LEFT); }
+                                    inp_pressed[HAL_KEY_LSHIFT] = 1;
+                                    if (key == 'A') { fifo_push(0); fifo_push(HAL_KEY_UP); inp_state[HAL_KEY_UP] = 1; inp_pressed[HAL_KEY_UP] = 1; }
+                                    else if (key == 'B') { fifo_push(0); fifo_push(HAL_KEY_DOWN); inp_state[HAL_KEY_DOWN] = 1; inp_pressed[HAL_KEY_DOWN] = 1; }
+                                    else if (key == 'C') { fifo_push(0); fifo_push(HAL_KEY_RIGHT); inp_state[HAL_KEY_RIGHT] = 1; inp_pressed[HAL_KEY_RIGHT] = 1; }
+                                    else if (key == 'D') { fifo_push(0); fifo_push(HAL_KEY_LEFT); inp_state[HAL_KEY_LEFT] = 1; inp_pressed[HAL_KEY_LEFT] = 1; }
                                 } else if (mod == '3') { // Alt
                                     inp_state[HAL_KEY_LALT] = 1;
+                                    inp_pressed[HAL_KEY_LALT] = 1;
                                     if (key == 'A') { inp_state[HAL_KEY_UP] = 1; inp_pressed[HAL_KEY_UP] = 1; }
                                     else if (key == 'B') { inp_state[HAL_KEY_DOWN] = 1; inp_pressed[HAL_KEY_DOWN] = 1; }
                                 } else if (mod == '5') { // Ctrl
                                     inp_state[HAL_KEY_LCTRL] = 1;
+                                    inp_pressed[HAL_KEY_LCTRL] = 1;
                                     if (key == 'C') { inp_state[HAL_KEY_RIGHT] = 1; inp_pressed[HAL_KEY_RIGHT] = 1; }
                                     else if (key == 'D') { inp_state[HAL_KEY_LEFT] = 1; inp_pressed[HAL_KEY_LEFT] = 1; }
                                 }
@@ -114,10 +126,10 @@ static void poll_stdin(void) {
                             continue;
                         }
                     } else if (buf[i+1] == 'O') {
-                        if (buf[i+2] == 'P') { inp_pressed[HAL_KEY_F1] = 1; }
-                        else if (buf[i+2] == 'Q') { inp_pressed[HAL_KEY_F2] = 1; }
-                        else if (buf[i+2] == 'R') { inp_pressed[HAL_KEY_F3] = 1; }
-                        else if (buf[i+2] == 'S') { inp_pressed[HAL_KEY_F4] = 1; }
+                        if (buf[i+2] == 'P') { inp_state[HAL_KEY_F1] = 1; inp_pressed[HAL_KEY_F1] = 1; }
+                        else if (buf[i+2] == 'Q') { inp_state[HAL_KEY_F2] = 1; inp_pressed[HAL_KEY_F2] = 1; }
+                        else if (buf[i+2] == 'R') { inp_state[HAL_KEY_F3] = 1; inp_pressed[HAL_KEY_F3] = 1; }
+                        else if (buf[i+2] == 'S') { inp_state[HAL_KEY_F4] = 1; inp_pressed[HAL_KEY_F4] = 1; }
                         i += 3;
                         continue;
                     } else if (buf[i+1] == '\t' || buf[i+1] == 's' || buf[i+1] == 'S') {
@@ -137,8 +149,59 @@ static void poll_stdin(void) {
                 char c = buf[i];
                 if (c == 127 || c == 8) {
                     fifo_push(HAL_CHAR_BACKSPACE);
+                    inp_state[HAL_KEY_BACKSPACE] = 1;
+                    inp_pressed[HAL_KEY_BACKSPACE] = 1;
                 } else if (c == '\n' || c == '\r') {
                     fifo_push(HAL_CHAR_ENTER);
+                    inp_state[HAL_KEY_ENTER] = 1;
+                    inp_pressed[HAL_KEY_ENTER] = 1;
+                } else if (c == '\t') {
+                    fifo_push(HAL_CHAR_TAB);
+                    inp_state[HAL_KEY_TAB] = 1;
+                    inp_pressed[HAL_KEY_TAB] = 1;
+                } else if (c == ' ') {
+                    fifo_push(HAL_CHAR_SPACE);
+                    inp_state[HAL_KEY_SPACE] = 1;
+                    inp_pressed[HAL_KEY_SPACE] = 1;
+                } else if (c >= 1 && c <= 26) {
+                    // Map Ctrl+Key sequences
+                    unsigned char mapped_key = 0;
+                    switch (c) {
+                        case 1: mapped_key = HAL_KEY_A; break;
+                        case 2: mapped_key = HAL_KEY_B; break;
+                        case 3: mapped_key = HAL_KEY_C; break;
+                        case 4: mapped_key = HAL_KEY_D; break;
+                        case 5: mapped_key = HAL_KEY_E; break;
+                        case 6: mapped_key = HAL_KEY_F; break;
+                        case 7: mapped_key = HAL_KEY_G; break;
+                        case 8: mapped_key = HAL_KEY_H; break;
+                        case 11: mapped_key = HAL_KEY_K; break;
+                        case 12: mapped_key = HAL_KEY_L; break;
+                        case 14: mapped_key = HAL_KEY_N; break;
+                        case 15: mapped_key = HAL_KEY_O; break;
+                        case 16: mapped_key = HAL_KEY_P; break;
+                        case 17: mapped_key = HAL_KEY_Q; break;
+                        case 18: mapped_key = HAL_KEY_R; break;
+                        case 19: mapped_key = HAL_KEY_S; break;
+                        case 20: mapped_key = HAL_KEY_T; break;
+                        case 21: mapped_key = HAL_KEY_U; break;
+                        case 22: mapped_key = HAL_KEY_V; break;
+                        case 23: mapped_key = HAL_KEY_W; break;
+                        case 24: mapped_key = HAL_KEY_X; break;
+                        case 25: mapped_key = HAL_KEY_Y; break;
+                        case 26: mapped_key = HAL_KEY_Z; break;
+                    }
+                    if (mapped_key != 0) {
+                        inp_state[HAL_KEY_LCTRL] = 1;
+                        inp_pressed[HAL_KEY_LCTRL] = 1;
+                        inp_state[mapped_key] = 1;
+                        inp_pressed[mapped_key] = 1;
+                        if (mapped_key == HAL_KEY_S) {
+                            // Map Ctrl+S to also trigger Ctrl+Shift+S (LSHIFT) for save
+                            inp_state[HAL_KEY_LSHIFT] = 1;
+                            inp_pressed[HAL_KEY_LSHIFT] = 1;
+                        }
+                    }
                 } else {
                     fifo_push(c);
                 }
@@ -178,13 +241,10 @@ void hal_inp_closeKeyboard(void) {
 
 void hal_inp_updateKeyboard(void) {
     int i;
-    // Clear momentary key modifier states to avoid sticking
-    inp_state[HAL_KEY_LSHIFT] = 0;
-    inp_state[HAL_KEY_LCTRL] = 0;
-    inp_state[HAL_KEY_LALT] = 0;
-    inp_state[HAL_KEY_ESC] = 0;
-
     for (i = 0; i < 256; i++) {
+        if (i != HAL_KEY_LALT && i != HAL_KEY_LCTRL && i != HAL_KEY_LSHIFT) {
+            inp_state[i] = 0;
+        }
         inp_justPressed[i] = 0;
         inp_released[i] = 0;
     }

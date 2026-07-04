@@ -1105,6 +1105,7 @@ bool ed_checkStatusBarMessage(){
     if(difftime(endClock, ed_globalAuxTimer) > 5){
         memset(statusBarMessage, '\0', ED_STATUSBAR_WIDTH - 1);
         ed_globalAuxTimer = 0;
+        ed_renderEvent = true;
         return false;
     }  
 
@@ -1162,7 +1163,7 @@ void ed_wordJump(short wordJump){
 // Similar to visual studio code editor feature
 
 void ed_swapLine(short lineJump){
-Node *tmpNext = NULL;
+    Node *tmpNext = NULL;
     Node *tmpPrev = NULL;
     Node *curr = currentFileArena->file->currentLineNode;
     switch(lineJump){
@@ -1174,20 +1175,20 @@ Node *tmpNext = NULL;
             /* FALLTHROUGH ...*/
         case ED_LINE_JUMP_UP:
             tmpNext = curr->next;
-            tmpPrev = curr->prev;
+		    tmpPrev = curr->prev;
 
             // Is head
             if(curr->prev == NULL) break;
 
-            if(tmpPrev->prev != NULL){
-                tmpPrev->prev->next = curr;
-            }
+			if(tmpPrev->prev != NULL){
+				tmpPrev->prev->next = curr;
+			}
 
-            curr->prev = tmpPrev->prev;
+			curr->prev = tmpPrev->prev;
 
-            curr->next = tmpPrev;
-            tmpPrev->prev = curr;
-            tmpPrev->next = tmpNext;
+			curr->next = tmpPrev;
+			tmpPrev->prev = curr;
+			tmpPrev->next = tmpNext;
 
             if(tmpNext != NULL){
                 tmpNext->prev = tmpPrev;            
@@ -1198,9 +1199,8 @@ Node *tmpNext = NULL;
             if(currentCursorY - 1 > 0) currentCursorY--; 
 
             break;
-           
     }
-    
+
     ed_markActive(lineJump);
 
     _updateCursor();

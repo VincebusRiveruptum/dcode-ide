@@ -2,10 +2,10 @@
 #ifndef ENG_EDITOR_H
 #define ENG_EDITOR_H
 
-#include "STD.H"
+#include "..\STD.H"
 
 // THIS REQUIRE THE INPUT DEPS
-#include "..\APP\MAIN.H"
+#include "..\..\APP\MAIN.H"
 
 #define ED_STATUSBAR_WIDTH 132
 #define ED_WORD_JUMP_PREV 0

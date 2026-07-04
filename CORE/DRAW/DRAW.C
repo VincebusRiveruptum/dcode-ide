@@ -1,4 +1,3 @@
-
 #include "DRAW.H"
 
 bool dw_isCharSelected(struct File *file, int lineIndex, int colIndex) {
@@ -508,13 +507,13 @@ void dw_writeBuffer(unsigned short *buffer, const char *format, int x1, int y1, 
     unsigned short buffpos = 0;
     unsigned short screenPos;
  
-    memset(tempBuffer, 0, VIDEO_BUFFER_SIZE);
+    memset(tempBuffer, 0, HAL_VIDEO_BUFFER_SIZE);
 
     va_start(args, backgroundColor);
-    vsnprintf(tempBuffer, VIDEO_BUFFER_SIZE, format, args);
+    vsnprintf(tempBuffer, HAL_VIDEO_BUFFER_SIZE, format, args);
     va_end(args);
 
-    // f_dumpBufferTofile(&tempBuffer, VIDEO_BUFFER_SIZE, "temp1.txt");
+    // f_dumpBufferTofile(&tempBuffer, HAL_VIDEO_BUFFER_SIZE, "temp1.txt");
     // Boundary check
     if(x1 > x2 || y1 > y2) return;
 
@@ -522,7 +521,7 @@ void dw_writeBuffer(unsigned short *buffer, const char *format, int x1, int y1, 
         for(x = x1; x <= x2; x++){
             screenPos = (y * VIDEO_COLS) + x;
             
-            if(buffpos < VIDEO_BUFFER_SIZE){
+            if(buffpos < HAL_VIDEO_BUFFER_SIZE){
                 buffer[screenPos] = tempBuffer[buffpos] | ((backgroundColor << 4 | foregroundColor) << 8);
                 buffpos++;
             } else {

@@ -15,35 +15,19 @@ int main(int argc, char *argv[]){
 	int ticks = 0;
     
 	endProgram = false;
-	// So, the steps are:
-	// 1. Set VGA mode 2
 
-	//log_init();
 	mem_init();
 	
 	ed_initConfig(argc, argv);
     
-	inp_initKeyboard();
-	v_init_video();
+	hal_inp_initKeyboard();
+	hal_vid_init();
 
 	logger("[main]: %d %s", argc, argv[1]);
-	//ed_initConfig(argc, argv);
-	//t_initTests();
     
 	ed_renderEvent = true;
     
 	while(endProgram == false){
-		/*
-		struct Node *oldLineNode = NULL;
-		unsigned short oldCol = 0;
-		unsigned short oldLine = 0;
-		
-		if(currentFileArena && currentFileArena->file){
-			oldLineNode = (struct Node *)currentFileArena->file->currentLineNode;
-			oldCol = currentFileArena->file->cursorCol;
-			oldLine = currentFileArena->file->cursorLine;
-		}
-		*/
 		ed_prepareSelectionTool();
 		
 		// SEARCH TOOl
@@ -51,55 +35,55 @@ int main(int argc, char *argv[]){
 
 		// ACTION KEYS HANDLING
 		// This is uses ISR approach, not getch()
-		if(inp_isKeyPressed(KEY_F11)) {
-			v_cycleVideoModes();
+		if(hal_inp_isKeyPressed(HAL_KEY_F11)) {
+			hal_vid_cycleVideoModes();
 			ed_renderEvent = true;
 		}
 
-		if(inp_isKeyPressed(KEY_F12))
+		if(hal_inp_isKeyPressed(HAL_KEY_F12))
 			mem_vis_mem();
 		
 
-		if(inp_isKeyPressed(KEY_HOME)) 
+		if(hal_inp_isKeyPressed(HAL_KEY_HOME)) 
 			ed_putCursorStart();
-		if(inp_isKeyPressed(KEY_END)) 
+		if(hal_inp_isKeyPressed(HAL_KEY_END)) 
 			ed_putCursorEnd();
         
-		if(inp_isKeyPressed(KEY_PAGEUP)) 
+		if(hal_inp_isKeyPressed(HAL_KEY_PAGEUP)) 
 			ed_putCursorFistLine();
-		if(inp_isKeyPressed(KEY_PAGEDOWN)) 
+		if(hal_inp_isKeyPressed(HAL_KEY_PAGEDOWN)) 
 			ed_putCursorLastLine();
         
 		// Switch files
-		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_LSHIFT)) 
+		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LALT, HAL_KEY_LSHIFT)) 
 			f_showFileSwitcher();        
 
 		// Horizontal Word jump
-		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_RIGHT)) 
+		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LCTRL, HAL_KEY_RIGHT)) 
 			ed_wordJump(ED_WORD_JUMP_NEXT);
-		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_LEFT)) 
+		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LCTRL, HAL_KEY_LEFT)) 
 			ed_wordJump(ED_WORD_JUMP_PREV);
 
 		// Line swapping
-		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_UP)) 
+		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LALT, HAL_KEY_UP)) 
 			ed_swapLine(ED_LINE_JUMP_UP);
-		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_DOWN)) 
+		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LALT, HAL_KEY_DOWN)) 
 			ed_swapLine(ED_LINE_JUMP_DOWN);
 
 		// SPACE
-		if(inp_isKeyDown(KEY_SPACE)) ed_renderEvent = true;
+		if(hal_inp_isKeyDown(HAL_KEY_SPACE)) ed_renderEvent = true;
         
 		// DELETE (forward)
-		if(inp_isKeyPressed(KEY_DELETE)) ed_supr();
+		if(hal_inp_isKeyPressed(HAL_KEY_DELETE)) ed_supr();
 
 		/* FILE OPERATIONS */
 		
 		// CLOSE APP
-		if(inp_isKeyPressed(KEY_ESC)) 
+		if(hal_inp_isKeyPressed(HAL_KEY_ESC)) 
 			f_triggerClose(true);
 		
 		// NEW FILE
-		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_N)){
+		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LCTRL, HAL_KEY_N)){
 			f_newFile(NULL);
 			logger(
 				"[main]: User created %s ,a new file.", 
@@ -107,27 +91,27 @@ int main(int argc, char *argv[]){
 		}
 		
 		// OPEN FILE 
-		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_O))
+		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LCTRL, HAL_KEY_O))
 			f_quickOpenFileDialog();
 
 		// CLOSE FILE (Alt+F4)
-		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_F4)){
+		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LALT, HAL_KEY_F4)){
 			logger("[main]: User closed file.");
 			f_triggerClose(false);
 		}
 
 		// SAVE FILE
-		if(inp_keysPressed(
-			INP_TRIGGER_EDGE, 
+		if(hal_inp_keysPressed(
+			HAL_INP_TRIGGER_EDGE, 
 			3, 
-			KEY_LCTRL, 
-			KEY_LSHIFT, 
-			KEY_S
+			HAL_KEY_LCTRL, 
+			HAL_KEY_LSHIFT, 
+			HAL_KEY_S
 		)) 
 			f_saveFile();
  
 		// SHELL SPAWN
-		if(inp_isKeyPressed(KEY_F9)) 
+		if(hal_inp_isKeyPressed(HAL_KEY_F9)) 
 			ed_shellSpawn();
  
 		ed_resetActity();
@@ -147,19 +131,19 @@ int main(int argc, char *argv[]){
 					if the cursor sits outside means we are in GUI MODE
                 */
                 
-				if(c == KEY_UP) ed_moveCursor(0, -1);
-				if(c == KEY_DOWN) ed_moveCursor(0, 1);
-				if(c == KEY_LEFT) ed_moveCursor(-1, 0);
-				if(c == KEY_RIGHT) ed_moveCursor(1, 0);
+				if(c == HAL_KEY_UP) ed_moveCursor(0, -1);
+				if(c == HAL_KEY_DOWN) ed_moveCursor(0, 1);
+				if(c == HAL_KEY_LEFT) ed_moveCursor(-1, 0);
+				if(c == HAL_KEY_RIGHT) ed_moveCursor(1, 0);
                 
 			} else {
 				/* Ignore action keys based on ASCII values */
-				if (c >= 32 || c == CHAR_TAB) {
+				if (c >= 32 || c == HAL_CHAR_TAB) {
 					ed_typeChar(c);
 					ticks++;
-				} else if (c == CHAR_BACKSPACE) {
+				} else if (c == HAL_CHAR_BACKSPACE) {
 					ed_backspace();
-				} else if (c == CHAR_ENTER) {
+				} else if (c == HAL_CHAR_ENTER) {
 					ed_newLine();
 				}
 			}
@@ -175,17 +159,17 @@ int main(int argc, char *argv[]){
 		if(settings.DEBUG == true) t_drawDebugger();
 
 		if(ed_renderEvent == true){
+			ed_renderEvent = false;
 			ed_renderElements();
 			ed_resetCursor();
-			ed_renderEvent = false;
 		}
 
-		inp_updateKeyboard();
+		hal_inp_updateKeyboard();
 	}
 
-	inp_closeKeyboard();
+	hal_inp_closeKeyboard();
 	dw_cls(textmemptr);
-	v_set25Lines();
+	hal_vid_set25Lines();
 	mem_shutdown();
 	log_shutdown();
 	printf("96 Tears...\n");

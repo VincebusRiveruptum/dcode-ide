@@ -1,7 +1,7 @@
 #ifndef ENG_CONFIG_H
 #define ENG_CONFIG_H
 
-#include "..\APP\MAIN.H"
+#include "..\..\APP\MAIN.H"
 
 typedef struct Settings{
     // EDITOR SETTING

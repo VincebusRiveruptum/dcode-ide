@@ -9,7 +9,7 @@
 */
 
 #include "EDITOR.H"
-#include "FILES.H"
+#include "..\FILES\FILES.H"
 
 //unsigned char attrib = 0x07; // Default attribute: White on Black
 struct Container *root;
@@ -400,7 +400,7 @@ void ed_renderElements(){
 
     dw_writeBufferEditorFormatted(editormemptr, 0, 0, VIDEO_COLS - 1, VIDEO_ROWS - 2, COLOR_LIGHT_GRAY, COLOR_BLACK, currentFileArena->file);
      
-    for(i=0; i < v_getVideoBufferSize(); i++){
+    for(i=0; i < hal_vid_getVideoBufferSize(); i++){
         textmemptr[i] = editormemptr[i];
     }
 }
@@ -807,7 +807,7 @@ char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars ){
 
     ed_putCursor(x,y);    
 
-    while(c != CHAR_ENTER && !(esc = inp_isKeyPressed(KEY_ESC) == true)){
+    while(c != CHAR_ENTER && !(esc = hal_inp_isKeyPressed(HAL_KEY_ESC) == true)){
         c = getch();
 
         if(c == 0 || (unsigned char)c == 0xE0){
@@ -1240,13 +1240,13 @@ void ed_handleSelection() {
         return;
     }
 
-    isNav = inp_isKeyDown(KEY_UP) || inp_isKeyDown(KEY_DOWN) ||
-            inp_isKeyDown(KEY_LEFT) || inp_isKeyDown(KEY_RIGHT) ||
-            inp_isKeyDown(KEY_HOME) || inp_isKeyDown(KEY_END) ||
-            inp_isKeyDown(KEY_PAGEUP) || inp_isKeyDown(KEY_PAGEDOWN);
+    isNav = hal_inp_isKeyDown(HAL_KEY_UP) || hal_inp_isKeyDown(HAL_KEY_DOWN) ||
+            hal_inp_isKeyDown(HAL_KEY_LEFT) || hal_inp_isKeyDown(HAL_KEY_RIGHT) ||
+            hal_inp_isKeyDown(HAL_KEY_HOME) || hal_inp_isKeyDown(HAL_KEY_END) ||
+            hal_inp_isKeyDown(HAL_KEY_PAGEUP) || hal_inp_isKeyDown(HAL_KEY_PAGEDOWN);
 
     if (isNav) {
-        if (inp_isKeyDown(KEY_LSHIFT) || inp_isKeyDown(KEY_RSHIFT)) {
+        if (hal_inp_isKeyDown(HAL_KEY_LSHIFT) || hal_inp_isKeyDown(HAL_KEY_RSHIFT)) {
             // If selection is not active, anchor it at the old position
             if (file->selectedStartNode == NULL) {
                 file->selectedStartNode =   file->oldLineNode;
@@ -1482,7 +1482,7 @@ void ed_searchMoveCursor(){
         !currentFileSearch->currentWordNode->data
     ) return;
     
-    if(inp_isKeyDown(KEY_ENTER) && !inp_isKeyDown(KEY_LSHIFT)){
+    if(hal_inp_isKeyDown(HAL_KEY_ENTER) && !hal_inp_isKeyDown(HAL_KEY_LSHIFT)){
         // We go forward
         currentFileSearch->currentWordNode = 
             currentFileSearch->currentWordNode &&
@@ -1490,7 +1490,7 @@ void ed_searchMoveCursor(){
             ? currentFileSearch->currentWordNode->next
             : currentFileSearch->currentWordNode ;        
 
-    }else if (inp_isKeyDown(KEY_ENTER) && inp_isKeyDown(KEY_LSHIFT)){
+    }else if (hal_inp_isKeyDown(HAL_KEY_ENTER) && hal_inp_isKeyDown(HAL_KEY_LSHIFT)){
         // We go back         
         currentFileSearch->currentWordNode = 
             currentFileSearch->currentWordNode &&
@@ -1525,18 +1525,18 @@ void ed_searchMoveCursor(){
     _updateCursor();
 }
 void ed_prepareSearchTool(){
-    if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_F)) on_search_tool = true;
+    if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LCTRL, HAL_KEY_F)) on_search_tool = true;
 		
     if(on_search_tool == true){
-        if(inp_isKeyPressed(KEY_ESC)){
+        if(hal_inp_isKeyPressed(HAL_KEY_ESC)){
             on_search_tool = false;
             ed_renderEvent = true;
         }else{
             ed_drawSearchTool();
-            if(inp_isKeyPressed(KEY_ESC)){
+            if(hal_inp_isKeyPressed(HAL_KEY_ESC)){
                 on_search_tool = false;
                 ed_renderEvent = true;
-            }else if (!inp_isKeyDown(KEY_ENTER)){
+            }else if (!hal_inp_isKeyDown(HAL_KEY_ENTER)){
                 ed_findWord();
                 ed_renderEvent = true;
             }else{                
@@ -1559,9 +1559,9 @@ void ed_shellSpawn(){
 
     if(!currentFileArena || !currentFileArena->file) return;
     
-    inp_closeKeyboard();
+    hal_inp_closeKeyboard();
 
-    v_set25Lines();
+    hal_vid_set25Lines();
     dw_cls(textmemptr);
 
     //printf("COMSPEC: %s\n", comspec ? comspec : "NULL");
@@ -1569,17 +1569,17 @@ void ed_shellSpawn(){
 
     if (!comspec) comspec = "COMMAND.COM";
 
-    strncpy(currPath, currentFileArena->file->name, fs_getFilePath(currentFileArena->file->name));
+    strncpy(currPath, currentFileArena->file->name, hal_fs_getFilePath(currentFileArena->file->name));
     sprintf(cmd, "cd %s", currPath);
 
     logger("[ed_shellSpawn]: %s", currPath);
 
     spawnl(P_WAIT, comspec, comspec, "/K", cmd, NULL);
     
-    inp_initKeyboard();
-    inp_clearKeyboardBuffer();
+    hal_inp_initKeyboard();
+    hal_inp_clearKeyboardBuffer();
     
-    v_setVideoMode(v_currentMode, false);
+    hal_vid_setVideoMode(v_currentMode, false);
 
     ed_renderEvent = true;
 }

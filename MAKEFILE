@@ -2,106 +2,104 @@
 CC = wcc386
 APPNAME = DCODE
 OBJDIR = .\BIN
-DEPSDIR = .\DEPS
+DEPSDIR = .\BIN
 LNK = $(OBJDIR)\$(APPNAME).LNK
 CFLAGS_LNK = $(OBJDIR)\CFLAGS.LNK
 
 # Split OBJS to avoid long expansion strings in some wmake versions
-OBJS_1 = $(DEPSDIR)\INPUT.OBJ $(DEPSDIR)\VGAREGS.OBJ $(DEPSDIR)\DATA.OBJ $(DEPSDIR)\SORT.OBJ $(OBJDIR)\DRAW.OBJ
-OBJS_2 = $(OBJDIR)\TEST.OBJ $(OBJDIR)\VISMEM.OBJ $(DEPSDIR)\ENV.OBJ $(DEPSDIR)\MEM.OBJ $(DEPSDIR)\VSNPRNTF.OBJ
-OBJS_3 = $(DEPSDIR)\LOG.OBJ $(OBJDIR)\EDITOR.OBJ $(OBJDIR)\CONFIG.OBJ $(OBJDIR)\FILES.OBJ $(OBJDIR)\FS.OBJ $(OBJDIR)\VIDEO.OBJ $(OBJDIR)\MAIN.OBJ 
+OBJS_1 = $(OBJDIR)\INPUT.OBJ $(OBJDIR)\VGAREGS.OBJ $(OBJDIR)\DATA.OBJ $(OBJDIR)\SORT.OBJ $(OBJDIR)\DRAW.OBJ
+OBJS_2 = $(OBJDIR)\TEST.OBJ $(OBJDIR)\VISMEM.OBJ $(OBJDIR)\ENV.OBJ $(OBJDIR)\MEM.OBJ $(OBJDIR)\VSNPRNTF.OBJ
+OBJS_3 = $(OBJDIR)\LOG.OBJ $(OBJDIR)\EDITOR.OBJ $(OBJDIR)\CONFIG.OBJ $(OBJDIR)\FILES.OBJ $(OBJDIR)\FS.OBJ $(OBJDIR)\VIDEO.OBJ $(OBJDIR)\MAIN.OBJ 
 OBJS = $(OBJS_1) $(OBJS_2) $(OBJS_3)
 
 # Final executable
 $(APPNAME).EXE: $(OBJS)
-    @if not exist $(OBJDIR) mkdir $(OBJDIR)
-    @%create $(LNK)
-    @%append $(LNK) system dos4g
-    @%append $(LNK) name $(APPNAME).EXE
-    @%append $(LNK) library clib3r.lib
-    # Appending files individually to avoid "argument list too big" shell errors
-    @for %i in ($(OBJS_1)) do @%append $(LNK) file %i
-    @for %i in ($(OBJS_2)) do @%append $(LNK) file %i
-    @for %i in ($(OBJS_3)) do @%append $(LNK) file %i
-    wlink @$(LNK)
+	@if not exist $(OBJDIR) mkdir $(OBJDIR)
+	@%create $(LNK)
+	@%append $(LNK) system dos4g
+	@%append $(LNK) name $(APPNAME).EXE
+	@%append $(LNK) library clib3r.lib
+	# Appending files individually to avoid "argument list too big" shell errors
+	@for %i in ($(OBJS_1)) do @%append $(LNK) file %i
+	@for %i in ($(OBJS_2)) do @%append $(LNK) file %i
+	@for %i in ($(OBJS_3)) do @%append $(LNK) file %i
+	wlink @$(LNK)
 
 # Compiler response file - putting all flags and includes here
 $(CFLAGS_LNK): .ALWAYS
-    @if not exist $(OBJDIR) mkdir $(OBJDIR)
-    @%create $@
-    @%append $@ /3r /s /otexan
-    @%append $@ -i=DEPS\INPUT -i=DEPS\VGA -i=DEPS\DATA -i=DEPS\SORT
-    @%append $@ -i=DEPS\ENV -i=DEPS\MEM -i=DEPS\LOG -i=ENG
+	@if not exist $(OBJDIR) mkdir $(OBJDIR)
+	@%create $@
+	@%append $@ /3r /s /otexan
+	@%append $@ -i=HAL -i=APP -i=CORE -i=DEPS\DATA -i=DEPS\SORT -i=DEPS\ENV -i=DEPS\MEM -i=DEPS\LOG -i=DEPS\EXT
+	@%append $@ -i=PLATFORM\DOS\INPUT -i=PLATFORM\DOS\VIDEO -i=PLATFORM\DOS\FS
 
 # Compile rules
-$(DEPSDIR)\INPUT.OBJ: .\DEPS\INPUT\INPUT.C $(CFLAGS_LNK)
-    $(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\INPUT\INPUT.C
+$(OBJDIR)\INPUT.OBJ: .\PLATFORM\DOS\INPUT\INPUT.C $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\PLATFORM\DOS\INPUT\INPUT.C
 
-$(DEPSDIR)\VGAREGS.OBJ: .\DEPS\VGA\VGAREGS.C $(CFLAGS_LNK)
-    $(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\VGA\VGAREGS.C
+$(OBJDIR)\VGAREGS.OBJ: .\PLATFORM\DOS\VIDEO\VGAREGS.C $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\PLATFORM\DOS\VIDEO\VGAREGS.C
 
-$(DEPSDIR)\DATA.OBJ: .\DEPS\DATA\DATA.C $(CFLAGS_LNK)
-    $(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\DATA\DATA.C
+$(OBJDIR)\DATA.OBJ: .\DEPS\DATA\DATA.C $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\DATA\DATA.C
 
-$(DEPSDIR)\VSNPRNTF.OBJ: .\DEPS\EXT\VSNPRNTF.C $(CFLAGS_LNK)
-    $(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\EXT\VSNPRNTF.C
+$(OBJDIR)\VSNPRNTF.OBJ: .\DEPS\EXT\VSNPRNTF.C $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\EXT\VSNPRNTF.C
 
-$(DEPSDIR)\SORT.OBJ: .\DEPS\SORT\SORT.C $(CFLAGS_LNK)
-    $(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\SORT\SORT.C
+$(OBJDIR)\SORT.OBJ: .\DEPS\SORT\SORT.C $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\SORT\SORT.C
 
-$(DEPSDIR)\ENV.OBJ: .\DEPS\ENV\ENV.C $(CFLAGS_LNK)
-    $(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\ENV\ENV.C
+$(OBJDIR)\ENV.OBJ: .\DEPS\ENV\ENV.C $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\ENV\ENV.C
 
-$(DEPSDIR)\MEM.OBJ: .\DEPS\MEM\MEM.C $(CFLAGS_LNK)
-    $(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\MEM\MEM.C
+$(OBJDIR)\MEM.OBJ: .\DEPS\MEM\MEM.C $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\MEM\MEM.C
 
-$(DEPSDIR)\LOG.OBJ: .\DEPS\LOG\LOG.C $(CFLAGS_LNK)
-    $(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\LOG\LOG.C
+$(OBJDIR)\LOG.OBJ: .\DEPS\LOG\LOG.C $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\DEPS\LOG\LOG.C
 
-# ENG
-$(OBJDIR)\VISMEM.OBJ: .\ENG\VISMEM.C $(CFLAGS_LNK)
-    $(CC) @$(CFLAGS_LNK) -fo=$@ .\ENG\VISMEM.C
+# CORE ENGINE
+$(OBJDIR)\VISMEM.OBJ: .\CORE\VISMEM\VISMEM.C $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\CORE\VISMEM\VISMEM.C
 
-$(OBJDIR)\TEST.OBJ: .\ENG\TEST.C $(CFLAGS_LNK)
-    $(CC) @$(CFLAGS_LNK) -fo=$@ .\ENG\TEST.C
+$(OBJDIR)\TEST.OBJ: .\CORE\TEST\TEST.C $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\CORE\TEST\TEST.C
 
-$(OBJDIR)\FILES.OBJ: .\ENG\FILES.C $(CFLAGS_LNK)
-    $(CC) @$(CFLAGS_LNK) -fo=$@ .\ENG\FILES.C
+$(OBJDIR)\FILES.OBJ: .\CORE\FILES\FILES.C $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\CORE\FILES\FILES.C
 
-$(OBJDIR)\FS.OBJ: .\ENG\FS.C $(CFLAGS_LNK)
-    $(CC) @$(CFLAGS_LNK) -fo=$@ .\ENG\FS.C
+$(OBJDIR)\FS.OBJ: .\PLATFORM\DOS\FS\FS.C $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\PLATFORM\DOS\FS\FS.C
 
-$(OBJDIR)\EDITOR.OBJ: .\ENG\EDITOR.C $(CFLAGS_LNK)
-    $(CC) @$(CFLAGS_LNK) -fo=$@ .\ENG\EDITOR.C
+$(OBJDIR)\EDITOR.OBJ: .\CORE\EDITOR\EDITOR.C $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\CORE\EDITOR\EDITOR.C
 
-$(OBJDIR)\CONFIG.OBJ: .\ENG\CONFIG.C $(CFLAGS_LNK)
-    $(CC) @$(CFLAGS_LNK) -fo=$@ .\ENG\CONFIG.C
+$(OBJDIR)\CONFIG.OBJ: .\CORE\CONFIG\CONFIG.C $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\CORE\CONFIG\CONFIG.C
 
-$(OBJDIR)\DRAW.OBJ: .\ENG\DRAW.C $(CFLAGS_LNK)
-    $(CC) @$(CFLAGS_LNK) -fo=$@ .\ENG\DRAW.C
+$(OBJDIR)\DRAW.OBJ: .\CORE\DRAW\DRAW.C $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\CORE\DRAW\DRAW.C
 
-
-$(OBJDIR)\VIDEO.OBJ: .\ENG\VIDEO.C $(CFLAGS_LNK)
-    $(CC) @$(CFLAGS_LNK) -fo=$@ .\ENG\VIDEO.C
+$(OBJDIR)\VIDEO.OBJ: .\PLATFORM\DOS\VIDEO\VIDEO.C $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\PLATFORM\DOS\VIDEO\VIDEO.C
 
 $(OBJDIR)\MAIN.OBJ: .\APP\MAIN.C $(CFLAGS_LNK)
-    $(CC) @$(CFLAGS_LNK) -fo=$@ .\APP\MAIN.C
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\APP\MAIN.C
 
 preclean: .SYMBOLIC
-    @if exist $(OBJDIR)\*.OBJ del $(OBJDIR)\*.OBJ
-    @if exist $(OBJDIR)\*.LNK del $(OBJDIR)\*.LNK
-    @if exist *.OBJ del *.OBJ
-    @if exist *.EXE del *.EXE
-    @if exist *.ERR del *.ERR
-    @if exist *.LNK del *.LNK
+	@if exist $(OBJDIR)\*.OBJ del $(OBJDIR)\*.OBJ
+	@if exist $(OBJDIR)\*.LNK del $(OBJDIR)\*.LNK
+	@if exist *.OBJ del *.OBJ
+	@if exist *.EXE del *.EXE
+	@if exist *.ERR del *.ERR
+	@if exist *.LNK del *.LNK
 
 postclean: .SYMBOLIC
-    @if exist *.OBJ del *.OBJ
-    @if exist BIN\*.OBJ del BIN\*.OBJ
-    @if exist *.LNK del *.LNK
-    @if exist BIN\*.LNK del BIN\*.LNK
-    @if exist $(APPNAME).EXE copy $(APPNAME).EXE $(OBJDIR)\$(APPNAME).EXE
-    del $(APPNAME).EXE
+	@if exist *.OBJ del *.OBJ
+	@if exist BIN\*.OBJ del BIN\*.OBJ
+	@if exist *.LNK del *.LNK
+	@if exist BIN\*.LNK del BIN\*.LNK
+	@if exist $(APPNAME).EXE copy $(APPNAME).EXE $(OBJDIR)\$(APPNAME).EXE
+	del $(APPNAME).EXE
 
 build: preclean $(APPNAME).EXE postclean
-

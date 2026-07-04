@@ -1,9 +1,9 @@
 #ifndef APP_FILES_H
 #define APP_FILES_H
 
-#include "STD.H"
-#include "..\APP\MAIN.H"
-#include "..\DATA\DATA.H"
+#include "..\STD.H"
+#include "..\..\APP\MAIN.H"
+#include "..\..\DEPS\DATA\DATA.H"
 
 /* Const. ================================================================*/
 

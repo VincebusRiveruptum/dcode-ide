@@ -1,6 +1,6 @@
 
 #include "FILES.H"
-#include "CONFIG.H"
+#include "..\CONFIG\CONFIG.H"
 
 FileArena fileList[MAX_ARENAS];
 SearchMetadata fileListSearchMetadata[MAX_ARENAS];
@@ -720,7 +720,7 @@ void f_triggerClose(bool end_program){
             input == 'N' ||
             input == 'y' ||
             input == 'Y' ||
-            (esc = inp_isKeyPressed(KEY_ESC) == true) 
+            (esc = hal_inp_isKeyPressed(HAL_KEY_ESC) == true) 
 
         )){
             input = getch();
@@ -861,7 +861,7 @@ void f_showFileSwitcher(){
         return;
     }
     
-    inp_clearKeyboardBuffer();
+    hal_inp_clearKeyboardBuffer();
     
     /* Encontrar el índice seleccionado inicial antes del bucle */
     for(i = 0; i < MAX_ARENAS; i++) {
@@ -872,7 +872,7 @@ void f_showFileSwitcher(){
         }
     }
 
-    while(inp_isKeyDown(KEY_LALT)){
+    while(hal_inp_isKeyDown(HAL_KEY_LALT)){
         /* 1. Dibujar el cuadro */
         dw_rectangle(textmemptr, 4, 4, 34, 16, COLOR_RED, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_RED, false, DRAW_BORDER_SIMPLE, NULL);
 
@@ -887,7 +887,7 @@ void f_showFileSwitcher(){
         }
 
         /* 3. Detectar pulsación de borde de LSHIFT dentro del bucle */
-        if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_LSHIFT)){
+        if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LALT, HAL_KEY_LSHIFT)){
             /* Avanzar al siguiente archivo abierto válido */
             do {
                 selectedIndex = (selectedIndex + 1) % MAX_ARENAS;
@@ -897,7 +897,7 @@ void f_showFileSwitcher(){
         }
 
         /* 4. Actualizar el buffer del teclado manualmente en este bucle */
-        inp_updateKeyboard();
+        hal_inp_updateKeyboard();
         
         /* En DOS es bueno dar un brevísimo retardo/yield aquí para no saturar la CPU */
         delay(10); /* O similar */
@@ -959,7 +959,7 @@ void f_quickOpenFileDialog(){
     FileEntry *fileEntry = NULL;
     FileEntry *selectedFileEntry = NULL;
 
-    fs_getAbsoluteCurrentPath(currentPath, 255);
+    hal_fs_getAbsoluteCurrentPath(currentPath, 255);
     
     if(currentPath[0] == '\0'){
         logger("[ed_quickOpenFileDialog]: Failed to retrieve currentPath");
@@ -980,22 +980,22 @@ void f_quickOpenFileDialog(){
 
     stepIndex = strlen(currentPath);
     
-    inp_waitForRelease();
+    hal_inp_waitForRelease();
 
     do{
         // Key selection
-        if(inp_isKeyPressed(KEY_UP)){
+        if(hal_inp_isKeyPressed(HAL_KEY_UP)){
             selectedEntry = 
-                selectedEntry > 1
+            selectedEntry > 1
                 ? selectedEntry - 1
                 : 1; 
 
             if(selectedEntry - entryScrollY <= 0)
                 entryScrollY--;
 
-        }else if(inp_isKeyPressed(KEY_DOWN)){
+        }else if(hal_inp_isKeyPressed(HAL_KEY_DOWN)){
             selectedEntry = 
-                selectedEntry < entriesLen
+            selectedEntry < entriesLen
                 ? selectedEntry + 1
                 : entriesLen; 
 
@@ -1003,7 +1003,7 @@ void f_quickOpenFileDialog(){
             if(selectedEntry - entryScrollY - 2 > listHeight )
                 entryScrollY++;
                 
-        }else if(inp_isKeyPressed(KEY_ENTER)){
+        }else if(hal_inp_isKeyPressed(HAL_KEY_ENTER)){
             // If we press enter, we have to detect if the entry is either a directory or a file
             // 
             if(selectedFileEntry && strcmp(selectedFileEntry->name, "..") == 0){         // .. path
@@ -1025,7 +1025,7 @@ void f_quickOpenFileDialog(){
                 f_openFile(selectedEntryFullPath);
                 _updateCursor();
                 ed_renderEvent = true;
-                if (currPathDirectory) fs_freeDirectory(currPathDirectory);
+                if (currPathDirectory) hal_fs_freeDirectory(currPathDirectory);
                 return;
             }
         }else{
@@ -1036,11 +1036,11 @@ void f_quickOpenFileDialog(){
             // Ok, for the file selection we have to clear mark a flag 
             // for the selected file
             // By
-            if(currPathDirectory) fs_freeDirectory(currPathDirectory);
+            if(currPathDirectory) hal_fs_freeDirectory(currPathDirectory);
 
             selectedFileEntry = NULL;
 
-            currPathDirectory = fs_getDirectoryFileList(currentPath);
+            currPathDirectory = hal_fs_getDirectoryFileList(currentPath);
 
             if(!currPathDirectory){
                 logger(
@@ -1153,11 +1153,11 @@ void f_quickOpenFileDialog(){
             
         }
         
-        inp_updateKeyboard();
-    }while(!inp_isKeyPressed(KEY_ESC));
+        hal_inp_updateKeyboard();
+    }while(!hal_inp_isKeyPressed(HAL_KEY_ESC));
 
     if(currPathDirectory) 
-        fs_freeDirectory(currPathDirectory);
+        hal_fs_freeDirectory(currPathDirectory);
 
     if (currentFileArena && currentFileArena->file){
         _updateCursor();

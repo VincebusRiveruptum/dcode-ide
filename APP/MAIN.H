@@ -14,7 +14,6 @@
 // ENGINE
 #include "..\ENG\DRAW.H"
 #include "..\ENG\EDITOR.H"
-#include "..\ENG\EL.H"
 #include "..\ENG\FILES.H"
 #include "..\ENG\STD.H"
 #include "..\ENG\TEST.H"

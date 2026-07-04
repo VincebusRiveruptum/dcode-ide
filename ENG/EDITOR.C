@@ -395,7 +395,14 @@ void ed_moveCursor(short x, short y){
 }
 
 void ed_renderElements(){
-    el_renderFiles_test();
+    short i = 0;
+    if (!currentFileArena || !currentFileArena->file) return;
+
+    dw_writeBufferEditorFormatted(editormemptr, 0, 0, VIDEO_COLS - 1, VIDEO_ROWS - 2, COLOR_LIGHT_GRAY, COLOR_BLACK, currentFileArena->file);
+     
+    for(i=0; i < v_getVideoBufferSize(); i++){
+        textmemptr[i] = editormemptr[i];
+    }
 }
 
 

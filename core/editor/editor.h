@@ -122,7 +122,6 @@ extern bool on_selection_tool;
 extern bool on_search_tool;
 
 extern time_t ed_globalAuxTimer;
-
 extern char statusBarMessage[ED_STATUSBAR_WIDTH];
 /* Prototypes ==============================================*/
 

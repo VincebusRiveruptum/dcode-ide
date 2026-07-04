@@ -158,11 +158,10 @@ int main(int argc, char *argv[]){
 		}
 
 		if(ed_renderEvent == true){
-			ed_renderEvent = false;
+			
 			ed_renderElements();
 			
 			// Draw overlays on top of the formatted editor buffer
-			ed_statusBar();
 			if(settings.DEBUG == true) t_drawDebugger();
 			if(on_search_tool == true) ed_drawSearchTool();
 			
@@ -170,8 +169,14 @@ int main(int argc, char *argv[]){
 			if(!on_search_tool) {
 				hal_vid_refresh();
 			}
+			
+			ed_renderEvent = false;
 		}
 
+		// Independent from render-event. as it always poll
+		// globalAuxTimer if there is any timer activated.
+		ed_statusBar();	
+		
 		hal_inp_updateKeyboard();
 	}
 

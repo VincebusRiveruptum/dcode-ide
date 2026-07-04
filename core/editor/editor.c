@@ -400,7 +400,7 @@ void ed_renderElements(){
 
     dw_writeBufferEditorFormatted(editormemptr, 0, 0, VIDEO_COLS - 1, VIDEO_ROWS - 2, COLOR_LIGHT_GRAY, COLOR_BLACK, currentFileArena->file);
      
-    editor_size = VIDEO_COLS * (VIDEO_ROWS - 1);
+    editor_size = (VIDEO_COLS * (VIDEO_ROWS - 1));
     for(i=0; i < editor_size; i++){
         textmemptr[i] = editormemptr[i];
     }
@@ -1089,12 +1089,12 @@ void ed_statusBarMessage(const char *format,  ...){
     va_end(args);
 
 	ed_renderEvent = true;
-	
+
     return;
 }
 
 bool ed_checkStatusBarMessage(){
-    time_t endClock;
+    static time_t endClock;
 
     if(statusBarMessage[0] == '\0') return false;
     if(ed_globalAuxTimer == 0) return false;
@@ -1107,20 +1107,20 @@ bool ed_checkStatusBarMessage(){
         ed_globalAuxTimer = 0;
         return false;
     }  
-    
+
     return true;
 }
 
 // Statusbar drawing function
 void ed_statusBar(){
-    if(ed_checkStatusBarMessage() == true){
-        dw_writeBuffer(textmemptr, "%s", 0, VIDEO_ROWS - 1, VIDEO_COLS - 1, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, statusBarMessage);            
-    }else if (currentFileArena && currentFileArena->file) {
-        dw_writeBuffer(textmemptr, "Line %d, Col %d %c", 0, VIDEO_ROWS - 1, 39, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, currentFileArena->file->cursorLine + 1, currentFileArena->file->cursorCol + 1, 179, currentFileArena->file->currentLine->length);
-        dw_writeBuffer(textmemptr, " %s", 40, VIDEO_ROWS - 1, VIDEO_COLS - 1, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, currentFileArena->file->name);
-    }else{
-        dw_writeBuffer(textmemptr, "No open files", 0, VIDEO_ROWS - 1, VIDEO_COLS - 1, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG);
-    }        
+	if(ed_checkStatusBarMessage() == true){
+		dw_writeBuffer(textmemptr, "%s", 0, VIDEO_ROWS - 1, VIDEO_COLS - 1, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, statusBarMessage);            
+	}else if (currentFileArena && currentFileArena->file) {
+		dw_writeBuffer(textmemptr, "Line %d, Col %d %c", 0, VIDEO_ROWS - 1, 39, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, currentFileArena->file->cursorLine + 1, currentFileArena->file->cursorCol + 1, 179, currentFileArena->file->currentLine->length);
+		dw_writeBuffer(textmemptr, " %s", 40, VIDEO_ROWS - 1, VIDEO_COLS - 1, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG, currentFileArena->file->name);
+	}else{
+		dw_writeBuffer(textmemptr, "No open files", 0, VIDEO_ROWS - 1, VIDEO_COLS - 1, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT,settings.STATUSBAR_COLOR_BG);
+	}        
 }
 
 void ed_wordJump(short wordJump){

@@ -62,11 +62,19 @@ bool dw_isCharFound(struct File *file, int lineIndex, int colIndex) {
     ) return false;
     
     if(
-        (lineIndex == (int)((WordMetadata *)fileSearch->currentWordNode->data)->cursorLine) &&
-        (colIndex >= (int)((WordMetadata *)fileSearch->currentWordNode->data)->cursorCol) &&
-        (colIndex < (int)((WordMetadata *)fileSearch->currentWordNode->data)->cursorCol + (int)strlen(fileSearch->dialogInputBuffer))
+        (lineIndex == 
+			(int)((WordMetadata *)fileSearch->currentWordNode->data)->cursorLine)
+         &&(colIndex >= 
+			(int)((WordMetadata *)fileSearch->currentWordNode->data)->cursorCol)
+         && (colIndex < 
+			(int)((WordMetadata *)fileSearch->currentWordNode->data)->cursorCol 
+			+ (int)strlen(fileSearch->dialogInputBuffer))
     ) {
-        logger("LEN; %d", (int)((WordMetadata *)fileSearch->currentWordNode->data)->cursorCol + (int)strlen(fileSearch->dialogInputBuffer));
+        logger(
+			"LEN; %d", 
+			(int)((WordMetadata *)fileSearch->currentWordNode->data)->cursorCol 
+			+ (int)strlen(fileSearch->dialogInputBuffer)
+		);
         return true;
     }
 

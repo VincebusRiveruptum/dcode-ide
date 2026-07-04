@@ -60,22 +60,31 @@ int main(int argc, char *argv[]){
 			mem_vis_mem();
 		
 
-		if(inp_isKeyPressed(KEY_HOME)) ed_putCursorStart();
-		if(inp_isKeyPressed(KEY_END)) ed_putCursorEnd();
+		if(inp_isKeyPressed(KEY_HOME)) 
+			ed_putCursorStart();
+		if(inp_isKeyPressed(KEY_END)) 
+			ed_putCursorEnd();
         
-		if(inp_isKeyPressed(KEY_PAGEUP)) ed_putCursorFistLine();
-		if(inp_isKeyPressed(KEY_PAGEDOWN)) ed_putCursorLastLine();
+		if(inp_isKeyPressed(KEY_PAGEUP)) 
+			ed_putCursorFistLine();
+		if(inp_isKeyPressed(KEY_PAGEDOWN)) 
+			ed_putCursorLastLine();
         
 		// Switch files
-		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_LSHIFT)) ed_showFileSwitcher();        
+		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_LSHIFT)) 
+			f_showFileSwitcher();        
 
 		// Horizontal Word jump
-		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_RIGHT)) ed_wordJump(ED_WORD_JUMP_NEXT);
-		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_LEFT)) ed_wordJump(ED_WORD_JUMP_PREV);
+		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_RIGHT)) 
+			ed_wordJump(ED_WORD_JUMP_NEXT);
+		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_LEFT)) 
+			ed_wordJump(ED_WORD_JUMP_PREV);
 
 		// Line swapping
-		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_UP)) ed_swapLine(ED_LINE_JUMP_UP);
-		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_DOWN)) ed_swapLine(ED_LINE_JUMP_DOWN);
+		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_UP)) 
+			ed_swapLine(ED_LINE_JUMP_UP);
+		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_DOWN)) 
+			ed_swapLine(ED_LINE_JUMP_DOWN);
 
 		// SPACE
 		if(inp_isKeyDown(KEY_SPACE)) ed_renderEvent = true;
@@ -86,16 +95,20 @@ int main(int argc, char *argv[]){
 		/* FILE OPERATIONS */
 		
 		// CLOSE APP
-		if(inp_isKeyPressed(KEY_ESC)) f_triggerClose(true);
+		if(inp_isKeyPressed(KEY_ESC)) 
+			f_triggerClose(true);
 		
 		// NEW FILE
 		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_N)){
 			f_newFile(NULL);
-			logger("[main]: User created %s ,a new file.", currentFileArena->file->name);
+			logger(
+				"[main]: User created %s ,a new file.", 
+				currentFileArena->file->name);
 		}
 		
 		// OPEN FILE 
-		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_O)) ed_quickOpenFileDialog();
+		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LCTRL, KEY_O))
+			f_quickOpenFileDialog();
 
 		// CLOSE FILE (Alt+F4)
 		if(inp_keysPressed(INP_TRIGGER_EDGE, 2, KEY_LALT, KEY_F4)){
@@ -104,10 +117,18 @@ int main(int argc, char *argv[]){
 		}
 
 		// SAVE FILE
-		if(inp_keysPressed(INP_TRIGGER_EDGE, 3, KEY_LCTRL, KEY_LSHIFT, KEY_S)) f_saveFile();
+		if(inp_keysPressed(
+			INP_TRIGGER_EDGE, 
+			3, 
+			KEY_LCTRL, 
+			KEY_LSHIFT, 
+			KEY_S
+		)) 
+			f_saveFile();
  
 		// SHELL SPAWN
-		if(inp_isKeyPressed(KEY_F9)) ed_shellSpawn();
+		if(inp_isKeyPressed(KEY_F9)) 
+			ed_shellSpawn();
  
 		ed_resetActity();
 		

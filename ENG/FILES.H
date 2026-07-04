@@ -146,4 +146,7 @@ void f_saveFile();
 void f_triggerClose(bool end_program);
 void f_closeCurrentFile();
 
+void f_showFileSwitcher();
+void f_quickOpenFileDialog();
+
 #endif

@@ -856,6 +856,10 @@ void f_showFileSwitcher(){
     int selectedIndex = 0;
     bool selected = false;
     FileArena *fileptr;
+
+    if (!currentFileArena || !currentFileArena->file) {
+        return;
+    }
     
     inp_clearKeyboardBuffer();
     
@@ -936,31 +940,34 @@ void f_quickOpenFileDialog(){
     int i, stepIndex;
     int vis_offset = 0, dialog_offset = 0, dialogStartY, dialogEndY, dialogHeight;
     int entriesLen = 0;
-    bool isSelected = false;
     int selectedEntry = 0;
     int selectedIndex = 0;
-
-    char selectedEntryFullPath[255] = {'\0'};
-    
-    char currentPath[255] = {'\0'};
-    Directory *currPathDirectory = NULL;
-    Node *node;
     int entryIndex;
-    FileEntry *fileEntry, *selectedFileEntry;
     int clearMarkPoint = 0;
-
     int listHeight = 11;
     int entryScrollY = 0;
     int selectedEntryScrollY = 0;
-
+    
+    char selectedEntryFullPath[255] = {'\0'};
     char scrollChar;
+    char currentPath[255] = {'\0'};
+    
+    bool isSelected = false;
+
+    Directory *currPathDirectory = NULL;
+    Node *node = NULL;
+    FileEntry *fileEntry = NULL;
+    FileEntry *selectedFileEntry = NULL;
+
     fs_getAbsoluteCurrentPath(currentPath, 255);
     
     if(currentPath[0] == '\0'){
         logger("[ed_quickOpenFileDialog]: Failed to retrieve currentPath");
     }
 
-    strcat(currentPath, "\\" );
+    if (strlen(currentPath) < sizeof(currentPath) - 1) {
+        strcat(currentPath, "\\");
+    }
 
     vis_offset = (VIDEO_COLS / 4);
     dialog_offset = vis_offset / 4;
@@ -990,7 +997,7 @@ void f_quickOpenFileDialog(){
             selectedEntry = 
                 selectedEntry < entriesLen
                 ? selectedEntry + 1
-                : entriesLen + 1; 
+                : entriesLen; 
 
             // We calculate the scrolling
             if(selectedEntry - entryScrollY - 2 > listHeight )
@@ -1010,13 +1017,15 @@ void f_quickOpenFileDialog(){
                 stepIndex = strlen(currentPath);
                 selectedEntry = 0;
                 selectedFileEntry = NULL;
-            }else{
+            }else if(selectedFileEntry){
                 // We open the file
                 // TODO: SANITIZE buffer by removing the chars until the last directory
+                //snprintf(selectedEntryFullPath, sizeof(selectedEntryFullPath), "%s%s", currentPath, selectedFileEntry->name);
                 sprintf(selectedEntryFullPath, "%s%s", currentPath, selectedFileEntry->name);
                 f_openFile(selectedEntryFullPath);
                 _updateCursor();
                 ed_renderEvent = true;
+                if (currPathDirectory) fs_freeDirectory(currPathDirectory);
                 return;
             }
         }else{
@@ -1028,6 +1037,8 @@ void f_quickOpenFileDialog(){
             // for the selected file
             // By
             if(currPathDirectory) fs_freeDirectory(currPathDirectory);
+
+            selectedFileEntry = NULL;
 
             currPathDirectory = fs_getDirectoryFileList(currentPath);
 
@@ -1047,10 +1058,7 @@ void f_quickOpenFileDialog(){
                 fileEntry = (FileEntry*)node->data;
                 entryIndex++;
                 // We write the filename under the prompt
-                selectedEntryScrollY = 
-                    (entryIndex - entryScrollY) >= 0 
-                    ? (entryIndex - entryScrollY) 
-                    : 1;
+                selectedEntryScrollY = entryIndex - entryScrollY;
                 
                 isSelected = (entryIndex == selectedEntry) ? true : false;
                         
@@ -1148,6 +1156,12 @@ void f_quickOpenFileDialog(){
         inp_updateKeyboard();
     }while(!inp_isKeyPressed(KEY_ESC));
 
-    _updateCursor();
+    if(currPathDirectory) 
+        fs_freeDirectory(currPathDirectory);
+
+    if (currentFileArena && currentFileArena->file){
+        _updateCursor();
+    }
+
     ed_renderEvent = true;
 }

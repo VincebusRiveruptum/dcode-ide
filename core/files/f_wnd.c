@@ -37,24 +37,24 @@ Window *f_createWindow(){
 }
 
 // Inits workspace with all atributtes zeroed.
-Workspace *f_initWorkspace(){
+Workspace *f_createWorkspace(){
 	char *fullPath = NULL;
 	Workspace *newWorkspace = NULL;
 
 	if(currentWorkspace){
-		logger("[f_initWorkspace]: workspace already initialized.");
+		logger("[f_createWorkspace]: workspace already initialized.");
 		return NULL;
 	}
 		
     {
         char pathBuf[512];
         if (!hal_fs_getAbsoluteCurrentPath(pathBuf, sizeof(pathBuf))) {
-            logger("[f_initWorkspace]: invalid fullpath.");
+            logger("[f_createWorkspace]: invalid fullpath.");
             return NULL;
         }
         fullPath = (char *)malloc(strlen(pathBuf) + 1);
         if (!fullPath) {
-            logger("[f_initWorkspace]: malloc failed for fullPath.");
+            logger("[f_createWorkspace]: malloc failed for fullPath.");
             return NULL;
         }
         strcpy(fullPath, pathBuf);

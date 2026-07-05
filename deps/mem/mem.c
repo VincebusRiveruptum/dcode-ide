@@ -50,12 +50,12 @@ void *mem_arena_alloc(MemoryArena *arenaPtr, size_t size){
     void *ptr = NULL;
 
     if(!arenaPtr){
-        logger("\n[mem_arenaPtr_alloc]: Error: Arena not found");
+        logger("\n[mem_arena_alloc]: Error: Arena not found");
         return NULL;
     }
 
     if(!arenaPtr->base){
-        logger("\n[mem_arenaPtr_alloc]: Error: Arena %s base is not allocated", arenaPtr->name);
+        logger("\n[mem_arena_alloc]: Error: Arena %s base is not allocated", arenaPtr->name);
         return NULL;
     }
 
@@ -63,8 +63,11 @@ void *mem_arena_alloc(MemoryArena *arenaPtr, size_t size){
     size = (size + 15) & ~15;
 
     if(arenaPtr->offset + size > arenaPtr->size){
-        logger("\n[mem_arenaPtr_alloc]: Error: Arena %s out of memory (request: %d, left: %d)", 
-               arenaPtr->name, size, arenaPtr->size - arenaPtr->offset);
+        logger("\n[mem_arena_alloc]: Error: Arena %s out of memory (request: %d, left: %d)", 
+               arenaPtr->name, 
+			   size, 
+			   arenaPtr->size - arenaPtr->offset
+			);
         return NULL;
     }
 

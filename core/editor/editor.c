@@ -139,23 +139,9 @@ int _calculateTabStart(){
 
     return tabCount;
 }
-void _updateScrollY(){
-	static File *currentFile = NULL;
-    int displayHeight = 0;
 
-	currentFile = currentWindow->currentFile;
-
-    if (!currentFile || !currentWindow) return;
-
-    displayHeight = currentWindow->height;
-    if((currentFile->cursorLine - currentFile->scrollY) > displayHeight - 1) {
-        currentFile->scrollY += currentFile->cursorLine - (displayHeight - 1);
-    }else if(currentFile->cursorLine <= currentFile->scrollY){
-        currentFile->scrollY = currentFile->cursorLine;
-    }
-}
 void _updateCurrentCursorY(){
-	static File *currentFile = NULL;
+	File *currentFile = NULL;
 
 	currentFile = currentWindow->currentFile;
 	
@@ -169,13 +155,13 @@ void _updateCurrentCursorY(){
     }
 
     if(currentCursorY >= currentWindow->y + currentWindow->height) {
-        currentCursorY = currentWindow->y + currentWindow->height - 1;
+        currentCursorY = currentWindow->y + currentWindow->height;
     }
 }
 void _updateCurrentCursorX(){
     int visualCursor = 0;
     int visualScroll = 0;
-	static File *currentFile = NULL;
+	File *currentFile = NULL;
     
 	currentFile = currentWindow->currentFile;
 
@@ -210,11 +196,32 @@ void _updateCurrentCursorX(){
         : 0;
 }
 
-void _ensureHorizontalScroll(){
+void _updateScrollY(){
+	File *currentFile = NULL;
+    int displayHeight = 0;
+	
+	logger("_updateScrollY!!");
+
+	currentFile = currentWindow->currentFile;
+
+    if (!currentFile || !currentWindow) return;
+	
+    displayHeight = currentWindow->height;
+	
+
+    if((currentFile->cursorLine - currentFile->scrollY) > displayHeight) {
+        //currentFile->scrollY += currentFile->cursorLine - (displayHeight - 1);
+        currentFile->scrollY++;
+    }else if(currentFile->cursorLine <= currentFile->scrollY){
+        currentFile->scrollY = currentFile->cursorLine;
+    }
+}
+
+void _updateScrollX(){
     int visualCursor = 0;
     int visualScroll = 0;
     int displayWidth = 0;
-	static File *currentFile = NULL;
+	File *currentFile = NULL;
     
 	currentFile = currentWindow->currentFile;
 
@@ -408,20 +415,8 @@ void ed_moveCursor(short x, short y){
                 :
                 NULL;
         }
-
         
         currentFile->cursorLine += y;
-        // If the cursor is closer to the bottom
-        if( 
-			(currentCursorY >= VIDEO_ROWS - 1 && y > 0) ||
-			(currentCursorY <= currentFile->scrollY - currentFile->cursorLine && y < 0) 
-		){
-            currentFile->scrollY += y;
-            
-            // If the cursor is at the bottom, the first line counter + number 
-			// of rows in screen are less that the total of lines of the file
-            // we proceed to scroll down
-        }
 
         // Cursor col update 
         if (currentFile->currentLine->length < currentFile->cursorCol){
@@ -442,15 +437,14 @@ void ed_moveCursor(short x, short y){
 
         }else if(currentFile->cursorCol + x >= MAX_FILE_LINE_LENGTH){
             currentFile->cursorCol = MAX_FILE_LINE_LENGTH - 1;
-        }
-
-        _ensureHorizontalScroll();
+        }    
     }
     
-    if (y) {
-        _ensureHorizontalScroll();
-    }
+    
     // END HORIZ, SCROLLING =====================================================
+
+	_updateScrollX();
+	_updateScrollY();
 
     _updateCursor();
 }
@@ -535,7 +529,7 @@ void ed_typeChar(char c){
     currentFile->isModified = true;
     
     ed_markActive(ED_ACTIVITY_TYPE);
-    _ensureHorizontalScroll();
+    _updateScrollX();
     _updateCursor();
 }
 
@@ -683,7 +677,7 @@ void ed_backspace(){
 
             currentFile->cursorCol--;
 
-            _ensureHorizontalScroll();
+            _updateScrollX();
         }
     }
 
@@ -1128,7 +1122,7 @@ void ed_putCursorEnd(){
     currentFile->cursorCol = 
 		currentFile->currentLine->length;
 
-    _ensureHorizontalScroll();
+    _updateScrollX();
     _updateCursor();
 }
 
@@ -1141,7 +1135,7 @@ void ed_putCursorStart(){
 	currentFile = currentWindow->currentFile;
     currentFile->cursorCol = 0;
 
-    _ensureHorizontalScroll();
+    _updateScrollX();
     _updateCursor();
 }
 
@@ -1864,6 +1858,7 @@ void ed_searchMoveCursor(){
         ((WordMetadata*) currentFileSearch->currentWordNode->data)->cursorLine
         ? ((WordMetadata *)currentFileSearch->currentWordNode->data)->cursorLine
         : 0;
+	logger("ed_searchMoveCursor!!");
 
     _updateScrollY();
     _updateCursor();

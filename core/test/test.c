@@ -125,6 +125,11 @@ void t_drawDebugger(){
     dw_writeBuffer(textmemptr, "oldCol: %d", 60, 13, VIDEO_COLS - 1, 13, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentWindow->currentFile->oldCol);
     dw_writeBuffer(textmemptr, "oldLine: %d", 60, 14, VIDEO_COLS - 1, 14, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentWindow->currentFile->oldLine);
     dw_writeBuffer(textmemptr, "isActive: %d", 60, 15, VIDEO_COLS - 1, 15, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentWindow->currentFile->isActive);
+    dw_writeBuffer(textmemptr, "currentWindow->x: %d", 55, 16, VIDEO_COLS - 1, 16, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentWindow->x);
+    dw_writeBuffer(textmemptr, "currentWindow->y: %d", 55, 17, VIDEO_COLS - 1, 17, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentWindow->y);
+    dw_writeBuffer(textmemptr, "currentWindow->height: %d", 55, 18, VIDEO_COLS - 1, 18, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentWindow->height);
+    dw_writeBuffer(textmemptr, "currentWindow->width: %d", 55, 19, VIDEO_COLS - 1, 19, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentWindow->width);
+    dw_writeBuffer(textmemptr, "currentWindow files: %d", 55, 20, VIDEO_COLS - 1, 20, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentWindow->fileList->length);
 }
 
 /* ===================================================================*/

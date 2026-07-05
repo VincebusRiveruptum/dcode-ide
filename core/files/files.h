@@ -183,7 +183,7 @@ void f_quickOpenFileDialog();
 
 // f_wnd
 Window *f_createWindow();
-Workspace *f_initWorkspace();
+Workspace *f_createWorkspace();
 void f_freeFileList(List *fileList);
 void f_freeWindowList(List *windowList);
 void f_freeWorkspace();

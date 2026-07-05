@@ -6,8 +6,8 @@
 typedef struct Settings{
     // EDITOR SETTING
     unsigned char DEBUG;
-    unsigned int MAX_FILE_INSTANCE_SIZE;
-    unsigned int MAX_FILE_INSTANCES_OPENED;
+    unsigned long MAX_FILE_INSTANCE_SIZE;
+    unsigned long MAX_FILE_INSTANCES_OPENED;
 
     unsigned int MAX_LINE_LENGTH;
 

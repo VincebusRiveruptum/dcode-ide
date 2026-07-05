@@ -70,7 +70,7 @@ void f_newFile(char *filename){
     size_t arenaSize = 0;
 
     if (!currentWorkspace) {
-        currentWorkspace = f_initWorkspace();
+        currentWorkspace = f_createWorkspace();
         if (!currentWorkspace) {
             logger("[f_newFile]: Failed initializing workspace");
             return;
@@ -99,8 +99,12 @@ void f_newFile(char *filename){
         sprintf(tempName, "%s", filename);
     }
 
-    arenaSize = settings.MAX_FILE_INSTANCE_SIZE > 0 ? settings.MAX_FILE_INSTANCE_SIZE : MEM_ARENA_256K;
-    arena = (MemoryArena *)mem_create_arena(tempName, arenaSize);
+    arenaSize = 
+		settings.MAX_FILE_INSTANCE_SIZE > 0 
+		? settings.MAX_FILE_INSTANCE_SIZE 
+		: MEM_ARENA_256K;
+    
+	arena = (MemoryArena *)mem_create_arena(tempName, arenaSize);
     if(!arena){
         logger("[f_newFile]: Failed creating memory arena");
         return;
@@ -191,7 +195,7 @@ bool f_openFile(char *filename){
     size_t defaultMax = 0;
 
     if (!currentWorkspace) {
-        currentWorkspace = f_initWorkspace();
+        currentWorkspace = f_createWorkspace();
         if (!currentWorkspace) {
             logger("[f_openFile]: Failed initializing workspace");
             return false;
@@ -478,7 +482,11 @@ void f_triggerClose(bool end_program){
     char *filename = NULL;
     endProgram = end_program;
 
-    if(!currentWorkspace || !currentWorkspace->windowList || currentWorkspace->windowList->length == 0){
+    if(
+		!currentWorkspace ||
+		!currentWorkspace->windowList ||
+		currentWorkspace->windowList->length == 0
+	){
         logger("[f_triggerClose]: No opened workspace or windows, proceed to close app directly.");
         if (end_program) {
             endProgram = true;

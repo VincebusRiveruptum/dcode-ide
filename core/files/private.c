@@ -2,27 +2,46 @@
 #include "files.h"
 
 int _checkAvailableName(){
-    Node *wNode = NULL;
-    Node *fNode = NULL;
-    int maxIndex = 0;
+	int maxIndex = 0;
     int index = 0;
     char *fileName;
-    char *occurrence;
+    char *match;
+	
+    Node *wNode = NULL;
+    Node *fNode = NULL;
+
+	Window *wnd = NULL;
+	File *file = NULL;
 
     if (!currentWorkspace || !currentWorkspace->windowList) return 1;
 
     wNode = currentWorkspace->windowList->firstNode;
-    while(wNode != NULL){
-        Window *wnd = (Window *)wNode->data;
-        if(wnd && wnd->fileList){
+    
+	// Window travel
+	while(wNode){
+        wnd = (Window *)wNode->data;
+        
+		if(wnd && wnd->fileList){
             fNode = wnd->fileList->firstNode;
-            while(fNode != NULL){
-                File *file = (File *)fNode->data;
-                if(file && file->name){
+            
+			// File travel
+			while(fNode){
+				file = (File *)fNode->data;
+                
+				if(file && file->name){
                     fileName = file->name;
-                    occurrence = strstr(fileName, "newfile");
-                    if(occurrence){
-                        index = strtol(occurrence + 7, NULL, 10);
+                    match = strstr(fileName, "newfile");
+
+					// Check if there is a match
+					// and if the match position 
+					// is at the beginnig of the 
+					// filename, so at the same 
+					// pointer of filename.
+                    if(
+						match && 
+						match == fileName 
+					){
+                        index = strtol(match + 7, NULL, 10);
                         if(index > maxIndex){
                             maxIndex = index;
                         }

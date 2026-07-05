@@ -1,5 +1,23 @@
 #include "data.h"
 
+List *createList(MemoryArena *arena){
+	List *newList = NULL;
+
+	if(arena){
+		newList = (List*)mem_arena_alloc(arena, sizeof(List));
+	}else{
+		newList = (List*)malloc(arena, sizeof(List));
+	}
+
+	if(!newList) 
+		return NULL;
+
+	newList->firstNode = NULL;
+	newList->lastNode = NULL;
+	newList->length = 0
+
+	return newList;
+}
 // DO NOT USE IF YOU ARE USING ARENAS
 void deleteNodeByIndex(List **list, int index){
     int i=0;
@@ -30,6 +48,41 @@ void deleteNodeByIndex(List **list, int index){
             return;
         }
     }
+    return;
+}
+
+// Delete by comparing pointers
+// TODO: THIS WILL IS JUST AN IDEA, NEEDS TO BE FULLY IMPLEMENTED
+
+void deleteNodeByPtr(List **list, void *ptr, MemoryArena *ptrArena){
+    int i=0;
+    Node *rec = (*list)->firstNode;
+	
+	while(rec){
+		nodeData = rec->data;
+
+		if(nodeData == ptr){
+
+			if(rec->prev){
+				rec->prev->next = rec->next;
+			}
+			
+			if(rec->next){
+				rec->next->prev = rec->prev;
+			}
+			
+			if(ptrArena){
+				mem_arena_free(ptrArena);
+			}else{
+				free(rec->data);
+			}
+
+			free(rec);
+		}else{
+			rec = rec->next;
+		}
+	}
+
     return;
 }
 

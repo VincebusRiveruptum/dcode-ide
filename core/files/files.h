@@ -110,16 +110,17 @@ typedef struct File {
 } File;
 
 typedef enum WndStatus {
-	WND_MAXIMIZED,
-	WND_MINIMIZED,
-	WND_FLOATING,	
+	INITIALIZED,
+	MAXIMIZED,
+	MINIMIZED,
+	FLOATING,	
 }WndStatus;
 
 typedef struct Window{
 	// Window tabs
 	List *fileList;
 	File *currentFile;
-	WndStatus wndStatus;
+	WndStatus status;
 
 	unsigned int x;
 	unsigned int y;
@@ -128,45 +129,69 @@ typedef struct Window{
 	unsigned int height;
 
 	unsigned int currentFileIndex;
-	unsigned int wndIndex;
+	unsigned int index;
 	bool active;
 }Window;
 
+/*
+	A workspace is basically a dump that records the state/session
+	of the editor at any moment.
+	- The main idea is that if the user wants to keep the previous
+	session then restore it we could by defining Workspaces.
+
+	For now, is just a single opened workspace.
+	It could be a List if we want to have multiple workspaces
+	opened in a session.
+*/
+typedef struct Workspace{
+	char *fullPath;
+	List *windowList;
+	Window *currentWindow;
+} Workspace;
 
 /* Globals ==============================================================*/
 
-extern List *windowList;
-
-extern Window *currentWindow;
-
-//extern FileArena fileList[MAX_ARENAS];
-//extern FileArena *currentFileArena;
+extern Worskpace *currentWorkspace;
 
 extern bool f_onFileNavigation;
-
 extern bool endProgram;
 
 /* Protypes =============================================================*/
 
+#include "private.h"
+
+// f_base
 void f_dumpToFile(char *filename);
 void f_dumpBufferTofile(char *buffer, size_t bufferLength, char *filename);
-
-//FileArena *f_getFileArena(char *filename);
-//FileArena *f_addFileArena(File *file);
-void f_closeFile(File *file);
-
-size_t f_getFileName(char *filename);
-char *f_getFileExtension(char *filename);
-void f_splitIntoLines(char *buffer, size_t bufferLength, File *file, MemoryArena *arena);
-
-void f_init();
 void f_newFile(char *filename);
 bool f_openFile(char *filename);
 void f_saveFile();
+void f_closeFile(File *file);
 void f_triggerClose(bool end_program);
 void f_closeCurrentFile();
 
+// f_nav
+void f_prepareFileNavDialog();
 void f_drawFileNavDialog();
+
+// f_search
+void f_flushSearchMetadata();
+
+// f_qopen
 void f_quickOpenFileDialog();
+
+// f_wnd
+Window *f_createWindow();
+Workspace *f_initWorkspace();
+void f_freeFileList(List *fileList);
+void f_freeWindowList(List *windowList);
+void f_freeWorkspace();
+File *f_addFileToWindow(Window *window, File *file);
+Window *f_addWindowToWorkspace(Workspace *workspace, Window *window);
+void f_deleteFileFromWindow(Window *window, File *file);
+void f_deleteWindowFromWorkspace(Workspace *workspace, Window *window);
+
+bool f_onFileNavigation = false;
+bool endProgram = false;
 
 #endif

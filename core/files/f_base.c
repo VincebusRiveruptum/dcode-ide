@@ -2,163 +2,6 @@
 #include "files.h"
 #include "../config/config.h"
 
-void f_flushSearchMetadata();
-
-bool f_onFileNavigation = false;
-
-bool endProgram = false;
-
-/* File arena managing and utlis ======================================================*/
-
-//void f_init(){
-//    f_initFileArenas();
-//}
-
-//void f_initFileArenas(){
-//    int i = 0;
-//    for(i = 0; i < MAX_ARENAS; i++){
-//        fileList[i].file = NULL;
-//        fileList[i].arena = NULL;
-//   }
-//}
-
-//FileArena *f_getFileArena(char *filename){
-//    unsigned short i = 0;
-//    
-//    for(i = 0; i < MAX_ARENAS; i++){
-//        if(fileList[i].file && !strcmp(fileList[i].file->name, filename)) return &fileList[i];
-//    }   
-//    return NULL;
-//}
-
-//FileArena *f_addFileArena(FileArena *fileArena){
-//    unsigned short i = 0;
-//    
-//    for(i = 0; i < MAX_ARENAS; i++){
-//        if(fileList[i].file == NULL && fileList[i].arena == NULL){
-//            fileList[i] = *fileArena;
-//            
-//            // We update the fileIndex, this is used for accessing quickly to the 
-//            // fileArena array.
-//            fileArena->file->fileIndex = i;
-//
-//            return &fileList[i];
-//        }
-//    }
-//    return NULL;
-//}
-
-// Create new file
-// This will travel all windows files and check whats the
-// next available file number. (for a name like newfile1.c)
-
-int _checkAvailableName(){
-    // TRAVEL ALL WINDOWS
-		// TRAVEL ALL FILES
-		// Get name that match the 'newfile' name scheme
-		// Add to a counter
-	
-	// Return counter...
-    return index + 1;
-}
-
-void _splitIntoLines(char *buffer, size_t bufferLength, File *file) {
-    char *start;
-    char *end;    
-    char *p;
-    size_t lineLen;
-    Line *line;
-
-    start = buffer;
-    end = buffer + bufferLength;
-    p = start;
-
-	if(!file || !file->arena){
-		logger("[_splitIntoLines]: File has no arena");
-		return;
-	}
-
-    file->lines = (List *)mem_arena_alloc(file->arena, sizeof(List));
-    memset(file->lines, 0, sizeof(List));
-
-    file->deletedLines = (List *)mem_arena_alloc(file->arena, sizeof(List));
-    memset(file->deletedLines, 0, sizeof(List));
-
-    while (p < end) {
-        if (*p == '\n') {
-            lineLen = p - start;
-            /* Strip trailing \r if present */
-            if (lineLen > 0 && *(p - 1) == '\r') {
-                lineLen--;
-            }
-            line = (Line *)mem_arena_alloc(file->arena, sizeof(Line));
-            line->buffer = (char *)mem_arena_alloc(file->arena, MAX_FILE_LINE_LENGTH);
-            memset(line->buffer, '\0', MAX_FILE_LINE_LENGTH);
-            memcpy(line->buffer, start, lineLen);
-            line->length = lineLen;
-
-            addGenericNode(&file->lines, line, file->arena);
-            start = p + 1;
-        }
-        p++;
-    }
-
-    /* Handle last line or file without trailing \n */
-    if (start <= end) {
-        lineLen = end - start;
-        if (lineLen > 0 && start[lineLen-1] == '\r') lineLen--;
-
-        line = (Line *)mem_arena_alloc(file->arena, sizeof(Line));
-        line->buffer = (char *)mem_arena_alloc(file->arena, MAX_FILE_LINE_LENGTH);
-        memset(line->buffer, '\0', MAX_FILE_LINE_LENGTH);
-        memcpy(line->buffer, start, lineLen);
-        line->length = lineLen;
-        addGenericNode(&file->lines, line, file->arena);
-    }
-}
-
-size_t _copyLines(File *old, File *new){
-    size_t lengthSum = 0;
-    size_t lineLen = 0;
-    Node *currentNode = NULL;
-    Line *oldLine = NULL;
-    Line *newLine = NULL;
-
-    new->lines = NULL;
-    
-    currentNode = old->lines->firstNode;
-
-    while(currentNode != NULL){
-        oldLine = (Line *)currentNode->data;
-        
-        newLine = (Line *)mem_arena_alloc(new->arena, sizeof(Line));
-        newLine->buffer = (char *)mem_arena_alloc(new->arena, sizeof(char) * MAX_FILE_LINE_LENGTH);
-        memset(newLine->buffer, '\0', sizeof(char) * MAX_FILE_LINE_LENGTH);
-
-        lineLen = strlen(oldLine->buffer);
-
-        memcpy(newLine->buffer, oldLine->buffer, lineLen + 1);
-        newLine->length = lineLen;
-
-        addGenericNode(&new->lines, (void *)newLine, new->arena);
-        
-        lengthSum += newLine->length + 1;
-        currentNode = currentNode->next;
-    }
-    return lengthSum;
-}
-
-void f_closeFile(File *file){
-    char arenaName[64];
-    sprintf(arenaName, "%s", file->arena->name);
-
-    mem_arena_free(file->arena);
-    
-    file->arena = NULL;
-
-    logger("[f_closeFile]: File %s closed successfully", arenaName);    
-}
-
 void f_dumpToFile(char *filename){
     FILE *fp = fopen(filename, "w");
     int i=0;
@@ -197,33 +40,6 @@ void f_dumpBufferTofile(char *buffer, size_t bufferLength, char *filename){
     fclose(fp);   
 }
 
-
-// We check if the filename is a default one (ie newfile1.c)
-
-bool f_isDefaultFileName(){
-    char filename[8] = {'\0'};
-    bool res = false;
-	File *currentFile = NULL;
-
-	currentFile = currentWindow->currentFile;
-
-    if(!currentFile){
-        logger("[f_isDefaultFileName]: No current file!");
-        return true;
-    }
-
-    if(!currentFile->name){
-        logger("[f_isDefaultFileName]: current file has no name!");
-        return true;
-    }
-
-    strncpy(filename, currentFile->name, 7);
-    
-    res = (strcmp(filename, "newfile") == 0) ? true : false;
-
-    return res;
-}
-
 unsigned char f_getExtensionId(char *filename){
     char *ext = fs_getFileExtension(filename);
 
@@ -238,7 +54,6 @@ unsigned char f_getExtensionId(char *filename){
 
     return FILE_EXTENSION_TXT;
 }
-
 
 /* NEW FILE ==============================================================================*/
 
@@ -669,6 +484,17 @@ void f_saveFile(){
 
 /* CLOSE FILE ==================================================================*/
 
+void f_closeFile(File *file){
+    char arenaName[64];
+    sprintf(arenaName, "%s", file->arena->name);
+
+    mem_arena_free(file->arena);
+    
+    file->arena = NULL;
+
+    logger("[f_closeFile]: File %s closed successfully", arenaName);    
+}
+
 void f_triggerClose(bool end_program){
     int len = 0;
     char input = '\0';
@@ -719,7 +545,7 @@ void f_triggerClose(bool end_program){
         
         ed_renderElements();
         
-        if(f_isDefaultFileName() == true){
+        if(_isDefaultFileName() == true){
             dw_writeBuffer(textmemptr, 
 				"File name: ",
 				0,
@@ -805,83 +631,34 @@ void f_closeCurrentFile(){
     return;
 }
 
-// ==== SEARCH BEHAVIOR ==================================
-
-// * Each file arena has its own fileSearchMetadata, its not insidie the File definition because this could cause memory usage issues when
-// there are many Word matches, so it separate for better memory perfomance and control
-
-// * The search metadata stores all matches in a pointer array. So,
-
-// * Every time the file changes the searchMetadata of the currentFile
-// MUST be flush, so there are no dangling pointers nor references to a word
-// address that changed.
-
-// * The fileListSearchMetadata INDEX is parallel to fileList currentFile
-// this makes sure there are no collisions when flushing or filling the 
-// metadata of an already opened file.
-
-// The access to the current search meta data index is easy with 
-
-// FLUSH METADATA
-
-void f_flushSearchMetadata(){
-    if(
-		!currentWindow || 
-		!currentWindow->currentFile ||
-		!currentWindow->currentFile->currentFileSearch) 
-	return;
-
-    mem_arena_free(
-		currentWindow->currentFile->currentFileSearch->arena
-	);
-	
-    currentWindow->currentFile->currentFileSearch->arena = NULL; // Ensure pointer is cleared
-
-    //currentFileSearch->dialogInputIndex = 0;
-    //memset(currentFileSearch->dialogInputBuffer, '\0', 255);
-
-    currentWindow->currentFile->currentFileSearch->wordCount = 0;
-    currentWindow->currentFile->currentFileSearch->words = NULL;
-    currentWindow->currentFile->currentFileSearch->currentWordNode = NULL;
-}
-
-void f_allocSearchMetadata(){
-	if(
-		!currentWindow || 
-		!currentWindow->currentFile ||
-		!currentWindow->currentFile->currentFileSearch
-	) {
-		logger("[f_allocSearchMetadat]: No valid currentFile data");
-		return;
-	}
-	
-    mem_arena_init(
-		currentWindow->currentFile->currentFileSearch->arena,
-		currentWindow->currentFile->name,
-		MEM_ARENA_2K
-	);
-    
-    currentWindow->currentFile->currentFileSearch->dialogInputIndex = 0;
-
-    memset(
-		currentWindow->currentFile->currentFileSearch->dialogInputBuffer,
-		'\0',
-		255
-	);
-
-    currentWindow->currentFile->currentFileSearch->wordCount = 0;
-    currentWindow->currentFile->currentFileSearch->words = NULL;
-    currentWindow->currentFile->currentFileSearch->currentWordNode = NULL;
-}
-
 // ============================================================================
 
 void f_prepareFileNavDialog(){
 
-	if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LALT, HAL_KEY_LSHIFT)){
+	if(hal_inp_keysPressed(
+		HAL_INP_TRIGGER_EDGE,
+		2, 
+		HAL_KEY_LALT, 
+		HAL_KEY_LSHIFT
+	)){
 		f_onFileNavigation = true;
 		/* 1. Dibujar el cuadro */
-		dw_rectangle(textmemptr, 4, 4, 34, 16, COLOR_RED, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_RED, false, DRAW_BORDER_SIMPLE, NULL);
+		dw_rectangle(
+			textmemptr, 
+			4, 
+			4, 
+			34, 
+			16, 
+			COLOR_RED, 
+			COLOR_WHITE, 
+			' ', 
+			COLOR_WHITE, 
+			COLOR_RED, 
+			false, 
+			DRAW_BORDER_SIMPLE, 
+			NULL
+		);
+
 		ed_renderEvent = true;
 	}
 }
@@ -955,282 +732,4 @@ void f_drawFileNavDialog(){
 	// Keyboard buffer update.
 	hal_vid_refresh();
 	hal_inp_updateKeyboard();
-}
-
-int _goBackPath(char *path){
-    int end, len;
-    char *endptr;
-    
-    end = strlen(path) - 1;
-    len = end + 1;
-
-    if(len <= 3) return len;
-    
-    endptr = path + end;
-
-    if(*endptr == '\\' ){
-        *endptr = '\0';
-        endptr--;
-    }
-
-    while(endptr > path && *(endptr) != '\\'){
-        *endptr = '\0';
-        endptr--;
-    };
-    
-    return (int)(endptr - path) + 1;
-}
-
-/*
-    This is basically VSCODE's quick open feature. The behavior is the following:
-    Prompt that has pre-filled the absolute path of the current position, filalble with the left and right arrows
-    Select file of the current selected path with the up and down arrows.
-    The file list will be reactive depending on hte detected path from the input prompt.
-*/
-void f_quickOpenFileDialog(){
-    int stepIndex = 0;
-    int vis_offset = 0;
-    int dialogStartY = 0;
-    int dialogEndY = 0;
-    int entriesLen = 0;
-    int selectedEntry = 0;
-    int entryIndex = 0;
-    int clearMarkPoint = 0;
-    int listHeight = 11;
-    int entryScrollY = 0;
-    int selectedEntryScrollY = 0;
-    char scrollChar = '\0';
-    char selectedEntryFullPath[512];
-    char currentPath[255];
-    bool isSelected = false;
-
-    Directory *currPathDirectory = NULL;
-    Node *node = NULL;
-    FileEntry *fileEntry = NULL;
-    FileEntry *selectedFileEntry = NULL;
-
-    memset(selectedEntryFullPath, '\0', 512);
-    memset(currentPath, '\0', 255);
-
-    hal_fs_getAbsoluteCurrentPath(currentPath, 255);
-    
-    if(currentPath[0] == '\0'){
-        logger("[ed_quickOpenFileDialog]: Failed to retrieve currentPath");
-    }
-
-    if (strlen(currentPath) < sizeof(currentPath) - 1) {
-        strcat(currentPath, "\\");
-    }
-
-    vis_offset = (VIDEO_COLS / 4);
-
-    dialogStartY = 2;
-    dialogEndY = 18; 
-
-    dw_rectangle(
-		textmemptr, 
-		vis_offset,
-		dialogStartY,
-		VIDEO_COLS - vis_offset,
-		dialogEndY,
-		COLOR_BLUE,
-		COLOR_WHITE,
-		' ',
-		COLOR_WHITE,
-		COLOR_BLUE,
-		false,
-		DRAW_BORDER_SIMPLE,
-		"OPEN FILE"
-	);
-
-    stepIndex = strlen(currentPath);
-    
-    hal_inp_waitForRelease();
-
-    do{
-        // Key selection
-        if(hal_inp_isKeyPressed(HAL_KEY_UP)){
-            selectedEntry = 
-            selectedEntry > 1
-                ? selectedEntry - 1
-                : 1; 
-
-            if(selectedEntry - entryScrollY <= 0)
-                entryScrollY--;
-
-        }else if(hal_inp_isKeyPressed(HAL_KEY_DOWN)){
-            selectedEntry = 
-            selectedEntry < entriesLen
-                ? selectedEntry + 1
-                : entriesLen; 
-
-            // We calculate the scrolling
-            if(selectedEntry - entryScrollY - 2 > listHeight )
-                entryScrollY++;
-                
-        }else if(hal_inp_isKeyPressed(HAL_KEY_ENTER)){
-            // If we press enter, we have to detect if the entry is either a directory or a file
-            // 
-            if(selectedFileEntry && strcmp(selectedFileEntry->name, "..") == 0){         // .. path
-                stepIndex = _goBackPath(currentPath);       
-                selectedEntry = 0;
-                selectedFileEntry = NULL;
-            }else if(selectedFileEntry && selectedFileEntry->isDirectory){
-                //// Nothing happens
-                strcat(currentPath, selectedFileEntry->name);
-                strcat(currentPath, "\\");
-                stepIndex = strlen(currentPath);
-                selectedEntry = 0;
-                selectedFileEntry = NULL;
-            }else if(selectedFileEntry){
-                // We open the file
-                // TODO: SANITIZE buffer by removing the chars until the last directory
-                //snprintf(selectedEntryFullPath, sizeof(selectedEntryFullPath), "%s%s", currentPath, selectedFileEntry->name);
-                sprintf(selectedEntryFullPath, "%s%s", currentPath, selectedFileEntry->name);
-                f_openFile(selectedEntryFullPath);
-                _updateCursor();
-                ed_renderEvent = true;
-                if (currPathDirectory) hal_fs_freeDirectory(currPathDirectory);
-                return;
-            }
-        }else{
-
-            // Freeing up list of files each time there is a change 
-            // in the prompt.
-
-            // Ok, for the file selection we have to clear mark a flag 
-            // for the selected file
-            // By
-            if(currPathDirectory) hal_fs_freeDirectory(currPathDirectory);
-
-            selectedFileEntry = NULL;
-
-            currPathDirectory = hal_fs_getDirectoryFileList(currentPath);
-
-            if(!currPathDirectory){
-                logger(
-                    "[ed_quickOpenFileDialog]: Could not get currPathDirectory or FileEntry list for selection!");
-                return;
-            }
-
-            // Draw list of files
-            entriesLen = currPathDirectory->fileEntries->length;
-            node = currPathDirectory->fileEntries->firstNode;
-            entryIndex = 0;
-            selectedEntryScrollY = 0;
-
-            while(node != NULL && (selectedEntryScrollY) - 1 <= listHeight){
-                fileEntry = (FileEntry*)node->data;
-                entryIndex++;
-                // We write the filename under the prompt
-                selectedEntryScrollY = entryIndex - entryScrollY;
-                
-                isSelected = (entryIndex == selectedEntry) ? true : false;
-                        
-                if(selectedEntryScrollY <= 0) continue;
-                    // We mar the selected item or not
-                if(isSelected == true){
-
-                    selectedFileEntry = fileEntry;
-                    dw_writeBuffer(
-                        textmemptr,
-                        "%s", 
-                        vis_offset + 1, 
-                        3 + selectedEntryScrollY + 1, 
-                        VIDEO_COLS - vis_offset - 1, 
-                        3 + selectedEntryScrollY + 1,
-                        COLOR_BLUE, 
-                        COLOR_WHITE, 
-                        fileEntry->name
-                    );
-                }else{
-                    dw_writeBuffer(
-                        textmemptr,
-                        "%s", 
-                        vis_offset + 1, 
-                        3 + selectedEntryScrollY + 1, 
-                        VIDEO_COLS - vis_offset - 1, 
-                        3 + selectedEntryScrollY + 1, 
-                        COLOR_WHITE, 
-                        COLOR_BLUE, 
-                        fileEntry->name
-                    );
-                }
-
-                // Draw scrollbar if there are more items than the 
-                // the height of the list
-                if(entriesLen - 2 > listHeight){
-                    // UP ARROW
-                    if((selectedEntryScrollY - 1) == 0){
-                        scrollChar = 0x1E;
-                    // DOWN ARROW
-                    }else if(selectedEntryScrollY - 2 == listHeight){
-                        scrollChar = 0x1F;
-                    }else{
-                        scrollChar = 0xB1;
-                    }
-
-                    dw_writeBuffer(
-                        textmemptr,
-                        "%c", 
-                        VIDEO_COLS - vis_offset - 1, 
-                        3 + selectedEntryScrollY + 1, 
-                        VIDEO_COLS - vis_offset - 1, 
-                        3 + selectedEntryScrollY + 1, 
-                        COLOR_BLUE, 
-                        COLOR_LIGHT_GRAY, 
-                        scrollChar
-                    );
-                }
-
-                node = node->next;
-            }
-
-            // Clear list container until touches bottom
-            clearMarkPoint = selectedEntryScrollY;
-
-            if(clearMarkPoint < dialogEndY - 5){
-                while(clearMarkPoint < dialogEndY - 5){     
-                    clearMarkPoint++;
-                    dw_writeBuffer(
-                        textmemptr,
-                        "%s", 
-                        vis_offset + 1, 
-                        clearMarkPoint + 4, 
-                        VIDEO_COLS - vis_offset - 1, 
-                        clearMarkPoint + 4, 
-                        COLOR_WHITE, 
-                        COLOR_BLUE, 
-                        "            "
-                    );
-                }
-            }
-            
-            // Draw rect in the middle, 1/4 will be the start and the
-            // end, so i it will always be in the center
-            hal_vid_refresh();
-            ed_async_scanf(
-                vis_offset + 1, 
-                3, (2 * vis_offset) - 1, 
-                currentPath, 
-                strlen(currentPath), 
-                &stepIndex
-            );
-            
-        }
-        
-        hal_inp_updateKeyboard();
-    }while(!hal_inp_isKeyPressed(HAL_KEY_ESC));
-
-    if(currPathDirectory) 
-        hal_fs_freeDirectory(currPathDirectory);
-
-    if (
-		currentWindow &&
-		currentWindow->currentFile
-	){
-        _updateCursor();
-    }
-
-    ed_renderEvent = true;
 }

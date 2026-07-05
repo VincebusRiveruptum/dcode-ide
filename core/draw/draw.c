@@ -345,15 +345,12 @@ bool dw_isCharSelected(struct File *file, int lineIndex, int colIndex) {
     return false;
 }
 bool dw_isCharFound(struct File *file, int lineIndex, int colIndex) {
-    int fileIndex = 0;
     SearchMetadata *fileSearch = NULL;
 
     if (!file)
         return false;
     
-    fileIndex = file->fileIndex;
-    
-    fileSearch = &fileListSearchMetadata[fileIndex];
+    fileSearch = file->currentFileSearch;
 
     if(
         !fileSearch ||

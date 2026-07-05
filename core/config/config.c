@@ -16,7 +16,7 @@ bool cfg_loadConfig(){
     settings.MAX_FILE_INSTANCE_SIZE         
         = (unsigned int)atoi(getEnv("MAX_FILE_INSTANCE_SIZE","%d", MEM_ARENA_512K));
     settings.MAX_FILE_INSTANCES_OPENED      
-        = (unsigned int)atoi(getEnv("MAX_FILE_INSTANCES_OPENED", "%d", MAX_ARENAS));
+        = (unsigned int)atoi(getEnv("MAX_FILE_INSTANCES_OPENED", "%d", 32));
     settings.MAX_LINE_LENGTH                
         = (unsigned int)atoi(getEnv("MAX_LINE_LENGTH", "%d", MAX_FILE_LINE_LENGTH));
     settings.AUTOIDENTING                   

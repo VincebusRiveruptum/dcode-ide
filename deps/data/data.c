@@ -6,7 +6,7 @@ List *createList(MemoryArena *arena){
 	if(arena){
 		newList = (List*)mem_arena_alloc(arena, sizeof(List));
 	}else{
-		newList = (List*)malloc(arena, sizeof(List));
+		newList = (List*)malloc(sizeof(List));
 	}
 
 	if(!newList) 
@@ -14,7 +14,7 @@ List *createList(MemoryArena *arena){
 
 	newList->firstNode = NULL;
 	newList->lastNode = NULL;
-	newList->length = 0
+	newList->length = 0;
 
 	return newList;
 }
@@ -51,39 +51,45 @@ void deleteNodeByIndex(List **list, int index){
     return;
 }
 
-// Delete by comparing pointers
-// TODO: THIS WILL IS JUST AN IDEA, NEEDS TO BE FULLY IMPLEMENTED
-
 void deleteNodeByPtr(List **list, void *ptr, MemoryArena *ptrArena){
-    int i=0;
-    Node *rec = (*list)->firstNode;
-	
-	while(rec){
-		nodeData = rec->data;
+    Node *rec;
+    void *nodeData;
 
-		if(nodeData == ptr){
+    if (!list || !*list) return;
 
-			if(rec->prev){
-				rec->prev->next = rec->next;
-			}
-			
-			if(rec->next){
-				rec->next->prev = rec->prev;
-			}
-			
-			if(ptrArena){
-				mem_arena_free(ptrArena);
-			}else{
-				free(rec->data);
-			}
+    rec = (*list)->firstNode;
+    while(rec != NULL){
+        nodeData = rec->data;
 
-			free(rec);
-		}else{
-			rec = rec->next;
-		}
-	}
+        if(nodeData == ptr){
+            Node *next = rec->next;
+            Node *prev = rec->prev;
 
-    return;
+            if(prev != NULL){
+                prev->next = next;
+            } else {
+                (*list)->firstNode = next;
+            }
+
+            if(next != NULL){
+                next->prev = prev;
+            } else {
+                (*list)->lastNode = prev;
+            }
+
+            (*list)->length--;
+
+            if(ptrArena != NULL){
+                mem_arena_free(ptrArena);
+            } else {
+                free(rec->data);
+            }
+
+            free(rec);
+            return;
+        }
+        rec = rec->next;
+    }
 }
 
 // USE THIS IF YOU ARE USING ARENAS
@@ -272,6 +278,8 @@ void addGenericNode(List **list, void *data, MemoryArena *arena){
     }else{
         newNode = (Node*)malloc(sizeof(Node));
     }
+
+    if(!newNode) return;
 
 	newNode->data = data;
 	newNode->next = NULL;

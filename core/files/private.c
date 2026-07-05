@@ -2,14 +2,38 @@
 #include "files.h"
 
 int _checkAvailableName(){
-	int index = 0;
-    // TRAVEL ALL WINDOWS
-		// TRAVEL ALL FILES
-		// Get name that match the 'newfile' name scheme
-		// Add to a counter
-	
-	// Return counter...
-    return index + 1;
+    Node *wNode = NULL;
+    Node *fNode = NULL;
+    int maxIndex = 0;
+    int index = 0;
+    char *fileName;
+    char *occurrence;
+
+    if (!currentWorkspace || !currentWorkspace->windowList) return 1;
+
+    wNode = currentWorkspace->windowList->firstNode;
+    while(wNode != NULL){
+        Window *wnd = (Window *)wNode->data;
+        if(wnd && wnd->fileList){
+            fNode = wnd->fileList->firstNode;
+            while(fNode != NULL){
+                File *file = (File *)fNode->data;
+                if(file && file->name){
+                    fileName = file->name;
+                    occurrence = strstr(fileName, "newfile");
+                    if(occurrence){
+                        index = strtol(occurrence + 7, NULL, 10);
+                        if(index > maxIndex){
+                            maxIndex = index;
+                        }
+                    }
+                }
+                fNode = fNode->next;
+            }
+        }
+        wNode = wNode->next;
+    }
+    return maxIndex + 1;
 }
 
 void _splitIntoLines(char *buffer, size_t bufferLength, File *file) {
@@ -29,9 +53,17 @@ void _splitIntoLines(char *buffer, size_t bufferLength, File *file) {
 	}
 
     file->lines = (List *)mem_arena_alloc(file->arena, sizeof(List));
+    if (!file->lines) {
+        logger("[_splitIntoLines]: Failed to allocate lines list");
+        return;
+    }
     memset(file->lines, 0, sizeof(List));
 
     file->deletedLines = (List *)mem_arena_alloc(file->arena, sizeof(List));
+    if (!file->deletedLines) {
+        logger("[_splitIntoLines]: Failed to allocate deletedLines list");
+        return;
+    }
     memset(file->deletedLines, 0, sizeof(List));
 
     while (p < end) {
@@ -41,13 +73,19 @@ void _splitIntoLines(char *buffer, size_t bufferLength, File *file) {
             if (lineLen > 0 && *(p - 1) == '\r') {
                 lineLen--;
             }
+            if (lineLen >= MAX_FILE_LINE_LENGTH) {
+                lineLen = MAX_FILE_LINE_LENGTH - 1;
+            }
             line = (Line *)mem_arena_alloc(file->arena, sizeof(Line));
-            line->buffer = (char *)mem_arena_alloc(file->arena, MAX_FILE_LINE_LENGTH);
-            memset(line->buffer, '\0', MAX_FILE_LINE_LENGTH);
-            memcpy(line->buffer, start, lineLen);
-            line->length = lineLen;
-
-            addGenericNode(&file->lines, line, file->arena);
+            if (line != NULL) {
+                line->buffer = (char *)mem_arena_alloc(file->arena, MAX_FILE_LINE_LENGTH);
+                if (line->buffer != NULL) {
+                    memset(line->buffer, '\0', MAX_FILE_LINE_LENGTH);
+                    memcpy(line->buffer, start, lineLen);
+                    line->length = lineLen;
+                    addGenericNode(&file->lines, line, file->arena);
+                }
+            }
             start = p + 1;
         }
         p++;
@@ -57,13 +95,20 @@ void _splitIntoLines(char *buffer, size_t bufferLength, File *file) {
     if (start <= end) {
         lineLen = end - start;
         if (lineLen > 0 && start[lineLen-1] == '\r') lineLen--;
+        if (lineLen >= MAX_FILE_LINE_LENGTH) {
+            lineLen = MAX_FILE_LINE_LENGTH - 1;
+        }
 
         line = (Line *)mem_arena_alloc(file->arena, sizeof(Line));
-        line->buffer = (char *)mem_arena_alloc(file->arena, MAX_FILE_LINE_LENGTH);
-        memset(line->buffer, '\0', MAX_FILE_LINE_LENGTH);
-        memcpy(line->buffer, start, lineLen);
-        line->length = lineLen;
-        addGenericNode(&file->lines, line, file->arena);
+        if (line != NULL) {
+            line->buffer = (char *)mem_arena_alloc(file->arena, MAX_FILE_LINE_LENGTH);
+            if (line->buffer != NULL) {
+                memset(line->buffer, '\0', MAX_FILE_LINE_LENGTH);
+                memcpy(line->buffer, start, lineLen);
+                line->length = lineLen;
+                addGenericNode(&file->lines, line, file->arena);
+            }
+        }
     }
 }
 

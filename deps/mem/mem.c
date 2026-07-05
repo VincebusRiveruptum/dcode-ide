@@ -14,6 +14,16 @@
 
 */ 
 
+void *mem_create_arena(char *name, size_t size){
+    MemoryArena *newArena = (MemoryArena *)malloc(sizeof(MemoryArena));
+    if (!newArena) {
+        logger("[mem_create_arena]: Could not allocate MemoryArena header");
+        return NULL;
+    }
+    mem_arena_init(newArena, name, size);
+    return newArena;
+}
+
 void mem_arena_init(MemoryArena *arena, char *name, size_t size){
     if(!arena) return;
 
@@ -75,16 +85,19 @@ void mem_arena_reset(MemoryArena *arenaPtr){
 }
 
 void mem_arena_free(MemoryArena *arenaPtr){
-    if(!arenaPtr || !arenaPtr->base){
+    if(!arenaPtr){
 		logger("[mem_arena_free]: No arena found!");
 		return;
 	}
 
 	logger("\n[mem_arena_free]: Freeing arena %s", arenaPtr->name);
-	free(arenaPtr->base);
-	arenaPtr->base = NULL;
+	if(arenaPtr->base){
+	    free(arenaPtr->base);
+	    arenaPtr->base = NULL;
+	}
 	arenaPtr->offset = 0;
 	arenaPtr->size = 0;
+	free(arenaPtr);
 	
 	return;
 }
@@ -100,7 +113,7 @@ size_t mem_getFileClosestSize(FILE *fp){
 	size = ftell(fp);
 	rewind(fp);
 
-	size +- MEM_ARENA_8K; // for now...
+	size += MEM_ARENA_8K; // for now...
 
 	return size;
 }

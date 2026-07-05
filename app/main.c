@@ -38,6 +38,14 @@ int main(int argc, char *argv[]){
 		// Switch files
 		f_prepareFileNavDialog();
 
+		// Split window (Ctrl + \)
+		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LCTRL, HAL_KEY_BACKSLASH)) 
+			f_splitWindow();
+
+		// Cycle active window split (Ctrl + W)
+		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LCTRL, HAL_KEY_W))
+			f_cycleActiveWindow();
+
 
 		// ACTION KEYS HANDLING
 		// This is uses ISR approach, not getch()

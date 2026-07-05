@@ -9,7 +9,7 @@ CFLAGS_LNK = $(OBJDIR)\CFLAGS.lnk
 # Split OBJS to avoid long expansion strings in some wmake versions
 OBJS_1 = $(OBJDIR)\input.obj $(OBJDIR)\vgaregs.obj $(OBJDIR)\data.obj $(OBJDIR)\sort.obj $(OBJDIR)\draw.obj
 OBJS_2 = $(OBJDIR)\test.obj $(OBJDIR)\vismem.obj $(OBJDIR)\env.obj $(OBJDIR)\mem.obj $(OBJDIR)\vsnprntf.obj
-OBJS_3 = $(OBJDIR)\log.obj $(OBJDIR)\editor.obj $(OBJDIR)\config.obj $(OBJDIR)\files.obj $(OBJDIR)\fs.obj $(OBJDIR)\video.obj $(OBJDIR)\main.obj 
+OBJS_3 = $(OBJDIR)\log.obj $(OBJDIR)\editor.obj $(OBJDIR)\config.obj $(OBJDIR)\f_base.obj $(OBJDIR)\f_qopen.obj $(OBJDIR)\f_wnd.obj $(OBJDIR)\private.obj $(OBJDIR)\f_search.obj $(OBJDIR)\fs.obj $(OBJDIR)\video.obj $(OBJDIR)\main.obj 
 OBJS = $(OBJS_1) $(OBJS_2) $(OBJS_3)
 
 # Final executable
@@ -65,8 +65,20 @@ $(OBJDIR)\vismem.obj: .\core\vismem\vismem.c $(CFLAGS_LNK)
 $(OBJDIR)\test.obj: .\core\test\test.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\test\test.c
 
-$(OBJDIR)\files.obj: .\core\files\files.c $(CFLAGS_LNK)
-	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\files\files.c
+$(OBJDIR)\f_base.obj: .\core\files\f_base.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\files\f_base.c
+
+$(OBJDIR)\f_qopen.obj: .\core\files\f_qopen.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\files\f_qopen.c
+
+$(OBJDIR)\f_wnd.obj: .\core\files\f_wnd.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\files\f_wnd.c
+
+$(OBJDIR)\private.obj: .\core\files\private.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\files\private.c
+
+$(OBJDIR)\f_search.obj: .\core\files\f_search.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\files\f_search.c
 
 $(OBJDIR)\fs.obj: .\platform\dos\fs\fs.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\platform\dos\fs\fs.c

@@ -152,6 +152,7 @@ typedef struct Workspace{
 /* Globals ==============================================================*/
 
 extern Workspace *currentWorkspace;
+extern Window *currentWindow;
 
 extern bool f_onFileNavigation;
 extern bool endProgram;
@@ -190,5 +191,7 @@ File *f_addFileToWindow(Window *window, File *file);
 Window *f_addWindowToWorkspace(Workspace *workspace, Window *window);
 void f_deleteFileFromWindow(Window *window, File *file);
 void f_deleteWindowFromWorkspace(Workspace *workspace, Window *window);
+void f_splitWindow();
+void f_cycleActiveWindow();
 
 #endif

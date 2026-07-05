@@ -83,7 +83,7 @@ Directory *hal_fs_getDirectoryFileList(const char *path){
         foundFileEntry->isDirectory = (foundFile.attrib & _A_SUBDIR) ? 1 : 0;
         foundFileEntry->size = foundFile.size;
 
-        addGenericNode(&d->fileEntries, foundFileEntry, NULL, NULL );
+        addGenericNode(&d->fileEntries, foundFileEntry, NULL);
     }while((rc == 0) && _dos_findnext(&foundFile) == 0 );
 
     return d;
@@ -106,7 +106,7 @@ size_t fs_getFileName(char *filename){
     size_t slashPos=0;
     
     while(filename[length] != '\0'){ // Find the last dot
-        if(filename[length] == FS_PATH_SEPARATOR ){ // Count the number of slashes
+        if(filename[length] == FS_PATH_SEPARATOR[0] ){ // Count the number of slashes
             slashPos = length;
         }
         length++;

@@ -49,8 +49,8 @@ DCode IDE uses a multi-layered, flicker-free rendering pipeline:
 
 ### 2. Memory Arena Management
 To prevent memory fragmentation in vintage DOS environments, a custom arena memory allocation system is implemented under `deps/mem/`:
-- Each open file gets its own isolated memory "arena" (`FileArena`) to store its line structures and data.
-- The editor allocates block structures from specific arenas (`MEM_ARENA_TEXT`, `MEM_ARENA_METADATA`, etc.) rather than calling standard `malloc`/`free` directly during active editing.
+- Each open file gets its own dynamically allocated memory "arena" (`MemoryArena`) to store its line structures and data.
+- Standard memory allocation helper functions (`mem_create_arena` and `mem_arena_alloc`) do not use fixed types or static arrays; they allocate structures on the heap dynamically, scaling with the number of open windows and tabs.
 
 ### 3. Keyboard Input & ISR Handling
 - The editor employs a platform-specific keyboard driver defined under `platform/dos/input/` and `platform/linux/input/` through `hal/hal_inp.h`. On DOS, it uses a custom ISR (Interrupt Service Routine) to detect complex key combinations and modifier edge states (e.g., holding `Alt` while pressing `Shift`).
@@ -64,7 +64,9 @@ To prevent memory fragmentation in vintage DOS environments, a custom arena memo
 ## Sub-dialogs & Core IDE Features
 
 - **Quick Open Dialog (`Ctrl+O`)**: Reactive filesystem viewer that dynamically updates the list of files in the current folder as the user types an absolute path.
-- **File Switcher (`Alt+Shift`)**: Visual overlay triggered by holding `Alt` and tapping `Shift` to cycle through currently open file arenas.
+- **File Switcher (`Alt+Shift`)**: Non-blocking async visual overlay triggered by holding `Alt` and tapping `Shift` to cycle through tabs opened *in the current window* using the main loop's cycle.
+- **Window Split (`Ctrl + \`)**: Splits the screen vertically. The new pane duplicates the active tab, sharing the exact same file memory space so that edits are instantly synchronized.
+- **Window Switcher (`Ctrl + W`)**: Cycles cursor focus through open split panes. Closing all tabs in a split automatically closes the split window and expands the remaining split back to full screen.
 - **Search Tool (`Ctrl+F`)**: Dialogue that counts matching occurrences of a string in the current file; navigates matches forward with `Enter` and backward with `Shift+Enter`.
 - **Selection Tool (`Shift + Navigation Keys`)**: Anchors a selection at the initial cursor position, allowing text block selection for editing operations.
 - **Shell Spawn (`F9`)**: Suspends the IDE, restores standard 80x25 display settings, and spawns a command interpreter shell (using `COMSPEC` on DOS or `SHELL` on Linux) to let the user compile or test their code. Typing `exit` returns the user cleanly to the IDE, restoring their video mode, cursor, and editor state.
@@ -95,7 +97,7 @@ Defines unified cross-platform interfaces for hardware control:
 - **`config/`**: Handling editor configuration options (smart closing, indentation, colors).
 - **`draw/`**: Low-level screen buffering, borders, box drawing characters, window layouts, and editor token syntax highlighting.
 - **`editor/`**: Central text manipulation (backspace, type character, newline), cursor navigation, search logic, selection logic, and shell spawning.
-- **`files/`**: File system loading, saving, creating, closing, and tracking active `FileArena` lists.
+- **`files/`**: File system loading, saving, creating, closing, and tracking active `Workspace` and `Window` splits and tabs.
 - **`test/`**: Testing playground / debugger overlay.
 - **`vismem/`**: Graphical visualization utility for memory arenas.
 - **`std.h`**: Aggregate header of standard libraries.

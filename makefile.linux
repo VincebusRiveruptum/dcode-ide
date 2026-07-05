@@ -15,7 +15,11 @@ SRCS = platform/linux/input/input.c \
 	deps/log/log.c \
 	core/vismem/vismem.c \
 	core/test/test.c \
-	core/files/files.c \
+	core/files/f_base.c \
+	core/files/f_qopen.c \
+	core/files/f_wnd.c \
+	core/files/private.c \
+	core/files/f_search.c \
 	core/editor/editor.c \
 	core/config/config.c \
 	core/draw/draw.c \

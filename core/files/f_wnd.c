@@ -1,5 +1,8 @@
 #include "files.h"
 
+Workspace *currentWorkspace = NULL;
+Window *currentWindow = NULL;
+
 //========================================================================
 // Window managing
 // TODO : This should be its own module.
@@ -15,7 +18,7 @@ Window *f_createWindow(){
 		return NULL;
 	}
 
-	newWindow->fileList = NULL;
+	newWindow->fileList = createList(NULL);
 	newWindow->currentFile = NULL;
 
 	// By default will be minimized for now
@@ -28,6 +31,7 @@ Window *f_createWindow(){
 
 	newWindow->currentFileIndex = 0;
 	newWindow->index = 0;
+	newWindow->active = false;
 
 	return newWindow;
 }
@@ -37,17 +41,24 @@ Workspace *f_initWorkspace(){
 	char *fullPath = NULL;
 	Workspace *newWorkspace = NULL;
 
-	if(currentWorkSpace){
+	if(currentWorkspace){
 		logger("[f_initWorkspace]: workspace already initialized.");
 		return NULL;
 	}
 		
-	fullPath = hal_fs_getAbsoluteCurrentPath();
-		
-	if(!fullPath){
-		logger("[f_initWorkspac]: invalid fullpath.");	
-		return NULL;
-	}
+    {
+        char pathBuf[512];
+        if (!hal_fs_getAbsoluteCurrentPath(pathBuf, sizeof(pathBuf))) {
+            logger("[f_initWorkspace]: invalid fullpath.");
+            return NULL;
+        }
+        fullPath = (char *)malloc(strlen(pathBuf) + 1);
+        if (!fullPath) {
+            logger("[f_initWorkspace]: malloc failed for fullPath.");
+            return NULL;
+        }
+        strcpy(fullPath, pathBuf);
+    }
 		
 	newWorkspace = (Workspace*)malloc(sizeof(Workspace));
 	memset(newWorkspace, 0, sizeof(Workspace));
@@ -73,9 +84,10 @@ Workspace *f_initWorkspace(){
 //	Workspace - Window - File DECONSTRUCTOR
 //========================================================================
 
-// Free a entire fileList
+// Free an entire fileList
 void f_freeFileList(List *fileList){
 	Node *rec=NULL;
+	Node *tmp=NULL;
 	File *file=NULL;
 
 	if(!fileList)
@@ -84,30 +96,38 @@ void f_freeFileList(List *fileList){
 	rec = fileList->firstNode;
 
 	while(rec){
+		tmp = rec->next;
 		file = (File*)rec->data;
-		mem_arena_free(file->arena);
-		rec = rec->next;
+		if(file) {
+			mem_arena_free(file->arena);
+		}
+		free(rec);
+		rec = tmp;
 	}
 
-	return;
+	free(fileList);
 }
 
 // Free window list, fileList on each window and each file arena.
 void f_freeWindowList(List *windowList){
 	Node *rec=NULL, *tmp;
-	if(!windowList)
+	Window *wnd = NULL;
+	if(!windowList) {
 		logger("[f_freeWorkspace]: workspace already free");
 		return;
+	}
 
 	// Freeing windowList
 	rec = windowList->firstNode;
 
 	while(rec){
-		tmp = rec->next
-		// Freeing fileList
-		f_freeFileList(rec->data->fileList);
+		tmp = rec->next;
+		wnd = (Window *)rec->data;
+		if(wnd) {
+			f_freeFileList(wnd->fileList);
+			free(wnd);
+		}
 		free(rec);
-
 		rec = tmp;
 	}
 
@@ -116,20 +136,18 @@ void f_freeWindowList(List *windowList){
 
 // Free workspace, windows, fileList on each window and each file arena.
 void f_freeWorkspace(){
-	Node *rec=NULL, *tmp;
-	Node *fileNode=NULL;
-
-	if(!currentWorkSpace)
+	if(!currentWorkspace) {
 		logger("[f_freeWorkspace]: workspace already free");
 		return;
+	}
 
 	// Freeing windowList
-	f_freeWindowList(currentWorkSpace->windowList);
+	f_freeWindowList(currentWorkspace->windowList);
 
-	// Already previously freed
-	//free(currentWorkSpace->currentWindow);
-	free(currentWorkSpace->fullPath);
-	free(currentWorkSpace);
+	free(currentWorkspace->fullPath);
+	free(currentWorkspace);
+	currentWorkspace = NULL;
+	currentWindow = NULL;
 }
 
 // =======================================================================
@@ -140,7 +158,7 @@ File *f_addFileToWindow(Window *window, File *file){
 		return NULL;
 	}
 
-	addGenericNode(window->fileList, (void*)file, NULL);
+	addGenericNode(&(window->fileList), (void*)file, NULL);
 
 	return file;
 }
@@ -151,7 +169,7 @@ Window *f_addWindowToWorkspace(Workspace *workspace, Window *window){
 		return NULL;
 	}
 
-	addGenericNode(workspace->windowList, (void*)window, NULL);
+	addGenericNode(&(workspace->windowList), (void*)window, NULL);
 
 	return window;
 }
@@ -176,4 +194,63 @@ void f_deleteWindowFromWorkspace(Workspace *workspace, Window *window){
 	deleteNodeByPtr(&(workspace->windowList), (void*)window, NULL);
 
 	return;
+}
+
+void f_splitWindow(){
+	Window *newWnd = NULL;
+	unsigned int half = 0;
+
+	if(!currentWorkspace || !currentWindow || !currentWindow->currentFile) return;
+
+	newWnd = f_createWindow();
+	if(!newWnd) return;
+
+	newWnd->currentFile = currentWindow->currentFile;
+	f_addFileToWindow(newWnd, currentWindow->currentFile);
+
+	half = currentWindow->width / 2;
+	newWnd->x = currentWindow->x + half + 1;
+	newWnd->width = currentWindow->x + currentWindow->width - newWnd->x;
+	currentWindow->width = half;
+	newWnd->y = currentWindow->y;
+	newWnd->height = currentWindow->height;
+
+	f_addWindowToWorkspace(currentWorkspace, newWnd);
+
+	currentWindow->active = false;
+	newWnd->active = true;
+	currentWorkspace->currentWindow = newWnd;
+	currentWindow = newWnd;
+
+	ed_renderEvent = true;
+}
+
+void f_cycleActiveWindow(){
+	Node *currNode;
+	Node *nextNode;
+
+	if (!currentWorkspace || !currentWorkspace->windowList || currentWorkspace->windowList->length <= 1) return;
+
+	currNode = currentWorkspace->windowList->firstNode;
+	while (currNode != NULL) {
+		if (currNode->data == currentWorkspace->currentWindow) {
+			break;
+		}
+		currNode = currNode->next;
+	}
+
+	if (currNode != NULL) {
+		((Window *)currNode->data)->active = false;
+
+		nextNode = currNode->next;
+		if (nextNode == NULL) {
+			nextNode = currentWorkspace->windowList->firstNode;
+		}
+
+		((Window *)nextNode->data)->active = true;
+		currentWorkspace->currentWindow = (Window *)nextNode->data;
+		currentWindow = currentWorkspace->currentWindow;
+
+		ed_renderEvent = true;
+	}
 }

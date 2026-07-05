@@ -141,13 +141,15 @@ int _calculateTabStart(){
 }
 void _updateScrollY(){
 	static File *currentFile = NULL;
+    int displayHeight = 0;
 
 	currentFile = currentWindow->currentFile;
 
-    if (!currentFile) return;
+    if (!currentFile || !currentWindow) return;
 
-    if((currentFile->cursorLine - currentFile->scrollY) > VIDEO_ROWS - 1) {
-        currentFile->scrollY += currentFile->cursorLine - (VIDEO_ROWS - 1);
+    displayHeight = currentWindow->height;
+    if((currentFile->cursorLine - currentFile->scrollY) > displayHeight - 1) {
+        currentFile->scrollY += currentFile->cursorLine - (displayHeight - 1);
     }else if(currentFile->cursorLine <= currentFile->scrollY){
         currentFile->scrollY = currentFile->cursorLine;
     }
@@ -157,16 +159,18 @@ void _updateCurrentCursorY(){
 
 	currentFile = currentWindow->currentFile;
 	
-    if (!currentFile) return;
+    if (!currentFile || !currentWindow) return;
 
      // If the cursor is closer to the bottom
-    if(currentCursorY <=0) currentCursorY = 0;
+    if(currentCursorY <= currentWindow->y) currentCursorY = currentWindow->y;
     
     if( currentFile->cursorLine - currentFile->scrollY >= 0){
-        currentCursorY = currentFile->cursorLine - currentFile->scrollY;
+        currentCursorY = currentFile->cursorLine - currentFile->scrollY + currentWindow->y;
     }
 
-    if(currentCursorY >= VIDEO_ROWS ) currentCursorY = VIDEO_ROWS;
+    if(currentCursorY >= currentWindow->y + currentWindow->height) {
+        currentCursorY = currentWindow->y + currentWindow->height - 1;
+    }
 }
 void _updateCurrentCursorX(){
     int visualCursor = 0;
@@ -175,16 +179,20 @@ void _updateCurrentCursorX(){
     
 	currentFile = currentWindow->currentFile;
 
-    if (!currentFile) return;
+    if (!currentFile || !currentWindow) return;
 
     visualCursor = _calculateVisualOffset(currentFile->cursorCol);
     visualScroll = _calculateVisualOffset(currentFile->scrollX);
 
-    currentCursorX = (visualCursor - visualScroll) + LINE_COUNTER_WIDTH;
+    currentCursorX = (visualCursor - visualScroll) + LINE_COUNTER_WIDTH + currentWindow->x;
 
-    // Boundary check to keep cursor on screen if something goes wrong
-    if(currentCursorX < LINE_COUNTER_WIDTH) currentCursorX = LINE_COUNTER_WIDTH;
-    if(currentCursorX >= VIDEO_COLS) currentCursorX = VIDEO_COLS - 1;
+    // Boundary check to keep cursor on active window split
+    if(currentCursorX < currentWindow->x + LINE_COUNTER_WIDTH) {
+        currentCursorX = currentWindow->x + LINE_COUNTER_WIDTH;
+    }
+    if(currentCursorX >= currentWindow->x + currentWindow->width) {
+        currentCursorX = currentWindow->x + currentWindow->width - 1;
+    }
 
     currentFile->prevChar = 
         currentFile->cursorCol > 0 
@@ -210,11 +218,11 @@ void _ensureHorizontalScroll(){
     
 	currentFile = currentWindow->currentFile;
 
-    if (!currentFile) return;
+    if (!currentFile || !currentWindow) return;
 
     visualCursor = _calculateVisualOffset(currentFile->cursorCol);
     visualScroll = _calculateVisualOffset(currentFile->scrollX);
-    displayWidth = VIDEO_COLS - LINE_COUNTER_WIDTH;
+    displayWidth = currentWindow->width - LINE_COUNTER_WIDTH;
 
     // If cursor is to the left of the visible area
     if (visualCursor < visualScroll) {
@@ -448,21 +456,32 @@ void ed_moveCursor(short x, short y){
 }
 
 void ed_renderElements(){
+    Node *rec;
+    Window *wnd;
     int i = 0;
     int editor_size;
 	
-	if (!currentWindow || !currentWindow->currentFile) return;
+    if (!currentWorkspace || !currentWorkspace->windowList) return;
 
-    dw_writeBufferEditorFormatted(
-		editormemptr, 
-		0, 
-		0, 
-		VIDEO_COLS - 1, 
-		VIDEO_ROWS - 2, 
-		COLOR_LIGHT_GRAY, 
-		COLOR_BLACK, 
-		currentFile
-	);
+    hal_vid_clearBuffer(editormemptr);
+
+    rec = currentWorkspace->windowList->firstNode;
+    while (rec != NULL) {
+        wnd = (Window *)rec->data;
+        if (wnd && wnd->currentFile) {
+            dw_writeBufferEditorFormatted(
+                editormemptr, 
+                wnd->x, 
+                wnd->y, 
+                wnd->x + wnd->width, 
+                wnd->y + wnd->height, 
+                COLOR_LIGHT_GRAY, 
+                COLOR_BLACK, 
+                wnd->currentFile
+            );
+        }
+        rec = rec->next;
+    }
      
     editor_size = (VIDEO_COLS * (VIDEO_ROWS - 1));
     for(i=0; i < editor_size; i++){
@@ -622,7 +641,7 @@ void ed_backspace(){
         node->next = NULL;
         node->prev = NULL;
         node->isDeleted = true;
-        addGenericNode(&currentFile->deletedLines, node, currentFilea);
+        addGenericNode(&currentFile->deletedLines, node, currentFile->arena);
         
         if(currentCursorY > 0){
             currentCursorY--;
@@ -1628,10 +1647,10 @@ void ed_findWord(){
     }
 
     if(!currentFileSearch->arena || !currentFileSearch->arena->base){
-        sprintf(searchArenaName, "SRCH%d", currentFile->fileIndex);
+        sprintf(searchArenaName, "SRCH");
         currentFileSearch->arena = (MemoryArena *)mem_create_arena(searchArenaName, MEM_ARENA_2K);
     } else {
-        mem_arena_reset(currentFileSearch->arena->name);
+        mem_arena_reset(currentFileSearch->arena);
     }
 
     wordLen = strlen(currentFileSearch->dialogInputBuffer);
@@ -1707,7 +1726,6 @@ void ed_findWord(){
             addGenericNode(
 				&currentFileSearch->words, 
 				matchBuffer, 
-				NULL, 
 				currentFileSearch->arena
 			);
             
@@ -1735,8 +1753,12 @@ void ed_findWord(){
 }
 
 void ed_drawSearchTool(){
+    File *currentFile = currentWindow ? currentWindow->currentFile : NULL;
+    SearchMetadata *currentFileSearch = currentFile ? currentFile->currentFileSearch : NULL;
     int vis_offset = 0;
     int dialogStartY = 0;
+    
+    if (!currentFileSearch) return;
     
     vis_offset = (VIDEO_COLS / 4);
     dialogStartY = 2;
@@ -1787,7 +1809,12 @@ void ed_drawSearchTool(){
 }
 
 void ed_searchMoveCursor(){
+    File *currentFile = currentWindow ? currentWindow->currentFile : NULL;
+    SearchMetadata *currentFileSearch = currentFile ? currentFile->currentFileSearch : NULL;
+
     if(
+        !currentFile ||
+        !currentFileSearch ||
         !currentFileSearch->words ||
         !currentFileSearch->currentWordNode ||
         !currentFileSearch->currentWordNode->data
@@ -1876,6 +1903,7 @@ void ed_shellSpawn(){
     char cmd[255];
     char currPath[255];
     char *comspec = NULL;
+    File *currentFile = NULL;
 
     memset(cmd, '\0', 255);
     memset(currPath, '\0', 255);
@@ -1886,7 +1914,9 @@ void ed_shellSpawn(){
     comspec = getenv("SHELL");
 #endif
 
-    if(!currentFileurrentFile) return;
+    currentFile = currentWindow ? currentWindow->currentFile : NULL;
+
+    if(!currentFile) return;
     
     hal_inp_closeKeyboard();
 
@@ -1902,8 +1932,8 @@ void ed_shellSpawn(){
 #endif
 
     strncpy(
-		currPath, c
-		urrentFileArena->file->name, 
+		currPath, 
+		currentFile->name, 
 		hal_fs_getFilePath(currentFile->name)
 	);
 

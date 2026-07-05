@@ -27,5 +27,6 @@ char *hal_fs_getAbsoluteCurrentPath(char *strbuffer, size_t len);
 Directory *hal_fs_getDirectoryFileList(const char *path);
 void hal_fs_freeDirectory(Directory *d);
 
-void fs_getFilename(char *filename);
+char *fs_getFileExtension(char *filename);
+size_t fs_getFileName(char *filename);
 #endif

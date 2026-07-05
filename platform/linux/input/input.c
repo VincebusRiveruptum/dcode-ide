@@ -163,7 +163,7 @@ static void poll_stdin(void) {
                     fifo_push(HAL_CHAR_SPACE);
                     inp_state[HAL_KEY_SPACE] = 1;
                     inp_pressed[HAL_KEY_SPACE] = 1;
-                } else if (c >= 1 && c <= 26) {
+                } else if ((c >= 1 && c <= 26) || c == 28) {
                     // Map Ctrl+Key sequences
                     unsigned char mapped_key = 0;
                     switch (c) {
@@ -190,6 +190,7 @@ static void poll_stdin(void) {
                         case 24: mapped_key = HAL_KEY_X; break;
                         case 25: mapped_key = HAL_KEY_Y; break;
                         case 26: mapped_key = HAL_KEY_Z; break;
+                        case 28: mapped_key = HAL_KEY_BACKSLASH; break;
                     }
                     if (mapped_key != 0) {
                         inp_state[HAL_KEY_LCTRL] = 1;

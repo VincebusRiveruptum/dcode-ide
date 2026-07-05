@@ -83,10 +83,10 @@ TestItem* createItem(int id, float score, char *name) {
 int main() {
     List *list = NULL;
     
-    addGenericNode(&list, createItem(3, 85.5f, "Charlie"), NULL, NULL);
-    addGenericNode(&list, createItem(1, 92.0f, "Gamma"), NULL, NULL);
-    addGenericNode(&list, createItem(4, 78.2f, "Delta"), NULL, NULL);
-    addGenericNode(&list, createItem(2, 88.8f, "Bravo"), NULL, NULL);
+    addGenericNode(&list, createItem(3, 85.5f, "Charlie"), NULL);
+    addGenericNode(&list, createItem(1, 92.0f, "Gamma"), NULL);
+    addGenericNode(&list, createItem(4, 78.2f, "Delta"), NULL);
+    addGenericNode(&list, createItem(2, 88.8f, "Bravo"), NULL);
 
     printf("Original List:\n");
     printList(list);

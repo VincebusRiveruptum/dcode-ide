@@ -109,7 +109,7 @@ typedef struct File {
 
 } File;
 
-typedef enum WndStatus = {
+typedef enum WndStatus {
 	WND_MAXIMIZED,
 	WND_MINIMIZED,
 	WND_FLOATING,	
@@ -151,10 +151,9 @@ extern bool endProgram;
 void f_dumpToFile(char *filename);
 void f_dumpBufferTofile(char *buffer, size_t bufferLength, char *filename);
 
-
-FileArena *f_getFileArena(char *filename);
-FileArena *f_addFileArena(FileArena *fileArena);
-void f_closeFile(FileArena *fileArena);
+//FileArena *f_getFileArena(char *filename);
+//FileArena *f_addFileArena(File *file);
+void f_closeFile(File *file);
 
 size_t f_getFileName(char *filename);
 char *f_getFileExtension(char *filename);

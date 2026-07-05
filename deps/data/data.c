@@ -1,54 +1,5 @@
 #include "data.h"
 
-Node *createNode(void *data, char *arenaName){
-    Node *newNode;
-
-    if(arenaName == NULL){
-        newNode = (Node*)malloc(sizeof(Node));
-    }else{
-        newNode = (Node*)mem_arena_alloc(NULL, arenaName, sizeof(Node));
-    }
-    
-    newNode->data = data;
-    newNode->isDeleted = false;
-    newNode->prev = NULL;
-    newNode->next = NULL;
-    return newNode;
-}
-
-void addToList(List **list, Node *newNode, char *arenaName, MemoryArena *arena){
-    Node *rec = NULL;
-    if((*list) == NULL){
-        if(arenaName == NULL && arena == NULL){
-            (*list) = (List*)malloc(sizeof(List));
-        }else if (arena){
-            (*list) = (List*)mem_arena_alloc(arena, NULL, sizeof(List));
-        }else if (arenaName){
-            (*list) = (List*)mem_arena_alloc(NULL, arenaName, sizeof(List));
-        }else{
-            return;
-        }
-
-        (*list)->firstNode = NULL;
-        (*list)->lastNode = NULL;
-        (*list)->length = 0;
-    }
-
-    if ((*list)->firstNode == NULL){
-        (*list)->firstNode = newNode;
-    }
-    else{
-        rec = (*list)->firstNode;
-        while (rec->next != NULL){
-            rec = rec->next;
-        }
-        rec->next = newNode;
-        (newNode)->prev = rec;
-    }
-    (*list)->lastNode = newNode;
-    (*list)->length++;
-}
-
 // DO NOT USE IF YOU ARE USING ARENAS
 void deleteNodeByIndex(List **list, int index){
     int i=0;
@@ -229,14 +180,42 @@ bool includes(float val, float *arr, size_t n) {
     return false;
 }
 
-// GENERIC
-void addGenericNode(List **list, void *data, char *arenaName, MemoryArena *arena){
+void _addToList(List **list, Node *newNode, MemoryArena *arena){
+    Node *rec = NULL;
+    if((*list) == NULL){
+        if(arena == NULL){
+            (*list) = (List*)malloc(sizeof(List));
+        }else if (arena){
+            (*list) = (List*)mem_arena_alloc(arena, sizeof(List));
+        }else{
+            return;
+        }
+
+        (*list)->firstNode = NULL;
+        (*list)->lastNode = NULL;
+        (*list)->length = 0;
+    }
+
+    if ((*list)->firstNode == NULL){
+        (*list)->firstNode = newNode;
+    }
+    else{
+        rec = (*list)->firstNode;
+        while (rec->next != NULL){
+            rec = rec->next;
+        }
+        rec->next = newNode;
+        (newNode)->prev = rec;
+    }
+    (*list)->lastNode = newNode;
+    (*list)->length++;
+}
+
+void addGenericNode(List **list, void *data, MemoryArena *arena){
 	Node *newNode = NULL;
 
     if(arena != NULL){
-        newNode = (Node*)mem_arena_alloc(arena, NULL, sizeof(Node));
-    }else if (arenaName != NULL) {
-        newNode = (Node*)mem_arena_alloc(NULL, arenaName, sizeof(Node));
+        newNode = (Node*)mem_arena_alloc(arena, sizeof(Node));
     }else{
         newNode = (Node*)malloc(sizeof(Node));
     }
@@ -246,7 +225,7 @@ void addGenericNode(List **list, void *data, char *arenaName, MemoryArena *arena
 	newNode->prev = NULL;
     newNode->isDeleted = false;
 
-	addToList(list, newNode, arenaName, arena);
+	_addToList(list, newNode, arena);
 }
 
 Node *insertGenericNode(List **list, void *data, MemoryArena *arena, unsigned int index){
@@ -269,7 +248,7 @@ Node *insertGenericNode(List **list, void *data, MemoryArena *arena, unsigned in
         return NULL;
     }
 
-    newNode = (Node*)mem_arena_alloc(arena, NULL, sizeof(Node));
+    newNode = (Node*)mem_arena_alloc(arena, sizeof(Node));
     newNode->data = data;
     newNode->isDeleted = false;
 
@@ -312,9 +291,4 @@ Node *insertGenericNode(List **list, void *data, MemoryArena *arena, unsigned in
 
     (*list)->length++;
     return newNode;
-}
-
-// NECESSSARY?
-unsigned int getLength(List *list){
-	return 0;
 }

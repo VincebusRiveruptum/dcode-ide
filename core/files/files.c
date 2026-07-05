@@ -4,13 +4,6 @@
 
 void f_flushSearchMetadata();
 
-FileArena fileList[MAX_ARENAS];
-SearchMetadata fileListSearchMetadata[MAX_ARENAS];
-
-MemoryArena *tmpPtrArena = NULL;
-FileArena *currentFileArena = NULL;
-SearchMetadata *currentFileSearch = NULL;
-
 bool f_onFileNavigation = false;
 
 bool endProgram = false;
@@ -104,7 +97,7 @@ void _splitIntoLines(char *buffer, size_t bufferLength, File *file) {
             memcpy(line->buffer, start, lineLen);
             line->length = lineLen;
 
-            addGenericNode(&file->lines, line, NULL, file->arena);
+            addGenericNode(&file->lines, line, file->arena);
             start = p + 1;
         }
         p++;
@@ -120,26 +113,26 @@ void _splitIntoLines(char *buffer, size_t bufferLength, File *file) {
         memset(line->buffer, '\0', MAX_FILE_LINE_LENGTH);
         memcpy(line->buffer, start, lineLen);
         line->length = lineLen;
-        addGenericNode(&file->lines, line, NULL, file->arena);
+        addGenericNode(&file->lines, line, file->arena);
     }
 }
 
-size_t _copyLines(FileArena *old, FileArena *new){
+size_t _copyLines(File *old, File *new){
     size_t lengthSum = 0;
     size_t lineLen = 0;
     Node *currentNode = NULL;
     Line *oldLine = NULL;
     Line *newLine = NULL;
 
-    new->file->lines = NULL;
+    new->lines = NULL;
     
-    currentNode = old->file->lines->firstNode;
+    currentNode = old->lines->firstNode;
 
     while(currentNode != NULL){
         oldLine = (Line *)currentNode->data;
         
-        newLine = (Line *)mem_arena_alloc(new->arena, NULL, sizeof(Line));
-        newLine->buffer = (char *)mem_arena_alloc(new->arena, NULL, sizeof(char) * MAX_FILE_LINE_LENGTH);
+        newLine = (Line *)mem_arena_alloc(new->arena, sizeof(Line));
+        newLine->buffer = (char *)mem_arena_alloc(new->arena, sizeof(char) * MAX_FILE_LINE_LENGTH);
         memset(newLine->buffer, '\0', sizeof(char) * MAX_FILE_LINE_LENGTH);
 
         lineLen = strlen(oldLine->buffer);
@@ -147,7 +140,7 @@ size_t _copyLines(FileArena *old, FileArena *new){
         memcpy(newLine->buffer, oldLine->buffer, lineLen + 1);
         newLine->length = lineLen;
 
-        addGenericNode(&new->file->lines, (void *)newLine, NULL, new->arena);
+        addGenericNode(&new->lines, (void *)newLine, new->arena);
         
         lengthSum += newLine->length + 1;
         currentNode = currentNode->next;
@@ -159,7 +152,7 @@ void f_closeFile(File *file){
     char arenaName[64];
     sprintf(arenaName, "%s", file->arena->name);
 
-    mem_arena_free(file->arena, NULL);
+    mem_arena_free(file->arena);
     
     file->arena = NULL;
 
@@ -210,13 +203,21 @@ void f_dumpBufferTofile(char *buffer, size_t bufferLength, char *filename){
 bool f_isDefaultFileName(){
     char filename[8] = {'\0'};
     bool res = false;
+	File *currentFile = NULL;
 
-    if(!currentFileArena->file->name){
+	currentFile = currentWindow->currentFile;
+
+    if(!currentFile){
+        logger("[f_isDefaultFileName]: No current file!");
+        return true;
+    }
+
+    if(!currentFile->name){
         logger("[f_isDefaultFileName]: current file has no name!");
         return true;
     }
 
-    strncpy(filename, currentFileArena->file->name, 7);
+    strncpy(filename, currentFile->name, 7);
     
     res = (strcmp(filename, "newfile") == 0) ? true : false;
 
@@ -266,7 +267,7 @@ void f_newFile(char *filename){
         sprintf(tempName, "%s", filename);
     }
 
-    arena = (MemoryArena *)mem_create_arena(tempName, MEM_ARENA_FILE, MEM_ARENA_8K);
+    arena = (MemoryArena *)mem_create_arena(tempName, MEM_ARENA_8K);
 
     if(!arena){
         logger("[f_newFile]: Failed creating memory arena");
@@ -281,7 +282,7 @@ void f_newFile(char *filename){
     }
     
     newFile->arena = arena;
-    newFile->file->name = 
+    newFile->name = 
 		(char*)mem_arena_alloc(arena,sizeof(tempName) * sizeof(char));
     
     if(!newFile->name){
@@ -331,7 +332,7 @@ void f_newFile(char *filename){
         return;
     }
     
-    addGenericNode(&newFile->lines,(void*) firstLine, NULL, arena);
+    addGenericNode(&newFile->lines,(void*) firstLine, arena);
         
     newFile->scrollY = 0;
     newFile->scrollX = 0;
@@ -364,12 +365,7 @@ void f_newFile(char *filename){
 
 	// TODO: ADD newFile to currentWindow->fileList
     currentWindow->currentFile = newFile;
-    
-	// SEARCH ARENA WILL CREATED ON FIRST SEARCH
-	// TODO: REMOVE CODE BELOW
-    //sprintf(searchArenaName, "SRCH%d", currentFileArena->file->fileIndex);
-	//currentFileSearch->arena = mem_create_arena (searchArenaName, MEM_ARENA_METADATA, MEM_ARENA_2K);
-    
+
     ed_statusBarMessage("Created a new file.");
     ed_resetCursor();
 
@@ -406,14 +402,14 @@ bool f_openFile(char *filename){
 	//	- If file line count increase when editing, resize memory space by migrating
 	//	to a new file with a new arena.
 	fileSize = mem_getFileClosestSize(fp);
-    arena = mem_create_arena(filename + fs_getFileName(filename), MEM_ARENA_FILE, fileSize);
+    arena = mem_create_arena(filename + fs_getFileName(filename), fileSize);
 
     file = (File *)mem_arena_alloc(arena,sizeof(File));
     file->arena = arena;
 
     // We prepare the File struct 
-    file = (File *)mem_arena_alloc(arena, NULL ,sizeof(File));
-    file->name = (char*)mem_arena_alloc(arena, NULL, sizeof(char) * (strlen(filename) + 1));
+    file = (File *)mem_arena_alloc(arena ,sizeof(File));
+    file->name = (char*)mem_arena_alloc(arena, sizeof(char) * (strlen(filename) + 1));
     
     sprintf(file->name, "%s", filename);
     file->ext = f_getExtensionId(file->name);
@@ -782,7 +778,6 @@ void f_triggerClose(bool end_program){
 }
 
 void f_closeCurrentFile(){
-    int i = 0;
     char oldFileName[255];
 	File *nextFile = NULL;
 	
@@ -821,12 +816,11 @@ void f_closeCurrentFile(){
 // MUST be flush, so there are no dangling pointers nor references to a word
 // address that changed.
 
-// * The fileListSearchMetadata INDEX is parallel to fileList currentFileArena
+// * The fileListSearchMetadata INDEX is parallel to fileList currentFile
 // this makes sure there are no collisions when flushing or filling the 
 // metadata of an already opened file.
 
 // The access to the current search meta data index is easy with 
-// currentFileArena->file->fileindex
 
 // FLUSH METADATA
 
@@ -838,8 +832,7 @@ void f_flushSearchMetadata(){
 	return;
 
     mem_arena_free(
-		currentWindow->currentFile->currentFileSearch->arena, 
-		NULL
+		currentWindow->currentFile->currentFileSearch->arena
 	);
 	
     currentWindow->currentFile->currentFileSearch->arena = NULL; // Ensure pointer is cleared
@@ -894,11 +887,9 @@ void f_prepareFileNavDialog(){
 }
 
 void f_drawFileNavDialog(){
-    int i;
-    int selectedIndex = 0;
     bool selected = false;
     File *fileptr;
-	Node *currFileNode = NULL, selectedNode = NULL;
+	Node *currFileNode = NULL, *selectedNode = NULL;
 
     if (!currentWindow || !currentWindow->fileList) {
 		logger("[f_drawFileNavDialog]: No window opened or no files opened in current window");
@@ -913,7 +904,7 @@ void f_drawFileNavDialog(){
     hal_inp_clearKeyboardBuffer();
 
 	// Draw file list
-	currFileNode = currentWindow->fileList->first;
+	currFileNode = currentWindow->fileList->firstNode;
 
 	if(!currFileNode){
 		logger(
@@ -925,7 +916,7 @@ void f_drawFileNavDialog(){
 	while(currFileNode){
 		fileptr = (File*)currFileNode->data;
 		
-		if (fileptr->file) {
+		if (fileptr) {
 			selected = currentWindow->currentFileIndex;
 
 			if(currentWindow->currentFile == currFileNode->data){
@@ -942,7 +933,7 @@ void f_drawFileNavDialog(){
 				COLOR_WHITE, 
 				COLOR_RED,
 				(selected ? "*" : " "),
-				fileptr->file->name
+				fileptr->name
 			);
 		}
 

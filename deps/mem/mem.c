@@ -80,11 +80,11 @@ void mem_arena_free(MemoryArena *arenaPtr){
 		return;
 	}
 
-	logger("\n[mem_arena_free]: Freeing arena %s", arena->name);
-	free(arena->base);
-	arena->base = NULL;
-	arena->offset = 0;
-	arena->size = 0;
+	logger("\n[mem_arena_free]: Freeing arena %s", arenaPtr->name);
+	free(arenaPtr->base);
+	arenaPtr->base = NULL;
+	arenaPtr->offset = 0;
+	arenaPtr->size = 0;
 	
 	return;
 }
@@ -100,7 +100,7 @@ size_t mem_getFileClosestSize(FILE *fp){
 	size = ftell(fp);
 	rewind(fp);
 
-	size +- MEM_ARENA_8K // for now...
+	size +- MEM_ARENA_8K; // for now...
 
-	return len;
+	return size;
 }

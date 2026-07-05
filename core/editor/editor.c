@@ -27,63 +27,6 @@ bool ed_onSearchTool = false;
 time_t ed_globalAuxTimer = 0;
 char statusBarMessage[ED_STATUSBAR_WIDTH] = {'\0'};
 
-void ed_initConfig(int argc, char *argv[]){
-    //f_defaultExtension
-
-    // We will hardcode the default extension until i implement .ENV/CFG LOADING
-    if(!cfg_loadConfig()){
-        //logger("[ed_initConfig]: Could not load config file!");
-        // App exits
-        printf("\nCould not load config file!.");
-        return ;
-    }
-
-    log_init();   
-    logger("[ed_initConfig]: %d %s", argc, argv[1]);
-    ed_handleArguments(argc, argv);
-
-    v_currentMode = settings.DEFAULT_VIDEO_MODE;
-
-    ed_resetCursor();
-}
-
-void ed_handleArguments(int argc, char *argv[]){
-    int i;
-    // File opening
-    logger("[ed_handleArguments]: %d %s", argc, argv[1]);
-    
-    if(argc > 1 || (argv != NULL && argv[1] != NULL)){
-        // Multiple file opening
-        for(i=1;i<argc;i++){
-            if(!f_openFile(argv[i])){
-                logger(
-					"[ed_handleArguments]: File %s not found. Falling back to new file.", 
-					argv[i]
-				);
-
-                f_newFile(argv[i]);
-            }
-        }
-    }else{
-        f_newFile(NULL);
-    }
-
-    ed_renderEvent = true;
-}
-
-void ed_resetActity(){
-    if(currentWindow->currentFile && currentWindow->currentFile)
-        currentWindow->currentFile->isActive = false;
-    //f_flushSearchMetadata();
-}
-
-void ed_markActive(unsigned char activity){
-    // Push activity to editor clipboard
-    (void)activity;
-    if(currentWindow->currentFile && currentWindow->currentFile)
-        currentWindow->currentFile->isActive = true;
-}
-
 int _get_tab_counts_until(int col){
     int i = 0;
     int tabCount = 0;
@@ -299,6 +242,64 @@ void _updateCursor(){
     ed_putCursor(currentCursorX, currentCursorY);
     ed_renderEvent = true;
 }
+
+void ed_initConfig(int argc, char *argv[]){
+    //f_defaultExtension
+
+    // We will hardcode the default extension until i implement .ENV/CFG LOADING
+    if(!cfg_loadConfig()){
+        //logger("[ed_initConfig]: Could not load config file!");
+        // App exits
+        printf("\nCould not load config file!.");
+        return ;
+    }
+
+    log_init();   
+    logger("[ed_initConfig]: %d %s", argc, argv[1]);
+    ed_handleArguments(argc, argv);
+
+    v_currentMode = settings.DEFAULT_VIDEO_MODE;
+
+    ed_resetCursor();
+}
+
+void ed_handleArguments(int argc, char *argv[]){
+    int i;
+    // File opening
+    logger("[ed_handleArguments]: %d %s", argc, argv[1]);
+    
+    if(argc > 1 || (argv != NULL && argv[1] != NULL)){
+        // Multiple file opening
+        for(i=1;i<argc;i++){
+            if(!f_openFile(argv[i])){
+                logger(
+					"[ed_handleArguments]: File %s not found. Falling back to new file.", 
+					argv[i]
+				);
+
+                f_newFile(argv[i]);
+            }
+        }
+    }else{
+        f_newFile(NULL);
+    }
+
+    ed_renderEvent = true;
+}
+
+void ed_resetActity(){
+    if(currentWindow->currentFile && currentWindow->currentFile)
+        currentWindow->currentFile->isActive = false;
+    //f_flushSearchMetadata();
+}
+
+void ed_markActive(unsigned char activity){
+    // Push activity to editor clipboard
+    (void)activity;
+    if(currentWindow->currentFile && currentWindow->currentFile)
+        currentWindow->currentFile->isActive = true;
+}
+
 // We reset the cursor to X:0 Y:0 relative to the active currentFileext area
 void ed_resetCursor(){
     if (!currentWindow || !currentWindow->currentFile) return;

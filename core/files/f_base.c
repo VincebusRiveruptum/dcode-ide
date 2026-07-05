@@ -2,6 +2,9 @@
 #include "files.h"
 #include "../config/config.h"
 
+bool f_onFileNavigation = false;
+bool endProgram = false;
+
 void f_dumpToFile(char *filename){
     FILE *fp = fopen(filename, "w");
     int i=0;
@@ -250,7 +253,7 @@ bool f_openFile(char *filename){
 
 
     if(!file->name){
-        logger("\n[f_openFile]: Error: Could not allocate memory for file details");
+        logger("f_openFile]: Error: Could not allocate memory for file details");
         f_closeFile(file);
         fclose(fp);
         return false;
@@ -265,16 +268,19 @@ bool f_openFile(char *filename){
     }
     file->bufferLength--;
     
-    logger("\n[f_openFile]: File %s opened successfully, %d bytes", filename, file->bufferLength);
+    logger("f_openFile]: File %s opened successfully, %d bytes", filename, file->bufferLength);
     
     rewind(fp); // or fseek(fp, 0, SEEK_SET);
     
     fileParsingBuffer = (char *)malloc(sizeof(char) * file->bufferLength + 1);
     
-    logger("\n[f_openFile]: File buffer size %d (allocated %d)", file->bufferLength, file->bufferLength + 1);
+    logger(
+		"[f_openFile]: File buffer size %d (allocated %d)", 
+		file->bufferLength, file->bufferLength + 1
+	);
     
     if(!fileParsingBuffer){
-        logger("\n[f_openFile]: Error: Could not allocate memory for fileParsingBuffer");
+        logger("[f_openFile]: Error: Could not allocate memory for fileParsingBuffer");
         f_closeFile(file);
         fclose(fp);
         return false;
@@ -294,7 +300,8 @@ bool f_openFile(char *filename){
     _splitIntoLines(fileParsingBuffer, file->bufferLength, file, arena);
 
     // Line handling not the best way
-    currentWindow->currentFile->currentLineNode = currentWindow->currentFile->lines->firstNode;
+    currentWindow->currentFile->currentLineNode = 
+		currentWindow->currentFile->lines->firstNode;
 
     currentWindow->currentFile->prevLine = NULL;
     currentWindow->currentFile->currentLine = 
@@ -349,12 +356,12 @@ void f_saveFile(){
 	oldFile = currentWindow->currentFile;
 
     if(!oldFile || !oldFile->arena){
-        logger("\n[f_saveFile]: Error: No file selected");
+        logger("[f_saveFile]: Error: No file selected");
         return;
     }
 
     if(!oldFile->name || oldFile->name[0] == '\0'){
-        logger("\n[f_saveFile]: Error: No filename provided");
+        logger("[f_saveFile]: Error: No filename provided");
         return;
     }
     

@@ -110,10 +110,10 @@ typedef struct File {
 } File;
 
 typedef enum WndStatus {
-	INITIALIZED,
-	MAXIMIZED,
-	MINIMIZED,
-	FLOATING,	
+	WndStatus_INITIALIZED,
+	WndStatus_MAXIMIZED,
+	WndStatus_MINIMIZED,
+	WndStatus_FLOATING,	
 }WndStatus;
 
 typedef struct Window{
@@ -151,7 +151,7 @@ typedef struct Workspace{
 
 /* Globals ==============================================================*/
 
-extern Worskpace *currentWorkspace;
+extern Workspace *currentWorkspace;
 
 extern bool f_onFileNavigation;
 extern bool endProgram;
@@ -190,8 +190,5 @@ File *f_addFileToWindow(Window *window, File *file);
 Window *f_addWindowToWorkspace(Workspace *workspace, Window *window);
 void f_deleteFileFromWindow(Window *window, File *file);
 void f_deleteWindowFromWorkspace(Workspace *workspace, Window *window);
-
-bool f_onFileNavigation = false;
-bool endProgram = false;
 
 #endif

@@ -19,7 +19,7 @@ Window *f_createWindow(){
 	newWindow->currentFile = NULL;
 
 	// By default will be minimized for now
-	newWindow->status = WndStatus.MINIMIZED;
+	newWindow->status = WndStatus_MINIMIZED;
 	newWindow->x = 0;
 	newWindow->y = 0;
 
@@ -105,7 +105,7 @@ void f_freeWindowList(List *windowList){
 	while(rec){
 		tmp = rec->next
 		// Freeing fileList
-		f_freeFileList(rec->fileList);
+		f_freeFileList(rec->data->fileList);
 		free(rec);
 
 		rec = tmp;

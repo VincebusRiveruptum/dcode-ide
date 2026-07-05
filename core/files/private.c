@@ -2,6 +2,7 @@
 #include "files.h"
 
 int _checkAvailableName(){
+	int index = 0;
     // TRAVEL ALL WINDOWS
 		// TRAVEL ALL FILES
 		// Get name that match the 'newfile' name scheme

@@ -313,3 +313,8 @@ Node *insertGenericNode(List **list, void *data, MemoryArena *arena, unsigned in
     (*list)->length++;
     return newNode;
 }
+
+// NECESSSARY?
+unsigned int getLength(List *list){
+	return 0;
+}

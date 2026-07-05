@@ -1,86 +1,5 @@
 #include "draw.h"
 
-bool dw_isCharSelected(struct File *file, int lineIndex, int colIndex) {
-    int startLine, endLine, startCol, endCol;
-
-    if (!file || !file->selectedStartNode || !file->selectedEndNode) {
-        return false;
-    }
-
-    if (file->selectedStartLine < file->selectedEndLine) {
-        startLine = (int)file->selectedStartLine;
-        startCol = (int)file->selectedStartX;
-        endLine = (int)file->selectedEndLine;
-        endCol = (int)file->selectedEndX;
-    } else if (file->selectedStartLine > file->selectedEndLine) {
-        startLine = (int)file->selectedEndLine;
-        startCol = (int)file->selectedEndX;
-        endLine = (int)file->selectedStartLine;
-        endCol = (int)file->selectedStartX;
-    } else {
-        startLine = (int)file->selectedStartLine;
-        endLine = (int)file->selectedEndLine;
-        if (file->selectedStartX < file->selectedEndX) {
-            startCol = (int)file->selectedStartX;
-            endCol = (int)file->selectedEndX;
-        } else {
-            startCol = (int)file->selectedEndX;
-            endCol = (int)file->selectedStartX;
-        }
-    }
-
-    if (lineIndex > startLine && lineIndex < endLine) {
-        return true;
-    }
-    if (lineIndex == startLine && lineIndex == endLine) {
-        return (colIndex >= startCol && colIndex < endCol);
-    }
-    if (lineIndex == startLine) {
-        return (colIndex >= startCol);
-    }
-    if (lineIndex == endLine) {
-        return (colIndex < endCol);
-    }
-
-    return false;
-}
-bool dw_isCharFound(struct File *file, int lineIndex, int colIndex) {
-    int fileIndex = 0;
-    SearchMetadata *fileSearch = NULL;
-
-    if (!file)
-        return false;
-    
-    fileIndex = file->fileIndex;
-    
-    fileSearch = &fileListSearchMetadata[fileIndex];
-
-    if(
-        !fileSearch ||
-        !fileSearch->currentWordNode ||
-        !fileSearch->currentWordNode->data
-    ) return false;
-    
-    if(
-        (lineIndex == 
-			(int)((WordMetadata *)fileSearch->currentWordNode->data)->cursorLine)
-         &&(colIndex >= 
-			(int)((WordMetadata *)fileSearch->currentWordNode->data)->cursorCol)
-         && (colIndex < 
-			(int)((WordMetadata *)fileSearch->currentWordNode->data)->cursorCol 
-			+ (int)strlen(fileSearch->dialogInputBuffer))
-    ) {
-        logger(
-			"LEN; %d", 
-			(int)((WordMetadata *)fileSearch->currentWordNode->data)->cursorCol 
-			+ (int)strlen(fileSearch->dialogInputBuffer)
-		);
-        return true;
-    }
-
-    return false;
-}
-
 // Private functions
 
 // SENTENCE - WORD 
@@ -379,6 +298,87 @@ char _getBorderCharacter(BorderType borderType, RectangleSides side){
         default:
             return 0xB0; //'°';
     }
+}
+
+bool dw_isCharSelected(struct File *file, int lineIndex, int colIndex) {
+    int startLine, endLine, startCol, endCol;
+
+    if (!file || !file->selectedStartNode || !file->selectedEndNode) {
+        return false;
+    }
+
+    if (file->selectedStartLine < file->selectedEndLine) {
+        startLine = (int)file->selectedStartLine;
+        startCol = (int)file->selectedStartX;
+        endLine = (int)file->selectedEndLine;
+        endCol = (int)file->selectedEndX;
+    } else if (file->selectedStartLine > file->selectedEndLine) {
+        startLine = (int)file->selectedEndLine;
+        startCol = (int)file->selectedEndX;
+        endLine = (int)file->selectedStartLine;
+        endCol = (int)file->selectedStartX;
+    } else {
+        startLine = (int)file->selectedStartLine;
+        endLine = (int)file->selectedEndLine;
+        if (file->selectedStartX < file->selectedEndX) {
+            startCol = (int)file->selectedStartX;
+            endCol = (int)file->selectedEndX;
+        } else {
+            startCol = (int)file->selectedEndX;
+            endCol = (int)file->selectedStartX;
+        }
+    }
+
+    if (lineIndex > startLine && lineIndex < endLine) {
+        return true;
+    }
+    if (lineIndex == startLine && lineIndex == endLine) {
+        return (colIndex >= startCol && colIndex < endCol);
+    }
+    if (lineIndex == startLine) {
+        return (colIndex >= startCol);
+    }
+    if (lineIndex == endLine) {
+        return (colIndex < endCol);
+    }
+
+    return false;
+}
+bool dw_isCharFound(struct File *file, int lineIndex, int colIndex) {
+    int fileIndex = 0;
+    SearchMetadata *fileSearch = NULL;
+
+    if (!file)
+        return false;
+    
+    fileIndex = file->fileIndex;
+    
+    fileSearch = &fileListSearchMetadata[fileIndex];
+
+    if(
+        !fileSearch ||
+        !fileSearch->currentWordNode ||
+        !fileSearch->currentWordNode->data
+    ) return false;
+    
+    if(
+        (lineIndex == 
+			(int)((WordMetadata *)fileSearch->currentWordNode->data)->cursorLine)
+         &&(colIndex >= 
+			(int)((WordMetadata *)fileSearch->currentWordNode->data)->cursorCol)
+         && (colIndex < 
+			(int)((WordMetadata *)fileSearch->currentWordNode->data)->cursorCol 
+			+ (int)strlen(fileSearch->dialogInputBuffer))
+    ) {
+        logger(
+			"LEN; %d", 
+			(int)((WordMetadata *)fileSearch->currentWordNode->data)->cursorCol 
+			+ (int)strlen(fileSearch->dialogInputBuffer)
+		);
+        return true;
+    }
+
+    return false;
 }
 
 void dw_cls(

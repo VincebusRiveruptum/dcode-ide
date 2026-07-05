@@ -119,7 +119,7 @@
 extern struct Container *root;
 extern bool ed_renderEvent;
 extern bool on_selection_tool;
-extern bool on_search_tool;
+extern bool ed_onSearchTool;
 
 extern time_t ed_globalAuxTimer;
 extern char statusBarMessage[ED_STATUSBAR_WIDTH];

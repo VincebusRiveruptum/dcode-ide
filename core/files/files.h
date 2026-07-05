@@ -26,19 +26,17 @@ typedef struct WordMetadata{
 }WordMetadata;
 
 typedef struct SearchMetadata{
+	// File search arena.
+    MemoryArena *arena;
+
     // Input buffer index for the search dialog
     int dialogInputIndex;
     
     // Word to search (input from search dialog)
     char dialogInputBuffer[255];
-    // Memory arena
-    MemoryArena *arena;
     
     // Count of matches
     unsigned int wordCount;
-
-    // Current selected index
-   // unsigned int currentWordIndex;
 
     // List of WordMetadata.
     List *words;
@@ -52,6 +50,9 @@ typedef struct Line {
 } Line;
 
 typedef struct File {
+	// File own arena
+	MemoryArena *arena;
+
     // Meta helper, used by search functions, could be used for file opening/saving/closing too in the future.
     int fileIndex;
 
@@ -101,27 +102,47 @@ typedef struct File {
     Node *selectedStartNode;
     Node *selectedEndNode;
 
+	SearchMetadata *currentFileSearch;
+	
     bool isModified;
     bool isActive;
 
-
 } File;
 
-typedef struct FileArena {
-    struct File *file;
-    MemoryArena *arena;
-} FileArena;
+typedef enum WndStatus = {
+	WND_MAXIMIZED,
+	WND_MINIMIZED,
+	WND_FLOATING,	
+}WndStatus;
+
+typedef struct Window{
+	// Window tabs
+	List *fileList;
+	File *currentFile;
+	WndStatus wndStatus;
+
+	unsigned int x;
+	unsigned int y;
+
+	unsigned int width;
+	unsigned int height;
+
+	unsigned int currentFileIndex;
+	unsigned int wndIndex;
+	bool active;
+}Window;
 
 
 /* Globals ==============================================================*/
 
-extern FileArena fileList[MAX_ARENAS];
+extern List *windowList;
 
-extern FileArena *currentFileArena;
+extern Window *currentWindow;
 
-extern SearchMetadata fileListSearchMetadata[MAX_ARENAS];
+//extern FileArena fileList[MAX_ARENAS];
+//extern FileArena *currentFileArena;
 
-extern SearchMetadata *currentFileSearch;
+extern bool f_onFileNavigation;
 
 extern bool endProgram;
 
@@ -130,7 +151,7 @@ extern bool endProgram;
 void f_dumpToFile(char *filename);
 void f_dumpBufferTofile(char *buffer, size_t bufferLength, char *filename);
 
-void f_initFileArenas();
+
 FileArena *f_getFileArena(char *filename);
 FileArena *f_addFileArena(FileArena *fileArena);
 void f_closeFile(FileArena *fileArena);
@@ -146,7 +167,7 @@ void f_saveFile();
 void f_triggerClose(bool end_program);
 void f_closeCurrentFile();
 
-void f_showFileSwitcher();
+void f_drawFileNavDialog();
 void f_quickOpenFileDialog();
 
 #endif

@@ -11,91 +11,65 @@ MemoryArena *tmpPtrArena = NULL;
 FileArena *currentFileArena = NULL;
 SearchMetadata *currentFileSearch = NULL;
 
+bool f_onFileNavigation = false;
+
 bool endProgram = false;
 
 /* File arena managing and utlis ======================================================*/
 
-void f_init(){
-    f_initFileArenas();
-}
+//void f_init(){
+//    f_initFileArenas();
+//}
 
-void f_initFileArenas(){
-    int i = 0;
-    for(i = 0; i < MAX_ARENAS; i++){
-        fileList[i].file = NULL;
-        fileList[i].arena = NULL;
-    }
-}
+//void f_initFileArenas(){
+//    int i = 0;
+//    for(i = 0; i < MAX_ARENAS; i++){
+//        fileList[i].file = NULL;
+//        fileList[i].arena = NULL;
+//   }
+//}
 
-FileArena *f_getFileArena(char *filename){
-    unsigned short i = 0;
-    
-    for(i = 0; i < MAX_ARENAS; i++){
-        if(fileList[i].file && !strcmp(fileList[i].file->name, filename)) return &fileList[i];
-    }   
-    return NULL;
-}
-FileArena *f_addFileArena(FileArena *fileArena){
-    unsigned short i = 0;
-    
-    for(i = 0; i < MAX_ARENAS; i++){
-        if(fileList[i].file == NULL && fileList[i].arena == NULL){
-            fileList[i] = *fileArena;
-            
-            // We update the fileIndex, this is used for accessing quickly to the 
-            // fileArena array.
-            fileArena->file->fileIndex = i;
+//FileArena *f_getFileArena(char *filename){
+//    unsigned short i = 0;
+//    
+//    for(i = 0; i < MAX_ARENAS; i++){
+//        if(fileList[i].file && !strcmp(fileList[i].file->name, filename)) return &fileList[i];
+//    }   
+//    return NULL;
+//}
 
-            return &fileList[i];
-        }
-    }
-    return NULL;
-}
+//FileArena *f_addFileArena(FileArena *fileArena){
+//    unsigned short i = 0;
+//    
+//    for(i = 0; i < MAX_ARENAS; i++){
+//        if(fileList[i].file == NULL && fileList[i].arena == NULL){
+//            fileList[i] = *fileArena;
+//            
+//            // We update the fileIndex, this is used for accessing quickly to the 
+//            // fileArena array.
+//            fileArena->file->fileIndex = i;
+//
+//            return &fileList[i];
+//        }
+//    }
+//    return NULL;
+//}
 
-void f_closeFile(FileArena *fileArena){
-    char arenaName[64];
-    sprintf(arenaName, "%s", fileArena->arena->name);
+// Create new file
+// This will travel all windows files and check whats the
+// next available file number. (for a name like newfile1.c)
 
-    fileArena->file = NULL;
-    
-    mem_arena_free(fileArena->arena, NULL);
-    
-    fileArena->arena = NULL;
-
-    logger("[f_closeFile]: File %s closed successfully", arenaName);    
-}
-
-/* Create new file */
-int f_checkAvailableName(){
-    FileArena *fileArena;
-    char *fileName, *occurence;
-    int i=0, index=0, prevIndex=0;
-
-    for(i=0; i < MAX_ARENAS; i++){
-        fileArena = &fileList[i];
-
-        if(!fileArena) continue;
-        if(!fileArena->file) continue;
-        
-        fileName = fileArena->file->name;
-        prevIndex = index;
-        
-        occurence = strstr(fileName, "newfile");
-        
-        if(!occurence) continue;
-        
-        // We travel the occurence and find the number at the end
-        index = strtol(occurence + 7, NULL, 10);
-        
-        if(prevIndex > index){
-            index = prevIndex;
-        }
-    }
-
+int _checkAvailableName(){
+    // TRAVEL ALL WINDOWS
+		// TRAVEL ALL FILES
+		// Get name that match the 'newfile' name scheme
+		// Add to a counter
+	
+	// Return counter...
     return index + 1;
 }
 
-void f_splitIntoLines(char *buffer, size_t bufferLength, File *file, MemoryArena *arena) {
+void _splitIntoLines(char *buffer, size_t bufferLength, File *file) {
     char *start;
     char *end;    
     char *p;
@@ -106,10 +80,15 @@ void f_splitIntoLines(char *buffer, size_t bufferLength, File *file, MemoryArena
     end = buffer + bufferLength;
     p = start;
 
-    file->lines = (List *)mem_arena_alloc(arena, NULL, sizeof(List));
+	if(!file || !file->arena){
+		logger("[_splitIntoLines]: File has no arena");
+		return;
+	}
+
+    file->lines = (List *)mem_arena_alloc(file->arena, sizeof(List));
     memset(file->lines, 0, sizeof(List));
 
-    file->deletedLines = (List *)mem_arena_alloc(arena, NULL, sizeof(List));
+    file->deletedLines = (List *)mem_arena_alloc(file->arena, sizeof(List));
     memset(file->deletedLines, 0, sizeof(List));
 
     while (p < end) {
@@ -119,13 +98,13 @@ void f_splitIntoLines(char *buffer, size_t bufferLength, File *file, MemoryArena
             if (lineLen > 0 && *(p - 1) == '\r') {
                 lineLen--;
             }
-            line = (Line *)mem_arena_alloc(arena, NULL, sizeof(Line));
-            line->buffer = (char *)mem_arena_alloc(arena, NULL, MAX_FILE_LINE_LENGTH);
+            line = (Line *)mem_arena_alloc(file->arena, sizeof(Line));
+            line->buffer = (char *)mem_arena_alloc(file->arena, MAX_FILE_LINE_LENGTH);
             memset(line->buffer, '\0', MAX_FILE_LINE_LENGTH);
             memcpy(line->buffer, start, lineLen);
             line->length = lineLen;
 
-            addGenericNode(&file->lines, line, NULL, arena);
+            addGenericNode(&file->lines, line, NULL, file->arena);
             start = p + 1;
         }
         p++;
@@ -136,13 +115,55 @@ void f_splitIntoLines(char *buffer, size_t bufferLength, File *file, MemoryArena
         lineLen = end - start;
         if (lineLen > 0 && start[lineLen-1] == '\r') lineLen--;
 
-        line = (Line *)mem_arena_alloc(arena, NULL, sizeof(Line));
-        line->buffer = (char *)mem_arena_alloc(arena, NULL, MAX_FILE_LINE_LENGTH);
+        line = (Line *)mem_arena_alloc(file->arena, sizeof(Line));
+        line->buffer = (char *)mem_arena_alloc(file->arena, MAX_FILE_LINE_LENGTH);
         memset(line->buffer, '\0', MAX_FILE_LINE_LENGTH);
         memcpy(line->buffer, start, lineLen);
         line->length = lineLen;
-        addGenericNode(&file->lines, line, NULL, arena);
+        addGenericNode(&file->lines, line, NULL, file->arena);
     }
+}
+
+size_t _copyLines(FileArena *old, FileArena *new){
+    size_t lengthSum = 0;
+    size_t lineLen = 0;
+    Node *currentNode = NULL;
+    Line *oldLine = NULL;
+    Line *newLine = NULL;
+
+    new->file->lines = NULL;
+    
+    currentNode = old->file->lines->firstNode;
+
+    while(currentNode != NULL){
+        oldLine = (Line *)currentNode->data;
+        
+        newLine = (Line *)mem_arena_alloc(new->arena, NULL, sizeof(Line));
+        newLine->buffer = (char *)mem_arena_alloc(new->arena, NULL, sizeof(char) * MAX_FILE_LINE_LENGTH);
+        memset(newLine->buffer, '\0', sizeof(char) * MAX_FILE_LINE_LENGTH);
+
+        lineLen = strlen(oldLine->buffer);
+
+        memcpy(newLine->buffer, oldLine->buffer, lineLen + 1);
+        newLine->length = lineLen;
+
+        addGenericNode(&new->file->lines, (void *)newLine, NULL, new->arena);
+        
+        lengthSum += newLine->length + 1;
+        currentNode = currentNode->next;
+    }
+    return lengthSum;
+}
+
+void f_closeFile(File *file){
+    char arenaName[64];
+    sprintf(arenaName, "%s", file->arena->name);
+
+    mem_arena_free(file->arena, NULL);
+    
+    file->arena = NULL;
+
+    logger("[f_closeFile]: File %s closed successfully", arenaName);    
 }
 
 void f_dumpToFile(char *filename){
@@ -184,23 +205,6 @@ void f_dumpBufferTofile(char *buffer, size_t bufferLength, char *filename){
 }
 
 
-// We get where the file name starts
-size_t f_getFileName(char *filename){
-    size_t length=0;
-    size_t slashPos=0;
-    
-    while(filename[length] != '\0'){ // Find the last dot
-        if(filename[length] == '/' || filename[length] == '\\' ){ // Count the number of slashes
-            slashPos = length;
-        }
-        length++;
-    }
-
-    if(slashPos == 0) return 0;
-
-    return slashPos + 1;
-}
-
 // We check if the filename is a default one (ie newfile1.c)
 
 bool f_isDefaultFileName(){
@@ -220,7 +224,7 @@ bool f_isDefaultFileName(){
 }
 
 unsigned char f_getExtensionId(char *filename){
-    char *ext = f_getFileExtension(filename);
+    char *ext = fs_getFileExtension(filename);
 
     if(!ext) return FILE_EXTENSION_TXT;
     
@@ -234,65 +238,26 @@ unsigned char f_getExtensionId(char *filename){
     return FILE_EXTENSION_TXT;
 }
 
-// We get where the file extension starts
-char *f_getFileExtension(char *filename){
-    size_t i=strlen(filename);
-    
-    while(i > 0 && filename[i] != '.'){ // Find the last dot
-        i--;
-    }
-
-    return strrchr(filename, '.');
-}
-
-size_t _copyLines(FileArena *old, FileArena *new){
-    size_t lengthSum = 0;
-    size_t lineLen = 0;
-    Node *currentNode = NULL;
-    Line *oldLine = NULL;
-    Line *newLine = NULL;
-
-    new->file->lines = NULL;
-    
-    currentNode = old->file->lines->firstNode;
-
-    while(currentNode != NULL){
-        oldLine = (Line *)currentNode->data;
-        
-        newLine = (Line *)mem_arena_alloc(new->arena, NULL, sizeof(Line));
-        newLine->buffer = (char *)mem_arena_alloc(new->arena, NULL, sizeof(char) * MAX_FILE_LINE_LENGTH);
-        memset(newLine->buffer, '\0', sizeof(char) * MAX_FILE_LINE_LENGTH);
-
-        lineLen = strlen(oldLine->buffer);
-
-        memcpy(newLine->buffer, oldLine->buffer, lineLen + 1);
-        newLine->length = lineLen;
-
-        addGenericNode(&new->file->lines, (void *)newLine, NULL, new->arena);
-        
-        lengthSum += newLine->length + 1;
-        currentNode = currentNode->next;
-    }
-    return lengthSum;
-}
 
 /* NEW FILE ==============================================================================*/
 
 void f_newFile(char *filename){
-    MemoryArena *newArena;
-    FileArena *newFileArena;
-    
-    char tempName[MAX_FILE_NAME] = {'\0'};
-    char searchArenaName[32] = {'\0'};
+    static char tempName[MAX_FILE_NAME] = {'\0'};
+    //char searchArenaName[32] = {'\0'};
     int newFileCounter;
-    Line *firstLine;
+    
+	Line *firstLine;
+    MemoryArena *arena;
+    File *newFile;	
 
     // If no filename param provided, we generate it
     if(filename == NULL){
-        newFileCounter = f_checkAvailableName();
+        newFileCounter = _checkAvailableName();
         
         if(settings.DEFAULT_EXTENSION[0] == '\0'){
-            logger("[f_newFile]: Editor has no default file extension configuration yet!.");
+            logger(
+				"[f_newFile]: Editor has no default file extension configuration yet!."
+			);
             return;
         }
     
@@ -301,56 +266,57 @@ void f_newFile(char *filename){
         sprintf(tempName, "%s", filename);
     }
 
-    newArena = (MemoryArena *)mem_create_arena(tempName, MEM_ARENA_FILE, MEM_ARENA_512K);
+    arena = (MemoryArena *)mem_create_arena(tempName, MEM_ARENA_FILE, MEM_ARENA_8K);
 
-    if(!newArena){
+    if(!arena){
         logger("[f_newFile]: Failed creating memory arena");
         return;
     }
 
-    newFileArena = (FileArena *)mem_arena_alloc(newArena, NULL, sizeof(FileArena));
+    newFile = (File *)mem_arena_alloc(arena, sizeof(File));
     
-    if(!newFileArena){
-        logger("[f_newFile]: Could not create new file arena!.");
+    if(!newFile){
+        logger("[f_newFile]: Could not create new file!.");
         return;
     }
     
-    newFileArena->arena = newArena;
-    newFileArena->file = (File *)mem_arena_alloc(newArena, NULL, sizeof(File));
-
-    if(!newFileArena->file){
-        logger("[f_newFile]: Could not create new file!");
-        return;
-    }
-
-    newFileArena->file->name = (char*)mem_arena_alloc(newArena, NULL, sizeof(tempName) * sizeof(char));
+    newFile->arena = arena;
+    newFile->file->name = 
+		(char*)mem_arena_alloc(arena,sizeof(tempName) * sizeof(char));
     
-    if(!newFileArena->file->name){
+    if(!newFile->name){
         logger("[f_newFile]: Could not assign temporary name to new file!");
         return;
     }
     
-    memset(newFileArena->file->name, '\0', MAX_FILE_NAME * sizeof(char));
-    strcpy(newFileArena->file->name, tempName);
-    newFileArena->file->ext = f_getExtensionId(newFileArena->file->name);
+    memset(newFile->name, '\0', MAX_FILE_NAME * sizeof(char));
+    strcpy(newFile->name, tempName);
+    
+	// TODO: maybe remove this attribute
+	newFile->ext = f_getExtensionId(newFile->name);
     
     // Buffer will not be used for now as this is used for parsing to lines when opening a file.
-    //newFileArena->file->buffer = NULL;
-    newFileArena->file->bufferLength = 0;
+    //newFile->buffer = NULL;
+    newFile->bufferLength = 0;
     
-    newFileArena->file->lines = (List*)mem_arena_alloc(newArena, NULL, sizeof(List));
-    memset(newFileArena->file->lines, 0, sizeof(List));
+    newFile->lines = (List*)mem_arena_alloc(arena,sizeof(List));
+    memset(newFile->lines, 0, sizeof(List));
     
-    newFileArena->file->deletedLines = (List*)mem_arena_alloc(newArena, NULL, sizeof(List));
-    memset(newFileArena->file->deletedLines, 0, sizeof(List));
-    firstLine = (Line*)mem_arena_alloc(newArena, NULL, sizeof(Line));
+    newFile->deletedLines = (List*)mem_arena_alloc(arena, sizeof(List));
+    memset(newFile->deletedLines, 0, sizeof(List));
+    
+	firstLine = (Line*)mem_arena_alloc(arena, sizeof(Line));
     
     if(!firstLine){
         logger("[f_newFile]: Could not create initial line to new file!");
         return;
     }
     
-    firstLine->buffer = (char*)mem_arena_alloc(newArena, NULL, sizeof(char) * MAX_FILE_LINE_LENGTH);
+    firstLine->buffer = 
+		(char*)mem_arena_alloc(
+			arena, 
+			sizeof(char) * MAX_FILE_LINE_LENGTH
+		);
     
     if(!firstLine->buffer){
         logger("[f_newFile]: Could not create initial line BUFFER to new file!");
@@ -360,64 +326,68 @@ void f_newFile(char *filename){
     firstLine->length = 0;
     memset(firstLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
 
-    if(!newFileArena->file->lines){
+    if(!newFile->lines){
         logger("[f_newFile]: Could not allocate list of lines to new file!");
         return;
     }
     
-    addGenericNode(&newFileArena->file->lines,(void*) firstLine, NULL, newArena);
+    addGenericNode(&newFile->lines,(void*) firstLine, NULL, arena);
         
-    newFileArena->file->scrollY = 0;
-    newFileArena->file->scrollX = 0;
-    newFileArena->file->cursorLine = 0;
-    newFileArena->file->cursorCol = 0; 
+    newFile->scrollY = 0;
+    newFile->scrollX = 0;
+    newFile->cursorLine = 0;
+    newFile->cursorCol = 0; 
 
-    newFileArena->file->currentLineNode = newFileArena->file->lines->firstNode;
+    newFile->currentLineNode = newFile->lines->firstNode;
 
-    newFileArena->file->prevLine = NULL;
-    newFileArena->file->currentLine = firstLine;
-    newFileArena->file->nextLine = NULL;
+    newFile->prevLine = NULL;
+    newFile->currentLine = firstLine;
+    newFile->nextLine = NULL;
     
-    newFileArena->file->prevChar = 0;
-    newFileArena->file->currentChar = 0;
-    newFileArena->file->nextChar = 0;
+    newFile->prevChar = 0;
+    newFile->currentChar = 0;
+    newFile->nextChar = 0;
 
     // Selection metadata
-    newFileArena->file->selectedStartX = 0;
-    newFileArena->file->selectedEndX = 0;
-    newFileArena->file->selectedStartLine = 0;
-    newFileArena->file->selectedEndLine = 0;
+    newFile->selectedStartX = 0;
+    newFile->selectedEndX = 0;
+    newFile->selectedStartLine = 0;
+    newFile->selectedEndLine = 0;
     
-    newFileArena->file->selectedStartNode = NULL;
-    newFileArena->file->selectedEndNode = NULL;
+    newFile->selectedStartNode = NULL;
+    newFile->selectedEndNode = NULL;
 
-    newFileArena->file->isModified = false;
-    newFileArena->file->isActive = false;
+    newFile->isModified = false;
+    newFile->isActive = false;
+
+	newFile->currentFileSearch = NULL;
+
+	// TODO: ADD newFile to currentWindow->fileList
+    currentWindow->currentFile = newFile;
     
-
-    currentFileArena = f_addFileArena(newFileArena);
-    currentFileSearch = &fileListSearchMetadata[currentFileArena->file->fileIndex];
-
-    sprintf(searchArenaName, "SRCH%d", currentFileArena->file->fileIndex);
-    currentFileSearch->arena = mem_create_arena (searchArenaName, MEM_ARENA_METADATA, MEM_ARENA_2K);
+	// SEARCH ARENA WILL CREATED ON FIRST SEARCH
+	// TODO: REMOVE CODE BELOW
+    //sprintf(searchArenaName, "SRCH%d", currentFileArena->file->fileIndex);
+	//currentFileSearch->arena = mem_create_arena (searchArenaName, MEM_ARENA_METADATA, MEM_ARENA_2K);
     
     ed_statusBarMessage("Created a new file.");
-
     ed_resetCursor();
+
     return;
 }
 
 /* OPEN FILE ==============================================================================*/
 
 bool f_openFile(char *filename){
-    char searchArenaName[32];
+    //char searchArenaName[32];
+    char *fileParsingBuffer = NULL;
+	size_t fileSize = 0;
+
     FILE *fp = NULL;
     File *file = NULL;
     MemoryArena *arena = NULL;
-    FileArena *fileArena = NULL;
-    char *fileParsingBuffer = NULL;
 
-    memset(searchArenaName, '\0', 32);
+	//memset(searchArenaName, '\0', 32);
 
     fp = fopen(filename, "r");
 
@@ -428,16 +398,21 @@ bool f_openFile(char *filename){
     }
 
     /* We prepare the File arena */
-    arena = mem_create_arena(filename + f_getFileName(filename), MEM_ARENA_FILE, MEM_ARENA_512K);
+	
+	
+	// TODO: 
+	//	- Retrieve file size
+	//	- Alloc arena with a size a bit larger to the file
+	//	- If file line count increase when editing, resize memory space by migrating
+	//	to a new file with a new arena.
+	fileSize = mem_getFileClosestSize(fp);
+    arena = mem_create_arena(filename + fs_getFileName(filename), MEM_ARENA_FILE, fileSize);
 
-    fileArena = (FileArena *)mem_arena_alloc(arena, NULL ,sizeof(FileArena));
-    fileArena->arena = arena;
-    // We don't have the File struct yet, so we can't assign it to fileArena->file
-    // fileArena->file = ...; 
+    file = (File *)mem_arena_alloc(arena,sizeof(File));
+    file->arena = arena;
 
     // We prepare the File struct 
     file = (File *)mem_arena_alloc(arena, NULL ,sizeof(File));
-    
     file->name = (char*)mem_arena_alloc(arena, NULL, sizeof(char) * (strlen(filename) + 1));
     
     sprintf(file->name, "%s", filename);
@@ -465,14 +440,11 @@ bool f_openFile(char *filename){
 
     if(!file->name){
         logger("\n[f_openFile]: Error: Could not allocate memory for file details");
-        f_closeFile(fileArena);
+        f_closeFile(file);
         fclose(fp);
         return false;
     }
-    
-    // Assign the file struct to the file arena
-    fileArena->file = file;
-    
+        
     // Length of the file
     file->bufferLength = 0;
 
@@ -492,7 +464,7 @@ bool f_openFile(char *filename){
     
     if(!fileParsingBuffer){
         logger("\n[f_openFile]: Error: Could not allocate memory for fileParsingBuffer");
-        f_closeFile(fileArena);
+        f_closeFile(file);
         fclose(fp);
         return false;
     }
@@ -503,155 +475,151 @@ bool f_openFile(char *filename){
     fread(fileParsingBuffer, sizeof(char), file->bufferLength, fp);
 
     // So the after opening hte file, it becomes the current file active
-    currentFileArena = f_addFileArena(fileArena);
-    currentFileSearch = &fileListSearchMetadata[currentFileArena->file->fileIndex];
+    file->currentFileSearch = NULL;
 
-    sprintf(searchArenaName, "SRCH%d", currentFileArena->file->fileIndex);
-    currentFileSearch->arena = mem_create_arena (searchArenaName, MEM_ARENA_METADATA, MEM_ARENA_2K);
-    
-    f_splitIntoLines(fileParsingBuffer, file->bufferLength, file, arena);
+	// TODO: ADD newFile to currentWindow->fileList
+	currentWindow->currentFile = file;
+
+    _splitIntoLines(fileParsingBuffer, file->bufferLength, file, arena);
 
     // Line handling not the best way
-    currentFileArena->file->currentLineNode = currentFileArena->file->lines->firstNode;
+    currentWindow->currentFile->currentLineNode = currentWindow->currentFile->lines->firstNode;
 
-    currentFileArena->file->prevLine = NULL;
-    currentFileArena->file->currentLine = 
-        currentFileArena->file->lines->firstNode &&
-        currentFileArena->file->lines->firstNode->data 
+    currentWindow->currentFile->prevLine = NULL;
+    currentWindow->currentFile->currentLine = 
+        currentWindow->currentFile->lines->firstNode &&
+        currentWindow->currentFile->lines->firstNode->data 
         ?
-        currentFileArena->file->lines->firstNode->data 
+        currentWindow->currentFile->lines->firstNode->data 
         : 
         NULL ;
 
-    currentFileArena->file->nextLine = 
-        currentFileArena->file->lines->firstNode &&
-        currentFileArena->file->lines->firstNode->next &&
-        currentFileArena->file->lines->firstNode->next->data 
+    currentWindow->currentFile->nextLine = 
+        currentWindow->currentFile->lines->firstNode &&
+        currentWindow->currentFile->lines->firstNode->next &&
+        currentWindow->currentFile->lines->firstNode->next->data 
         ?
-        currentFileArena->file->lines->firstNode->next->data 
+        currentWindow->currentFile->lines->firstNode->next->data 
         : 
         NULL ;
 
-    currentFileArena->file->prevChar = '\0';
-    currentFileArena->file->currentChar = 
-        currentFileArena->file->currentLine->buffer[0] 
-        ? currentFileArena->file->currentLine->buffer[0]
+    currentWindow->currentFile->prevChar = '\0';
+    currentWindow->currentFile->currentChar = 
+        currentWindow->currentFile->currentLine->buffer[0] 
+        ? currentWindow->currentFile->currentLine->buffer[0]
         : 0;
          
-    currentFileArena->file->nextChar = 
-        currentFileArena->file->currentLine->buffer[1] 
-        ? currentFileArena->file->currentLine->buffer[1]
+    currentWindow->currentFile->nextChar = 
+        currentWindow->currentFile->currentLine->buffer[1] 
+        ? currentWindow->currentFile->currentLine->buffer[1]
         : 0;
 
     fclose(fp);
     free(fileParsingBuffer);
 
-    ed_statusBarMessage("Opened %s succesfully.", currentFileArena->file->name);
+    ed_statusBarMessage("Opened %s succesfully.", currentWindow->currentFile->name);
     return true;
 }
 
 /* SAVE FILE ==============================================================================*/
 
 void f_saveFile(){
-    // This will not use an arena for now
-    Line *line;
-    MemoryArena *oldArena, *newArena;
-    Node *currentNode;
-    FileArena *oldFileArena, *newFileArena;
-    char *newArenaName = "NEW";
-    size_t offset = 0;
+	size_t offset = 0;
     size_t lengthSum = 0;
+    
+	char *newArenaName = "NEW";
     char *fileParsingBuffer = NULL;
     
-    oldFileArena = currentFileArena;
-    oldArena = oldFileArena->arena;
+    Line *line = NULL;
+    MemoryArena *newArena = NULL;
+    Node *currentNode = NULL;
+    File *oldFile = NULL, *newFile = NULL;
+    
+	oldFile = currentWindow->currentFile;
 
-    if(!oldFileArena || !oldFileArena->file){
+    if(!oldFile || !oldFile->arena){
         logger("\n[f_saveFile]: Error: No file selected");
         return;
     }
 
-    if(oldFileArena->file->name == NULL || oldFileArena->file->name[0] == '\0'){
+    if(!oldFile->name || oldFile->name[0] == '\0'){
         logger("\n[f_saveFile]: Error: No filename provided");
         return;
     }
     
     // We create a new arena for the file buffer
-    newArena = mem_create_arena(newArenaName, oldArena->type, MEM_ARENA_512K);
+	// TODO: WE NEED TO REFLEX THE SIZE ON THE NEW ARENA FROM THE 
+	// OLD ONE
+    newArena = mem_create_arena(newArenaName, oldFile->arena->size);
 
     if(!newArena){
         logger("[f_saveFile]: Could not create swapping arena!");
         return;
     }
     
-    newFileArena = (FileArena *)mem_arena_alloc(newArena, NULL, sizeof(FileArena));
+    newFile = (File *)mem_arena_alloc(newArena, sizeof(File));
 
-    if(!newFileArena){
-        logger("[f_saveFile]: Could not create swapping FILE arena!");
+    if(!newFile){
+        logger("[f_saveFile]: Could not create swapping FILE!");
         return;
     }
-    memset(newFileArena, 0, sizeof(FileArena));
 
-    newFileArena->arena = newArena;
-    newFileArena->file = (File *)mem_arena_alloc(newArena, NULL, sizeof(File));
-    if(!newFileArena->file){
-         logger("[f_saveFile]: Could not create swapping FILE struct!");
-         return;
-    }
-    memset(newFileArena->file, 0, sizeof(File));
-    newFileArena->file->name = (char*)mem_arena_alloc(newArena, NULL, sizeof(char) * (strlen(oldFileArena->file->name) + 1));
+    memset(newFile, 0, sizeof(File));
+    newFile->arena = newArena;
     
-    if(!newFileArena->file->name){
+    newFile->name = (char*)mem_arena_alloc(newArena,sizeof(char) * (strlen(oldFile->name) + 1));
+    
+    if(!newFile->name){
         logger("[f_saveFile]: Could not allocate file name!");
         return;
     }
     
-    sprintf(newFileArena->file->name, "%s", oldFileArena->file->name);
-    newFileArena->file->ext = f_getExtensionId(newFileArena->file->name);
+    sprintf(newFile->name, "%s", oldFile->name);
+    newFile->ext = f_getExtensionId(newFile->name);
 
-    newFileArena->file->scrollY = oldFileArena->file->scrollY;
-    newFileArena->file->scrollX = oldFileArena->file->scrollX;
-    newFileArena->file->cursorLine = oldFileArena->file->cursorLine;
-    newFileArena->file->cursorCol = oldFileArena->file->cursorCol;
+    newFile->scrollY = oldFile->scrollY;
+    newFile->scrollX = oldFile->scrollX;
+    newFile->cursorLine = oldFile->cursorLine;
+    newFile->cursorCol = oldFile->cursorCol;
     
-    newFileArena->file->prevChar = oldFileArena->file->prevChar;
-    newFileArena->file->currentChar = oldFileArena->file->currentChar;
-    newFileArena->file->nextChar = oldFileArena->file->nextChar;
+    newFile->prevChar = oldFile->prevChar;
+    newFile->currentChar = oldFile->currentChar;
+    newFile->nextChar = oldFile->nextChar;
 
-    newFileArena->file->isActive = oldFileArena->file->isActive;
+    newFile->isActive = oldFile->isActive;
     
     // Selection metadata, it will be reseted for now
-    newFileArena->file->selectedStartX = 0;
-    newFileArena->file->selectedEndX = 0;
-    newFileArena->file->selectedStartLine = 0;
-    newFileArena->file->selectedEndLine = 0;
+    newFile->selectedStartX = 0;
+    newFile->selectedEndX = 0;
+    newFile->selectedStartLine = 0;
+    newFile->selectedEndLine = 0;
     
-    newFileArena->file->selectedStartNode = NULL;
-    newFileArena->file->selectedEndNode = NULL;
+    newFile->selectedStartNode = NULL;
+    newFile->selectedEndNode = NULL;
     
     // We are going to travel the old file lines and copy them to the new file buffer
-    currentNode = oldFileArena->file->lines->firstNode;
-    lengthSum = _copyLines(oldFileArena, newFileArena);
+    currentNode = oldFile->lines->firstNode;
+    lengthSum = _copyLines(oldFileileArena);
 
     // wE CANNOT COPY OLD POINTERS TO THE NEW FILE ARENA...
-    newFileArena->file->currentLineNode = getNodeByIndex(&(newFileArena->file->lines), newFileArena->file->cursorLine);
-    if (newFileArena->file->currentLineNode) {
-        newFileArena->file->prevLine = 
-            newFileArena->file->currentLineNode->prev &&
-            newFileArena->file->currentLineNode->prev->data
-            ? newFileArena->file->currentLineNode->prev->data
+    newFile->currentLineNode = getNodeByIndex(&(newFile->lines), newFile->cursorLine);
+    if (newFile->currentLineNode) {
+        newFile->prevLine = 
+            newFile->currentLineNode->prev &&
+            newFile->currentLineNode->prev->data
+            ? newFile->currentLineNode->prev->data
             : NULL ;
 
-        newFileArena->file->currentLine = newFileArena->file->currentLineNode->data;
-        newFileArena->file->nextLine = 
-            newFileArena->file->currentLineNode->next &&
-            newFileArena->file->currentLineNode->next->data
-            ? newFileArena->file->currentLineNode->next->data
+        newFile->currentLine = newFile->currentLineNode->data;
+        newFile->nextLine = 
+            newFile->currentLineNode->next &&
+            newFile->currentLineNode->next->data
+            ? newFile->currentLineNode->next->data
             : NULL;
     } else {
-        newFileArena->file->prevLine = NULL;
-        newFileArena->file->currentLine = NULL;
-        newFileArena->file->nextLine = NULL;
+        newFile->prevLine = NULL;
+        newFile->currentLine = NULL;
+        newFile->nextLine = NULL;
     }
     
     fileParsingBuffer = (char*)malloc(sizeof(char) * (lengthSum + 1));
@@ -681,26 +649,26 @@ void f_saveFile(){
         currentNode = currentNode->next;
     }
 
-    newFileArena->file->bufferLength = offset;
+    newFile->bufferLength = offset;
 
     // We dump the new file buffer to the file
-    f_dumpBufferTofile(fileParsingBuffer, newFileArena->file->bufferLength, newFileArena->file->name);
+    f_dumpBufferTofile(fileParsingBuffer, newFile->bufferLength, newFile->name);
 
     // We close the old file
-    f_closeFile(oldFileArena);
-    
+    f_closeFile(oldFile);
+
+    newFile->isModified = false;
+    sprintf(newFile->name, "%s", newFile->name + fs_getFileName(newFile->name));
+
     // We add the new file arena and set it as the current file arena
-    currentFileArena = f_addFileArena(newFileArena);
-
-    currentFileSearch = &fileListSearchMetadata[newFileArena->file->fileIndex];
-
-    newFileArena->file->isModified = false;
-    sprintf(newFileArena->arena->name, "%s", newFileArena->file->name + f_getFileName(newFileArena->file->name));
+	// TODO: ADD newFile to currentWindow->fileList
+    currentWindow->currentFile = newFile;
+	//currentFileSearch = &fileListSearchMetadata[newFile->fileIndex];
 
     free(fileParsingBuffer);
 
-    ed_statusBarMessage("File %s saved successfully.", newFileArena->file->name);
-    logger("[f_saveFile]: File %s saved successfully", newFileArena->file->name);
+    ed_statusBarMessage("File %s saved successfully.", newFile->name);
+    logger("[f_saveFile]: File %s saved successfully", newFile->name);
 }
 
 /* CLOSE FILE ==================================================================*/
@@ -713,13 +681,25 @@ void f_triggerClose(bool end_program){
     // endProgram IS A GLOBAL VARIABLE THO
     endProgram = end_program;
 
-    if(!currentFileArena || !currentFileArena->file || !currentFileArena->arena ){
-        logger("[f_triggerClose]: No opened files, proceed to close app directly.");
+	// TODO: Check on all opened windows if there any opened files.
+    if(!windowList || windowList->length == 0){
+        logger(
+			"[f_triggerClose]: No opened files, proceed to close app directly."
+		);
         return;
     }
 
-    if(currentFileArena->file->isModified == true){
-        dw_writeBuffer(textmemptr, "File modified, save? Y/N ",0,VIDEO_ROWS - 1 ,26, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
+    if(currentWindow->currentFile->isModified == true){
+        dw_writeBuffer(
+			textmemptr, 
+			"File modified, save? Y/N ",
+			0,
+			VIDEO_ROWS - 1 ,
+			26, VIDEO_ROWS - 1, 
+			settings.STATUSBAR_COLOR_TEXT, 
+			settings.STATUSBAR_COLOR_BG
+		);
+
         hal_vid_refresh();
         
         while(!(
@@ -744,11 +724,30 @@ void f_triggerClose(bool end_program){
         ed_renderElements();
         
         if(f_isDefaultFileName() == true){
-            dw_writeBuffer(textmemptr, "File name: ",0,VIDEO_ROWS - 1, 10,VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
+            dw_writeBuffer(textmemptr, 
+				"File name: ",
+				0,
+				VIDEO_ROWS - 1, 
+				10,
+				VIDEO_ROWS - 1, 
+				settings.STATUSBAR_COLOR_TEXT, 
+				settings.STATUSBAR_COLOR_BG
+			);
+
             hal_vid_refresh();
             
             while((len <= 3 || len > 12)){
-                dw_writeBuffer(textmemptr, "",11,VIDEO_ROWS - 1, VIDEO_COLS - 1, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
+                dw_writeBuffer(
+					textmemptr,
+					"",
+					11,
+					VIDEO_ROWS - 1,
+					VIDEO_COLS - 1,
+					VIDEO_ROWS - 1,
+					settings.STATUSBAR_COLOR_TEXT,
+					settings.STATUSBAR_COLOR_BG
+				);
+
                 filename = ed_scanf(11, VIDEO_ROWS - 1, 32);
                 
                 if(filename == NULL) return;
@@ -756,13 +755,24 @@ void f_triggerClose(bool end_program){
                 len = strlen(filename);
 
                 ed_renderElements();
+
                 if(len <= 3 || len > 12){
-                    dw_writeBuffer(textmemptr, "Invalid filename! Try again",0,VIDEO_ROWS - 1,30, VIDEO_ROWS - 1, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG);
+                    dw_writeBuffer(
+						textmemptr,
+						"Invalid filename! Try again",
+						0,
+						VIDEO_ROWS - 1,
+						30,
+						VIDEO_ROWS - 1,
+						settings.STATUSBAR_COLOR_TEXT,
+						settings.STATUSBAR_COLOR_BG
+					);
+
                     hal_vid_refresh();
                 }
             }
             if(esc == true) return;
-            strcpy(currentFileArena->file->name, filename);
+            strcpy(currentWindow->currentFile->name, filename);
         }
     }
 
@@ -774,31 +784,23 @@ void f_triggerClose(bool end_program){
 void f_closeCurrentFile(){
     int i = 0;
     char oldFileName[255];
-
+	File *nextFile = NULL;
+	
     memset(oldFileName, '\0', 255);
 
     // If there are no current file opened, we fallback
-    if(!currentFileArena) return;
+    if(!currentWindow || !currentWindow->currentFile) 
+		return;
 
-    strcpy(oldFileName, currentFileArena->file->name);
+    strcpy(oldFileName, currentWindow->currentFile->name);
 
-    f_closeFile(currentFileArena);    
+    f_closeFile(currentWindow->currentFile);    
     f_flushSearchMetadata();
 
     // We find the next opened file
-    i = 0;
-
-    while(i < MAX_ARENAS && fileList[i].file == NULL && fileList[i].arena == NULL){
-        i++;
-    }
-
-    if(i == MAX_ARENAS){
-        currentFileArena = NULL;
-    }else{
-        currentFileArena = &fileList[i];
-        currentFileSearch = &fileListSearchMetadata[i];
-    }
-
+	nextFile = (File *)(currentWindow->fileList->firstNode->data);
+	currentWindow->currentFile = nextFile;
+    
     ed_statusBarMessage("%s closed successfully.", oldFileName);
     logger("[f_closdeCurrentFile]: %s closed successfully.", oldFileName);
 
@@ -829,91 +831,139 @@ void f_closeCurrentFile(){
 // FLUSH METADATA
 
 void f_flushSearchMetadata(){
-    if(!currentFileSearch) return;
+    if(
+		!currentWindow || 
+		!currentWindow->currentFile ||
+		!currentWindow->currentFile->currentFileSearch) 
+	return;
 
-    mem_arena_free(currentFileSearch->arena, NULL);
-    currentFileSearch->arena = NULL; // Ensure pointer is cleared
+    mem_arena_free(
+		currentWindow->currentFile->currentFileSearch->arena, 
+		NULL
+	);
+	
+    currentWindow->currentFile->currentFileSearch->arena = NULL; // Ensure pointer is cleared
 
     //currentFileSearch->dialogInputIndex = 0;
     //memset(currentFileSearch->dialogInputBuffer, '\0', 255);
 
-    currentFileSearch->wordCount = 0;
-    currentFileSearch->words = NULL;
-    currentFileSearch->currentWordNode = NULL;
+    currentWindow->currentFile->currentFileSearch->wordCount = 0;
+    currentWindow->currentFile->currentFileSearch->words = NULL;
+    currentWindow->currentFile->currentFileSearch->currentWordNode = NULL;
 }
 
 void f_allocSearchMetadata(){
-    if(currentFileSearch) return;
-    if( !currentFileArena ||
-        !currentFileArena->file ||
-        !currentFileArena->file->name
-    ){
-        logger("[f_allocSearchMetadat]: No valid currentFile data");
-        return;
-    }
+	if(
+		!currentWindow || 
+		!currentWindow->currentFile ||
+		!currentWindow->currentFile->currentFileSearch
+	) {
+		logger("[f_allocSearchMetadat]: No valid currentFile data");
+		return;
+	}
+	
+    mem_arena_init(
+		currentWindow->currentFile->currentFileSearch->arena,
+		currentWindow->currentFile->name,
+		MEM_ARENA_2K
+	);
     
-    mem_arena_init(currentFileSearch->arena , currentFileArena->file->name, MEM_ARENA_METADATA, MEM_ARENA_2K);
-    
-    currentFileSearch->dialogInputIndex = 0;
-    memset(currentFileSearch->dialogInputBuffer, '\0', 255);
+    currentWindow->currentFile->currentFileSearch->dialogInputIndex = 0;
 
-    currentFileSearch->wordCount = 0;
-    currentFileSearch->words = NULL;
-    currentFileSearch->currentWordNode = NULL;
+    memset(
+		currentWindow->currentFile->currentFileSearch->dialogInputBuffer,
+		'\0',
+		255
+	);
+
+    currentWindow->currentFile->currentFileSearch->wordCount = 0;
+    currentWindow->currentFile->currentFileSearch->words = NULL;
+    currentWindow->currentFile->currentFileSearch->currentWordNode = NULL;
 }
 
-void f_showFileSwitcher(){
+// ============================================================================
+
+void f_prepareFileNavDialog(){
+
+	if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LALT, HAL_KEY_LSHIFT)){
+		f_onFileNavigation = true;
+		/* 1. Dibujar el cuadro */
+		dw_rectangle(textmemptr, 4, 4, 34, 16, COLOR_RED, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_RED, false, DRAW_BORDER_SIMPLE, NULL);
+		ed_renderEvent = true;
+	}
+}
+
+void f_drawFileNavDialog(){
     int i;
     int selectedIndex = 0;
     bool selected = false;
-    FileArena *fileptr;
+    File *fileptr;
+	Node *currFileNode = NULL, selectedNode = NULL;
 
-    if (!currentFileArena || !currentFileArena->file) {
+    if (!currentWindow || !currentWindow->fileList) {
+		logger("[f_drawFileNavDialog]: No window opened or no files opened in current window");
         return;
     }
+
+	if(!hal_inp_isKeyDown(HAL_KEY_LALT)){
+		f_onFileNavigation = false;
+		return;
+	}
     
     hal_inp_clearKeyboardBuffer();
-    
-    /* Encontrar el índice seleccionado inicial antes del bucle */
-    for(i = 0; i < MAX_ARENAS; i++) {
-        if(fileList[i].file != NULL && 
-           strcmp(fileList[i].file->name, currentFileArena->file->name) == 0) {
-            selectedIndex = i;
-            break;
-        }
-    }
 
-    while(hal_inp_isKeyDown(HAL_KEY_LALT)){
-        /* 1. Dibujar el cuadro */
-        dw_rectangle(textmemptr, 4, 4, 34, 16, COLOR_RED, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_RED, false, DRAW_BORDER_SIMPLE, NULL);
+	// Draw file list
+	currFileNode = currentWindow->fileList->first;
 
-        /* 2. Dibujar la lista de archivos */
-        for(i = 0; i < MAX_ARENAS; i++){
-            fileptr = &fileList[i];
-            if (fileptr->file != NULL) {
-                selected = (i == selectedIndex);
-                dw_writeBuffer(textmemptr, "%s %s", 5, 5 + i, 33, 5 + i, 
-                               COLOR_WHITE, COLOR_RED, (selected ? "*" : " "), fileptr->file->name);
-            }
-        }
+	if(!currFileNode){
+		logger(
+			"[f_drawFileNavDialog]: No valid node data."
+		);
+		return;
+	}
 
-        /* 3. Detectar pulsación de borde de LSHIFT dentro del bucle */
-        if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LALT, HAL_KEY_LSHIFT)){
-            /* Avanzar al siguiente archivo abierto válido */
-            do {
-                selectedIndex = (selectedIndex + 1) % MAX_ARENAS;
-            } while(fileList[selectedIndex].file == NULL);
+	while(currFileNode){
+		fileptr = (File*)currFileNode->data;
+		
+		if (fileptr->file) {
+			selected = currentWindow->currentFileIndex;
 
-            currentFileArena = &fileList[selectedIndex];
-        }
+			if(currentWindow->currentFile == currFileNode->data){
+				selectedNode = currFileNode;
+			}
 
-        /* 4. Actualizar el buffer del teclado manualmente en este bucle */
-        hal_vid_refresh();
-        hal_inp_updateKeyboard();
+			dw_writeBuffer(
+				textmemptr, 
+				"%s %s",
+				5,
+				5 + i,
+				33,
+				5 + i, 
+				COLOR_WHITE, 
+				COLOR_RED,
+				(selected ? "*" : " "),
+				fileptr->file->name
+			);
+		}
 
-    }
+		currFileNode = currFileNode->next;
+	}
 
-    ed_renderEvent = true;
+	// LSHIFT edge detecting for traveling to the next file of 
+	// the window.
+	if(hal_inp_keysPressed(
+		HAL_INP_TRIGGER_EDGE, 
+		2,
+		HAL_KEY_LALT,
+		HAL_KEY_LSHIFT
+	)){
+		if(selectedNode && selectedNode->next)
+			currentWindow->currentFile = (File*)selectedNode->next->data;
+	}
+
+	// Keyboard buffer update.
+	hal_vid_refresh();
+	hal_inp_updateKeyboard();
 }
 
 int _goBackPath(char *path){
@@ -962,6 +1012,7 @@ void f_quickOpenFileDialog(){
     char selectedEntryFullPath[512];
     char currentPath[255];
     bool isSelected = false;
+
     Directory *currPathDirectory = NULL;
     Node *node = NULL;
     FileEntry *fileEntry = NULL;
@@ -985,7 +1036,21 @@ void f_quickOpenFileDialog(){
     dialogStartY = 2;
     dialogEndY = 18; 
 
-    dw_rectangle(textmemptr, vis_offset, dialogStartY, VIDEO_COLS - vis_offset, dialogEndY, COLOR_BLUE, COLOR_WHITE, ' ', COLOR_WHITE, COLOR_BLUE, false, DRAW_BORDER_SIMPLE, "OPEN FILE");
+    dw_rectangle(
+		textmemptr, 
+		vis_offset,
+		dialogStartY,
+		VIDEO_COLS - vis_offset,
+		dialogEndY,
+		COLOR_BLUE,
+		COLOR_WHITE,
+		' ',
+		COLOR_WHITE,
+		COLOR_BLUE,
+		false,
+		DRAW_BORDER_SIMPLE,
+		"OPEN FILE"
+	);
 
     stepIndex = strlen(currentPath);
     
@@ -1169,7 +1234,10 @@ void f_quickOpenFileDialog(){
     if(currPathDirectory) 
         hal_fs_freeDirectory(currPathDirectory);
 
-    if (currentFileArena && currentFileArena->file){
+    if (
+		currentWindow &&
+		currentWindow->currentFile
+	){
         _updateCursor();
     }
 

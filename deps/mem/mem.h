@@ -14,8 +14,6 @@
 
 #include "../log/log.h"
 
-#define MAX_ARENAS 32
-
 /* ARENA SIZES =========================================================================*/
 
 #define MEM_ARENA_1K 1024    // 1kb
@@ -33,36 +31,23 @@
 #define MEM_ARENA_8M 1024 * 1024 * 8 // 8 mb
 #define MEM_ARENA_16M 1024 * 1024 * 16 // 16 mb
 
-/* Arena types , could be useful for other modules*/
-
-#define MEM_ARENA_DEFAULT 0
-#define MEM_ARENA_MAIN 1
-#define MEM_ARENA_FILE 2
-#define MEM_ARENA_TEST 3
-#define MEM_ARENA_METADATA 4
-
 /* TYPES ===========================================================================*/
 
 typedef struct MemoryArena{
     char name[32];
-    unsigned char type;
     void *base;
     size_t size;
     size_t offset;
 } MemoryArena;
 
-/* GLOBAL VARS ===========================================================================*/
-extern MemoryArena memoryArenas[MAX_ARENAS];
-
 /* PROTOTYPES ===========================================================================*/
 
-void mem_init();
-void mem_shutdown();
-
-void mem_arena_init(MemoryArena *arena, char *name, unsigned char type, size_t size);
-void *mem_create_arena(char *name, unsigned char type, size_t size);
-void *mem_arena_alloc(MemoryArena *arenaPtr, char *name, size_t size);
-MemoryArena *mem_get_arena(char *name);
-void mem_arena_reset(char *name);
+void mem_arena_init(MemoryArena *arenaPtr, char *name,size_t size);
+void *mem_create_arena(char *name, size_t size);
+void *mem_arena_alloc(MemoryArena *arenaPtr, size_t size);
+void mem_arena_reset(MemoryArena *arenaPtr);
 void mem_arena_free( MemoryArena *arenaPtr, char *name);
+
+size_t mem_getFileClosestSize(FILE *fp);
+
 #endif

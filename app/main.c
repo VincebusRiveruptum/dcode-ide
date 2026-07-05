@@ -15,8 +15,6 @@ int main(int argc, char *argv[]){
 	int ticks = 0;
     
 	endProgram = false;
-
-	mem_init();
 	
 	ed_initConfig(argc, argv);
     
@@ -36,6 +34,10 @@ int main(int argc, char *argv[]){
 		
 		// SEARCH TOOl
 		ed_prepareSearchTool();
+		        
+		// Switch files
+		f_prepareFileNavDialog();
+
 
 		// ACTION KEYS HANDLING
 		// This is uses ISR approach, not getch()
@@ -57,10 +59,6 @@ int main(int argc, char *argv[]){
 			ed_putCursorFistLine();
 		if(hal_inp_isKeyPressed(HAL_KEY_PAGEDOWN)) 
 			ed_putCursorLastLine();
-        
-		// Switch files
-		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LALT, HAL_KEY_LSHIFT)) 
-			f_showFileSwitcher();        
 
 		// Horizontal Word jump
 		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LCTRL, HAL_KEY_RIGHT)) 
@@ -167,10 +165,11 @@ int main(int argc, char *argv[]){
 			
 			// Draw overlays on top of the formatted editor buffer
 			if(settings.DEBUG == true) t_drawDebugger();
-			if(on_search_tool == true) ed_drawSearchTool();
+			if(ed_onSearchTool == true) ed_drawSearchTool();
+			if(f_onFileNavigation== true) f_drawFileNavDialog();
 			
 			ed_resetCursor();
-			if(!on_search_tool) {
+			if(!ed_onSearchTool) {
 				hal_vid_refresh();
 			}
 			
@@ -185,7 +184,6 @@ int main(int argc, char *argv[]){
 	hal_inp_closeKeyboard();
 	dw_cls(textmemptr);
 	hal_vid_set25Lines();
-	mem_shutdown();
 	log_shutdown();
 	printf("96 Tears...\n");
 	return 0;

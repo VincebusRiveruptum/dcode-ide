@@ -4,6 +4,12 @@
 #include "std.h"
 #include "../deps/data/data.h"
 
+#if defined(__MSDOS__) || defined(__WATCOMC__)
+#define FS_PATH_SEPARATOR "\\"
+#else
+#define FS_PATH_SEPARATOR "/"
+#endif
+
 typedef struct FileEntry{
     char name[256];
     unsigned char isDirectory;
@@ -21,4 +27,5 @@ char *hal_fs_getAbsoluteCurrentPath(char *strbuffer, size_t len);
 Directory *hal_fs_getDirectoryFileList(const char *path);
 void hal_fs_freeDirectory(Directory *d);
 
+void fs_getFilename(char *filename);
 #endif

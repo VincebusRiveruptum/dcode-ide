@@ -88,3 +88,31 @@ Directory *hal_fs_getDirectoryFileList(const char *path){
 
     return d;
 }
+
+// We get where the file extension starts
+char *fs_getFileExtension(char *filename){
+    size_t i=strlen(filename);
+    
+    while(i > 0 && filename[i] != '.'){ // Find the last dot
+        i--;
+    }
+
+    return strrchr(filename, '.');
+}
+
+// We get where the file name starts
+size_t fs_getFileName(char *filename){
+    size_t length=0;
+    size_t slashPos=0;
+    
+    while(filename[length] != '\0'){ // Find the last dot
+        if(filename[length] == FS_PATH_SEPARATOR ){ // Count the number of slashes
+            slashPos = length;
+        }
+        length++;
+    }
+
+    if(slashPos == 0) return 0;
+
+    return slashPos + 1;
+}

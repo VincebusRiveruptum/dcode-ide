@@ -22,7 +22,7 @@ unsigned char currentCursorY = 0;
 
 bool ed_renderEvent = false;
 bool on_selection_tool = false;
-bool on_search_tool = false;
+bool ed_onSearchTool = false;
 
 time_t ed_globalAuxTimer = 0;
 char statusBarMessage[ED_STATUSBAR_WIDTH] = {'\0'};
@@ -1517,16 +1517,16 @@ void ed_searchMoveCursor(){
     _updateCursor();
 }
 void ed_prepareSearchTool(){
-    if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LCTRL, HAL_KEY_F)) on_search_tool = true;
+    if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LCTRL, HAL_KEY_F)) ed_onSearchTool = true;
 		
-    if(on_search_tool == true){
+    if(ed_onSearchTool == true){
         if(hal_inp_isKeyPressed(HAL_KEY_ESC)){
-            on_search_tool = false;
+            ed_onSearchTool = false;
             ed_renderEvent = true;
         }else{
             ed_drawSearchTool();
             if(hal_inp_isKeyPressed(HAL_KEY_ESC)){
-                on_search_tool = false;
+                ed_onSearchTool = false;
                 ed_renderEvent = true;
             }else if (!hal_inp_isKeyDown(HAL_KEY_ENTER)){
                 ed_findWord();

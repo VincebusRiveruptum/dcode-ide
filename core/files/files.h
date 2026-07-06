@@ -193,5 +193,6 @@ void f_deleteFileFromWindow(Window *window, File *file);
 void f_deleteWindowFromWorkspace(Workspace *workspace, Window *window);
 void f_splitWindow();
 void f_cycleActiveWindow();
+void f_refreshWindows(Workspace *workspace);
 
 #endif

@@ -11,7 +11,7 @@ void mem_vis_mem(){
     bool endvis = false;
     int memArenas = 0;
     
-    int i=0,j=0,w=0;
+    int j=0,w=0;
     short curr_color=0;
     int numblocks=0;
     int numbgblocks=0;

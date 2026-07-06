@@ -158,6 +158,7 @@ void hal_vid_refresh(void) {
             fflush(stdout);
             
             ed_renderEvent = true;
+			ed_fullRenderEvent = true;
             return;
         }
     }

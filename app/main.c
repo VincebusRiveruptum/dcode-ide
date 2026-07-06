@@ -26,9 +26,7 @@ int main(int argc, char *argv[]){
 	} else {
 		logger("[main]: %d (no args)", argc);
 	}
-    
-	ed_renderEvent = true;
-    
+
 	while(endProgram == false){
 		ed_prepareSelectionTool();
 		
@@ -49,10 +47,8 @@ int main(int argc, char *argv[]){
 
 		// ACTION KEYS HANDLING
 		// This is uses ISR approach, not getch()
-		if(hal_inp_isKeyPressed(HAL_KEY_F11)) {
-			hal_vid_cycleVideoModes();
-			ed_renderEvent = true;
-		}
+		if(hal_inp_isKeyPressed(HAL_KEY_F11))
+			hal_vid_cycleVideoModes();		
 
 		if(hal_inp_isKeyPressed(HAL_KEY_F12))
 			mem_vis_mem();
@@ -167,24 +163,7 @@ int main(int argc, char *argv[]){
 		// globalAuxTimer if there is any timer activated.
 		ed_statusBar();	
 
-		if(ed_renderEvent == true){
-			
-			ed_renderElements();
-			
-			// Draw overlays on top of the formatted editor buffer
-			if(settings.DEBUG == true) t_drawDebugger();
-			if(ed_onSearchTool == true) ed_drawSearchTool();
-			if(f_onFileNavigation== true) f_drawFileNavDialog();
-			
-			ed_resetCursor();
-			if(!ed_onSearchTool) {
-				hal_vid_refresh();
-			}
-			
-			ed_renderEvent = false;
-		}
-
-
+		ed_eventListener();
 		
 		hal_inp_updateKeyboard();
 	}

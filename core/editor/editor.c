@@ -20,7 +20,9 @@ unsigned char VIDEO_ROWS = 25;
 unsigned char currentCursorX = 0;
 unsigned char currentCursorY = 0;
 
-bool ed_renderEvent = false;
+bool ed_renderEvent = true;
+bool ed_fullRenderEvent = true;
+
 bool on_selection_tool = false;
 bool ed_onSearchTool = false;
 
@@ -158,6 +160,7 @@ void _updateCurrentCursorY(){
         currentCursorY = currentWindow->y + currentWindow->height;
     }
 }
+
 void _updateCurrentCursorX(){
     int visualCursor = 0;
     int visualScroll = 0;
@@ -176,6 +179,7 @@ void _updateCurrentCursorX(){
     if(currentCursorX < currentWindow->x + LINE_COUNTER_WIDTH) {
         currentCursorX = currentWindow->x + LINE_COUNTER_WIDTH;
     }
+
     if(currentCursorX >= currentWindow->x + currentWindow->width) {
         currentCursorX = currentWindow->x + currentWindow->width - 1;
     }
@@ -200,8 +204,6 @@ void _updateScrollY(){
 	File *currentFile = NULL;
     int displayHeight = 0;
 	
-	logger("_updateScrollY!!");
-
 	currentFile = currentWindow->currentFile;
 
     if (!currentFile || !currentWindow) return;
@@ -248,7 +250,7 @@ void _updateScrollX(){
     }
 }
 
-void _updateCursor(){
+void ed_updateCursor(){
 	if (!currentWindow || !currentWindow->currentFile) return;
 
     _updateCurrentCursorY();
@@ -322,7 +324,7 @@ void ed_resetCursor(){
     // In th future, when the text area became a movable element we will 
 	// have to  calculate the cursor position relative to the text area 
 	// position.
-    _updateCursor();
+    ed_updateCursor();
 }
 
 void ed_putCursor(unsigned char x, unsigned char y){
@@ -446,43 +448,111 @@ void ed_moveCursor(short x, short y){
 	_updateScrollX();
 	_updateScrollY();
 
-    _updateCursor();
+    ed_updateCursor();
 }
 
-void ed_renderElements(){
-    Node *rec;
-    Window *wnd;
+// =======================================================================
+// Window refreshing
+// This just renders the current window.
+void ed_updateWindow(Workspace *workspace){
     int i = 0;
     int editor_size;
+    Window *wnd;
 	
-    if (!currentWorkspace || !currentWorkspace->windowList) return;
+    if (
+		!workspace || 
+		!workspace->windowList ||
+		!workspace->currentWindow
+	) return;
 
-    hal_vid_clearBuffer(editormemptr);
+    //hal_vid_clearBuffer(editormemptr);
 
-    rec = currentWorkspace->windowList->firstNode;
-    while (rec != NULL) {
-        wnd = (Window *)rec->data;
-        if (wnd && wnd->currentFile) {
-            dw_writeBufferEditorFormatted(
-                editormemptr, 
-                wnd->x, 
-                wnd->y, 
-                wnd->x + wnd->width, 
-                wnd->y + wnd->height, 
-                COLOR_LIGHT_GRAY, 
-                COLOR_BLACK, 
-                wnd->currentFile
-            );
-        }
-        rec = rec->next;
-    }
-     
+    wnd = workspace->currentWindow;
+
+	dw_writeBufferEditorFormatted(
+		editormemptr, 
+		wnd->x, 
+		wnd->y, 
+		wnd->x + wnd->width, 
+		wnd->y + wnd->height, 
+		COLOR_LIGHT_GRAY, 
+		COLOR_BLACK, 
+		wnd->currentFile
+	);
+
+	// We copy from editor buffer to text video buffer.
     editor_size = (VIDEO_COLS * (VIDEO_ROWS - 1));
+     
     for(i=0; i < editor_size; i++){
         textmemptr[i] = editormemptr[i];
     }
+
+	return;
 }
 
+// This clears the screen and renders all windows.
+void ed_renderWindows(Workspace *workspace){
+	//int winLen = 0;
+	int i = 0;
+    int editor_size;
+	Node *rec = NULL;
+	Window *wnd = NULL;
+	if(!workspace){
+		logger("[r_refreshWindows]: Invalid workspace.");
+		return;
+	}
+	
+	if(!workspace->windowList){
+		logger("[r_refreshWindows]: No windows.");
+		return;
+	}
+	
+	hal_vid_clearBuffer(editormemptr);
+
+	rec = workspace->windowList->firstNode;
+	//winLen = workspace->windowList->length;
+	
+	while(rec){
+		wnd = (Window*)rec->data;
+
+		if(wnd){
+			wnd->height = VIDEO_ROWS - 2;
+
+			// TODO :
+			// Also, re calculate width and x start position relative to 
+			// the screen width.
+			
+			// ALSO...
+			// Recalculate cursor position if resoultion is lower than 
+			// the previous one
+		
+			// We re-render the editor.
+			if (wnd && wnd->currentFile) {
+				dw_writeBufferEditorFormatted(
+					editormemptr, 
+					wnd->x, 
+					wnd->y, 
+					wnd->x + wnd->width, 
+					wnd->y + wnd->height, 
+					COLOR_LIGHT_GRAY, 
+					COLOR_BLACK, 
+					wnd->currentFile
+				);
+			}
+		}
+
+		rec = rec->next;
+	}
+
+	// We copy from editor buffer to text video buffer.
+	editor_size = (VIDEO_COLS * (VIDEO_ROWS - 1));
+    
+	for(i=0; i < editor_size; i++){
+        textmemptr[i] = editormemptr[i];
+    }
+
+	return;
+}
 
 void ed_typeChar(char c){
     // We type the char at 
@@ -530,7 +600,7 @@ void ed_typeChar(char c){
     
     ed_markActive(ED_ACTIVITY_TYPE);
     _updateScrollX();
-    _updateCursor();
+    ed_updateCursor();
 }
 
 // Deletes a selectrion
@@ -554,7 +624,6 @@ void ed_backspace(){
     Node *prevNode = NULL;
     Line *line = NULL;
     Line *prevLine = NULL;
-    File *file = NULL;
 	static File *currentFile = NULL;
 
 	currentFile = currentWindow->currentFile;
@@ -684,7 +753,7 @@ void ed_backspace(){
     currentFile->isModified = true;      
 
     ed_markActive(ED_ACTIVITY_DEL);
-    _updateCursor();
+    ed_updateCursor();
 }
 void ed_supr(){
         // We type the char at 
@@ -693,7 +762,6 @@ void ed_supr(){
     unsigned short x = 0;
     Node *node = NULL;
     Line *line = NULL;
-    File *file = NULL;
 	static File *currentFile = NULL;
 
 	currentFile = currentWindow->currentFile;
@@ -719,7 +787,7 @@ void ed_supr(){
     currentFile->isModified = true;
 
     ed_markActive(ED_ACTIVITY_SUPR);
-    _updateCursor();
+    ed_updateCursor();
 }
 
 void ed_newLine(){
@@ -905,7 +973,7 @@ void ed_newLine(){
     currentFile->isModified = true;
     
     ed_markActive(ED_ACTIVITY_NEWLINE);
-    _updateCursor();
+    ed_updateCursor();
 }
 
 // PROMPT ELEMENT
@@ -1123,7 +1191,7 @@ void ed_putCursorEnd(){
 		currentFile->currentLine->length;
 
     _updateScrollX();
-    _updateCursor();
+    ed_updateCursor();
 }
 
 void ed_putCursorStart(){   
@@ -1136,7 +1204,7 @@ void ed_putCursorStart(){
     currentFile->cursorCol = 0;
 
     _updateScrollX();
-    _updateCursor();
+    ed_updateCursor();
 }
 
 void ed_putCursorFistLine(){
@@ -1190,7 +1258,7 @@ void ed_putCursorFistLine(){
     currentFile->cursorLine = 0;
     currentFile->cursorCol = currentCursorX - LINE_COUNTER_WIDTH;
     
-    _updateCursor();
+    ed_updateCursor();
 }
 
 void ed_putCursorLastLine(){
@@ -1254,7 +1322,7 @@ void ed_putCursorLastLine(){
 		currentFile->cursorCol = currentFile->currentLine->length - 1;
 	}
 
-	_updateCursor();
+	ed_updateCursor();
 }
 
 void ed_statusBarMessage(const char *format,  ...){
@@ -1401,7 +1469,7 @@ void ed_wordJump(short wordJump){
     }
     
     currentFile->cursorCol = currentCharPos;
-    _updateCursor();
+    ed_updateCursor();
 }
 
 // This is for swapping the lines with the next or previous one with the
@@ -1462,7 +1530,7 @@ void ed_swapLine(short lineJump){
 
     ed_markActive(lineJump);
 
-    _updateCursor();
+    ed_updateCursor();
 }
 
 void ed_prepareSelectionTool(){
@@ -1861,7 +1929,8 @@ void ed_searchMoveCursor(){
 	logger("ed_searchMoveCursor!!");
 
     _updateScrollY();
-    _updateCursor();
+    _updateScrollX();
+    ed_updateCursor();
 }
 void ed_prepareSearchTool(){
     if(
@@ -1952,4 +2021,34 @@ void ed_shellSpawn(){
     hal_vid_setVideoMode(v_currentMode, false);
 
     ed_renderEvent = true;
+}
+
+// EVENT LISTENER
+void ed_eventListener(){
+	if(ed_renderEvent == true){
+		// Before rendering everything, we need
+		// to handle the resolution change
+		// and update all window bounds, coordinates
+		// and sizes.
+		if(ed_fullRenderEvent == true){
+			ed_renderWindows(currentWorkspace);
+			ed_fullRenderEvent = false;
+		}else{
+			ed_updateWindow(currentWorkspace);
+		}	
+		
+		// Draw overlays on top of the formatted editor buffer
+		if(settings.DEBUG == true) t_drawDebugger();
+		if(ed_onSearchTool == true) ed_drawSearchTool();
+		if(f_onFileNavigation== true) f_drawFileNavDialog();
+		
+		ed_resetCursor();
+
+		if(!ed_onSearchTool) {
+			hal_vid_refresh();
+		}
+		
+		ed_renderEvent = false;
+	}
+
 }

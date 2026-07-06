@@ -110,7 +110,7 @@ void f_quickOpenFileDialog(){
                 //snprintf(selectedEntryFullPath, sizeof(selectedEntryFullPath), "%s%s", currentPath, selectedFileEntry->name);
                 sprintf(selectedEntryFullPath, "%s%s", currentPath, selectedFileEntry->name);
                 f_openFile(selectedEntryFullPath);
-                _updateCursor();
+                ed_updateCursor();
                 ed_renderEvent = true;
                 if (currPathDirectory) hal_fs_freeDirectory(currPathDirectory);
                 return;
@@ -160,7 +160,7 @@ void f_quickOpenFileDialog(){
                         vis_offset + 1, 
                         3 + selectedEntryScrollY + 1, 
                         VIDEO_COLS - vis_offset - 1, 
-                        3 + selectedEntryScrollY + 1,
+                        3 + selectedEntryScrollY + 1, 
                         COLOR_BLUE, 
                         COLOR_WHITE, 
                         fileEntry->name
@@ -251,7 +251,7 @@ void f_quickOpenFileDialog(){
 		currentWindow &&
 		currentWindow->currentFile
 	){
-        _updateCursor();
+        ed_updateCursor();
     }
 
     ed_renderEvent = true;

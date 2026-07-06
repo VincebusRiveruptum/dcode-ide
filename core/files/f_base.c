@@ -533,7 +533,7 @@ void f_triggerClose(bool end_program){
             return;
         } 
         
-        ed_renderElements();
+        ed_renderWindows(currentWorkspace);
         
         if(_isDefaultFileName() == true){
             dw_writeBuffer(textmemptr, 
@@ -566,7 +566,7 @@ void f_triggerClose(bool end_program){
 
                 len = strlen(filename);
 
-                ed_renderElements();
+                ed_renderWindows(currentWorkspace);
 
                 if(len <= 3 || len > 12){
                     dw_writeBuffer(
@@ -649,7 +649,7 @@ void f_closeCurrentFile(){
     ed_statusBarMessage("%s closed successfully.", oldFileName);
     logger("[f_closdeCurrentFile]: %s closed successfully.", oldFileName);
 
-    _updateCursor();
+    ed_updateCursor();
     ed_renderEvent = true;
 
     return;

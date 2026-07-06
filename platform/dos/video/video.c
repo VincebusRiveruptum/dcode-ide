@@ -129,6 +129,9 @@ void hal_vid_cycleVideoModes(void){
     if(v_currentMode > 8) v_currentMode = 0;
 
     hal_vid_setVideoMode(v_currentMode, HAL_SHOW_MSG);
+	
+	ed_renderEvent = true;
+	ed_fullRenderEvent = true;
 }
 
 void hal_vid_refresh(void){

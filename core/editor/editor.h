@@ -118,6 +118,7 @@
 
 extern struct Container *root;
 extern bool ed_renderEvent;
+extern bool ed_fullRenderEvent;
 extern bool on_selection_tool;
 extern bool ed_onSearchTool;
 
@@ -163,7 +164,16 @@ void ed_handleSelection();
 void ed_drawSearchTool();
 int ed_wordCountInStr(char *str);
 void ed_shellSpawn();
-void ed_renderElements();
-void _updateCursor();
+
+struct Workspace;
+
+// RENDERING
+void ed_updateWindow(struct Workspace *workspace);
+void ed_renderWindows(struct Workspace *workspace);
+
+void ed_updateCursor();
+
+void ed_eventListener();
+
 #endif
 

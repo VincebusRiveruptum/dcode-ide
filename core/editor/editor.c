@@ -214,8 +214,10 @@ void _updateScrollY(){
     if((currentFile->cursorLine - currentFile->scrollY) > displayHeight) {
         //currentFile->scrollY += currentFile->cursorLine - (displayHeight - 1);
         currentFile->scrollY++;
+		ed_renderEvent = true;
     }else if(currentFile->cursorLine <= currentFile->scrollY){
         currentFile->scrollY = currentFile->cursorLine;
+		ed_renderEvent = true;
     }
 }
 
@@ -246,6 +248,7 @@ void _updateScrollX(){
 			<= visualCursor
 		) {
             currentFile->scrollX++;
+			ed_renderEvent = true;
         }
     }
 }
@@ -257,7 +260,7 @@ void ed_updateCursor(){
     _updateCurrentCursorX();
 
     ed_putCursor(currentCursorX, currentCursorY);
-    ed_renderEvent = true;
+
 }
 
 void ed_initConfig(int argc, char *argv[]){
@@ -470,7 +473,8 @@ void ed_updateWindow(Workspace *workspace){
     wnd = workspace->currentWindow;
 
 	dw_writeBufferEditorFormatted(
-		editormemptr, 
+		//editormemptr, 
+		textmemptr, 
 		wnd->x, 
 		wnd->y, 
 		wnd->x + wnd->width, 
@@ -479,13 +483,6 @@ void ed_updateWindow(Workspace *workspace){
 		COLOR_BLACK, 
 		wnd->currentFile
 	);
-
-	// We copy from editor buffer to text video buffer.
-    editor_size = (VIDEO_COLS * (VIDEO_ROWS - 1));
-     
-    for(i=0; i < editor_size; i++){
-        textmemptr[i] = editormemptr[i];
-    }
 
 	return;
 }
@@ -529,7 +526,8 @@ void ed_renderWindows(Workspace *workspace){
 			// We re-render the editor.
 			if (wnd && wnd->currentFile) {
 				dw_writeBufferEditorFormatted(
-					editormemptr, 
+					//editormemptr, 
+					textmemptr, 
 					wnd->x, 
 					wnd->y, 
 					wnd->x + wnd->width, 
@@ -543,13 +541,6 @@ void ed_renderWindows(Workspace *workspace){
 
 		rec = rec->next;
 	}
-
-	// We copy from editor buffer to text video buffer.
-	editor_size = (VIDEO_COLS * (VIDEO_ROWS - 1));
-    
-	for(i=0; i < editor_size; i++){
-        textmemptr[i] = editormemptr[i];
-    }
 
 	return;
 }
@@ -601,6 +592,8 @@ void ed_typeChar(char c){
     ed_markActive(ED_ACTIVITY_TYPE);
     _updateScrollX();
     ed_updateCursor();
+
+	ed_renderEvent = true;
 }
 
 // Deletes a selectrion
@@ -754,6 +747,8 @@ void ed_backspace(){
 
     ed_markActive(ED_ACTIVITY_DEL);
     ed_updateCursor();
+
+	ed_renderEvent = true;
 }
 void ed_supr(){
         // We type the char at 
@@ -788,6 +783,8 @@ void ed_supr(){
 
     ed_markActive(ED_ACTIVITY_SUPR);
     ed_updateCursor();
+
+	ed_renderEvent = true;
 }
 
 void ed_newLine(){
@@ -974,6 +971,8 @@ void ed_newLine(){
     
     ed_markActive(ED_ACTIVITY_NEWLINE);
     ed_updateCursor();
+
+	ed_renderEvent = true;
 }
 
 // PROMPT ELEMENT
@@ -1531,6 +1530,8 @@ void ed_swapLine(short lineJump){
     ed_markActive(lineJump);
 
     ed_updateCursor();
+	
+	ed_renderEvent = true;
 }
 
 void ed_prepareSelectionTool(){

@@ -91,6 +91,15 @@ void dw_writeColor(unsigned short *buffer, int x, int y, unsigned short foregrou
 char dw_readForegroundColor(unsigned short *buffer, int x, int y);
 char dw_readBackgroundColor(unsigned short *buffer, int x, int y);
 
+void dw_copyFormatted(
+	unsigned short *destBuffer, 
+	int x, 
+	int y, 
+	size_t len,
+	size_t destWidth,
+	unsigned short *srcBuffer
+);
+
 extern unsigned char currentCursorX;
 extern unsigned char currentCursorY;
 

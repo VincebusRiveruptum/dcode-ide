@@ -1044,3 +1044,28 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
     return;
 }
 
+// TODO: IMPLEMENT FORMATTING
+void dw_copyFormatted(
+	unsigned short *destBuffer, 
+	int x, 
+	int y, 
+	size_t len, 
+	size_t destWidth,
+	char *srcBuffer
+){
+	unsigned int i = 0;
+	unsigned short *start = NULL;
+
+	if(!destBuffer) return;
+	if(!srcBuffer) return;
+
+	start = destBuffer + ( y * destWidth) + x;
+
+	for(i=0; i<(unsigned int) len ; i++){
+		start[i] = 
+			(unsigned short) ((unsigned char) srcBuffer[i] | 
+			((COLOR_BLACK << 4 | COLOR_WHITE) << 8));
+	};
+
+	return;
+}

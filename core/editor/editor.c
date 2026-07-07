@@ -20,6 +20,7 @@ unsigned char VIDEO_ROWS = 25;
 unsigned char currentCursorX = 0;
 unsigned char currentCursorY = 0;
 
+bool ed_renderLineEvent = true;
 bool ed_renderEvent = true;
 bool ed_fullRenderEvent = true;
 
@@ -238,6 +239,7 @@ void _updateScrollX(){
     // If cursor is to the left of the visible area
     if (visualCursor < visualScroll) {
         currentFile->scrollX = currentFile->cursorCol;
+		ed_renderEvent = true;
     } 
     // If cursor is to the right of the visible area
     else if (visualCursor >= visualScroll + displayWidth) {
@@ -318,6 +320,145 @@ void ed_markActive(unsigned char activity){
     (void)activity;
     if(currentWindow->currentFile && currentWindow->currentFile)
         currentWindow->currentFile->isActive = true;
+}
+
+
+// =======================================================================
+// Window refreshing
+
+// This just renders the current line
+void ed_renderCurrentLine(){
+	// TODO : CAREFUL OF THIS ARRAY SIZE...
+	int xpos = 0, ypos = 0;
+	size_t len = 0;
+
+	static char tempLineBuffer[1024] = {'\0'};
+	
+	if(
+		!currentWindow ||
+		!currentWindow->currentFile ||
+		!currentWindow->currentFile->currentLine
+	){
+		logger("[ed_renderCurrentLine]: invalid data...");
+		return;
+	} 
+	
+	strcpy(
+		tempLineBuffer, 
+		(currentWindow->currentFile->currentLine->buffer
+		+
+		currentWindow->currentFile->scrollX)
+	);
+
+	xpos = 
+		currentWindow->x + 
+		LINE_COUNTER_WIDTH;
+
+	ypos = 
+		(
+			currentWindow->currentFile->cursorLine - 
+			currentWindow->currentFile->scrollY
+		) +
+		currentWindow->y; 
+
+	len = 
+		currentWindow->currentFile->currentLine->length + 1;
+
+	dw_copyFormatted(
+		textmemptr,
+		xpos, 
+		ypos,
+		len,
+		VIDEO_COLS,
+		tempLineBuffer
+	);
+
+	return;
+}
+
+// This just renders the current window.
+void ed_updateWindow(Workspace *workspace){
+    Window *wnd;
+	
+    if (
+		!workspace || 
+		!workspace->windowList ||
+		!workspace->currentWindow
+	) return;
+
+    //hal_vid_clearBuffer(editormemptr);
+
+    wnd = workspace->currentWindow;
+
+	dw_writeBufferEditorFormatted(
+		//editormemptr, 
+		textmemptr, 
+		wnd->x, 
+		wnd->y, 
+		wnd->x + wnd->width, 
+		wnd->y + wnd->height, 
+		COLOR_LIGHT_GRAY, 
+		COLOR_BLACK, 
+		wnd->currentFile
+	);
+
+	return;
+}
+
+// This clears the screen and renders all windows.
+void ed_renderWindows(Workspace *workspace){
+	//int winLen = 0;
+	Node *rec = NULL;
+	Window *wnd = NULL;
+	if(!workspace){
+		logger("[r_refreshWindows]: Invalid workspace.");
+		return;
+	}
+	
+	if(!workspace->windowList){
+		logger("[r_refreshWindows]: No windows.");
+		return;
+	}
+	
+	hal_vid_clearBuffer(editormemptr);
+
+	rec = workspace->windowList->firstNode;
+	//winLen = workspace->windowList->length;
+	
+	while(rec){
+		wnd = (Window*)rec->data;
+
+		if(wnd){
+			wnd->height = VIDEO_ROWS - 2;
+
+			// TODO :
+			// Also, re calculate width and x start position relative to 
+			// the screen width.
+			
+			// ALSO...
+			// Recalculate cursor position if resoultion is lower than 
+			// the previous one
+		
+			// We re-render the editor.
+			if (wnd && wnd->currentFile) {
+				dw_writeBufferEditorFormatted(
+					//editormemptr, 
+					textmemptr, 
+					wnd->x, 
+					wnd->y, 
+					wnd->x + wnd->width, 
+					wnd->y + wnd->height, 
+					COLOR_LIGHT_GRAY, 
+					COLOR_BLACK, 
+					wnd->currentFile
+				);
+			}
+		}
+
+		rec = rec->next;
+	}
+
+	return;
 }
 
 // We reset the cursor to X:0 Y:0 relative to the active currentFileext area
@@ -454,97 +595,6 @@ void ed_moveCursor(short x, short y){
     ed_updateCursor();
 }
 
-// =======================================================================
-// Window refreshing
-// This just renders the current window.
-void ed_updateWindow(Workspace *workspace){
-    int i = 0;
-    int editor_size;
-    Window *wnd;
-	
-    if (
-		!workspace || 
-		!workspace->windowList ||
-		!workspace->currentWindow
-	) return;
-
-    //hal_vid_clearBuffer(editormemptr);
-
-    wnd = workspace->currentWindow;
-
-	dw_writeBufferEditorFormatted(
-		//editormemptr, 
-		textmemptr, 
-		wnd->x, 
-		wnd->y, 
-		wnd->x + wnd->width, 
-		wnd->y + wnd->height, 
-		COLOR_LIGHT_GRAY, 
-		COLOR_BLACK, 
-		wnd->currentFile
-	);
-
-	return;
-}
-
-// This clears the screen and renders all windows.
-void ed_renderWindows(Workspace *workspace){
-	//int winLen = 0;
-	int i = 0;
-    int editor_size;
-	Node *rec = NULL;
-	Window *wnd = NULL;
-	if(!workspace){
-		logger("[r_refreshWindows]: Invalid workspace.");
-		return;
-	}
-	
-	if(!workspace->windowList){
-		logger("[r_refreshWindows]: No windows.");
-		return;
-	}
-	
-	hal_vid_clearBuffer(editormemptr);
-
-	rec = workspace->windowList->firstNode;
-	//winLen = workspace->windowList->length;
-	
-	while(rec){
-		wnd = (Window*)rec->data;
-
-		if(wnd){
-			wnd->height = VIDEO_ROWS - 2;
-
-			// TODO :
-			// Also, re calculate width and x start position relative to 
-			// the screen width.
-			
-			// ALSO...
-			// Recalculate cursor position if resoultion is lower than 
-			// the previous one
-		
-			// We re-render the editor.
-			if (wnd && wnd->currentFile) {
-				dw_writeBufferEditorFormatted(
-					//editormemptr, 
-					textmemptr, 
-					wnd->x, 
-					wnd->y, 
-					wnd->x + wnd->width, 
-					wnd->y + wnd->height, 
-					COLOR_LIGHT_GRAY, 
-					COLOR_BLACK, 
-					wnd->currentFile
-				);
-			}
-		}
-
-		rec = rec->next;
-	}
-
-	return;
-}
-
 void ed_typeChar(char c){
     // We type the char at 
     // X : currentCursorX + LINE_COUNTER_WIDTH + 1
@@ -566,15 +616,14 @@ void ed_typeChar(char c){
     if (x < 0) x = 0;
     if (y < 0) y = 0;
         
-
     node = currentFile->currentLineNode;
     
     if(!node) {
         logger("[ed_typeChar]: Node at y=%d is NULL", y);
         return;
     }
+
     line = (Line *)node->data;
-    
     line->length++;
     
     // Had to use a loop instead of memcpy due to overlapping memory
@@ -586,7 +635,6 @@ void ed_typeChar(char c){
     line->buffer[x] = c;
 
     currentFile->cursorCol++;
-
     currentFile->isModified = true;
     
     ed_markActive(ED_ACTIVITY_TYPE);
@@ -594,6 +642,7 @@ void ed_typeChar(char c){
     ed_updateCursor();
 
 	ed_renderEvent = true;
+	ed_renderLineEvent = true;
 }
 
 // Deletes a selectrion
@@ -739,7 +788,11 @@ void ed_backspace(){
 
             currentFile->cursorCol--;
 
-            _updateScrollX();
+			if(currentFile->currentLine->length > currentWindow->width){
+            	_updateScrollX();
+			}else{
+				ed_renderLineEvent = true;
+			}
         }
     }
 
@@ -1933,6 +1986,7 @@ void ed_searchMoveCursor(){
     _updateScrollX();
     ed_updateCursor();
 }
+
 void ed_prepareSearchTool(){
     if(
 		hal_inp_keysPressed(
@@ -1961,7 +2015,6 @@ void ed_prepareSearchTool(){
         }
     } 
 }
-
 
 // Shell spawn.. 
 void ed_shellSpawn(){
@@ -2027,21 +2080,33 @@ void ed_shellSpawn(){
 // EVENT LISTENER
 void ed_eventListener(){
 	if(ed_renderEvent == true){
+		if(ed_renderLineEvent == true){
+			ed_renderCurrentLine();
+			ed_renderEvent = false;
+			ed_renderLineEvent = false;
+			return;
+		}
 		// Before rendering everything, we need
 		// to handle the resolution change
 		// and update all window bounds, coordinates
 		// and sizes.
+		
 		if(ed_fullRenderEvent == true){
 			ed_renderWindows(currentWorkspace);
 			ed_fullRenderEvent = false;
 		}else{
 			ed_updateWindow(currentWorkspace);
+			ed_renderEvent = false;
+			return;
 		}	
 		
 		// Draw overlays on top of the formatted editor buffer
-		if(settings.DEBUG == true) t_drawDebugger();
-		if(ed_onSearchTool == true) ed_drawSearchTool();
-		if(f_onFileNavigation== true) f_drawFileNavDialog();
+		if(settings.DEBUG == true) 
+			t_drawDebugger();
+		if(ed_onSearchTool == true) 
+			ed_drawSearchTool();
+		if(f_onFileNavigation== true) 
+			f_drawFileNavDialog();
 		
 		ed_resetCursor();
 

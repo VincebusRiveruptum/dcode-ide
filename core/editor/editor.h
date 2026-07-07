@@ -1,4 +1,3 @@
-
 #ifndef ENG_EDITOR_H
 #define ENG_EDITOR_H
 
@@ -117,8 +116,11 @@
 /* Types ===================================================*/
 
 extern struct Container *root;
+
+extern bool ed_renderLineEvent;
 extern bool ed_renderEvent;
 extern bool ed_fullRenderEvent;
+
 extern bool on_selection_tool;
 extern bool ed_onSearchTool;
 
@@ -168,6 +170,7 @@ void ed_shellSpawn();
 struct Workspace;
 
 // RENDERING
+void ed_renderCurrentLine();
 void ed_updateWindow(struct Workspace *workspace);
 void ed_renderWindows(struct Workspace *workspace);
 

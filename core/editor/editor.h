@@ -118,7 +118,7 @@
 extern struct Container *root;
 
 extern bool ed_renderLineEvent;
-extern bool ed_renderEvent;
+extern bool dw_renderEvent;
 extern bool ed_fullRenderEvent;
 
 extern bool on_selection_tool;
@@ -140,8 +140,6 @@ void ed_tab();
 void ed_newLine();
 void ed_resetActity();
 void ed_prepareSearchTool();
-
-void ed_resetCursor();
 
 char *ed_getDefaultExtension();
 char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars);

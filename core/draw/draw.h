@@ -59,6 +59,15 @@ typedef enum {
     DW_SIDE_ALL
 } RectangleSides;
 
+typedef enum {
+	DW_RENDER_NONE,
+	DW_RENDER_ALL,
+	DW_RENDER_WINDOW,
+	DW_RENDER_LINE,
+	DW_RENDER_CURSOR,
+	DW_RENDER_UI,
+} RenderType;
+
 void dw_cls(unsigned short *buffer);
 void dw_fill(unsigned short *buffer, unsigned char backgroundColor, unsigned char foregroundColor, unsigned char character);
 
@@ -91,16 +100,41 @@ void dw_writeColor(unsigned short *buffer, int x, int y, unsigned short foregrou
 char dw_readForegroundColor(unsigned short *buffer, int x, int y);
 char dw_readBackgroundColor(unsigned short *buffer, int x, int y);
 
+// SINGLE LINE FORMATTING
+void dw_c_lineFormatter(
+	unsigned short *destBuffer, 
+	int x, 
+	int y, 
+	size_t len, 
+	size_t destWidth,
+	char *srcBuffer
+);
+
+void dw_txt_lineFormatter(
+	unsigned short *destBuffer, 
+	int x, 
+	int y, 
+	size_t len, 
+	size_t destWidth,
+	char *srcBuffer
+);
+
 void dw_copyFormatted(
 	unsigned short *destBuffer, 
 	int x, 
 	int y, 
 	size_t len,
 	size_t destWidth,
-	unsigned short *srcBuffer
+	char *srcBuffer,
+	struct File *file
 );
 
 extern unsigned char currentCursorX;
 extern unsigned char currentCursorY;
+
+//extern bool ed_renderLineEvent;
+//extern bool ed_fullRenderEvent;
+extern bool dw_renderEvent;
+extern RenderType dw_renderEventType;
 
 #endif

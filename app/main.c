@@ -77,7 +77,7 @@ int main(int argc, char *argv[]){
 			ed_swapLine(ED_LINE_JUMP_DOWN);
 
 		// SPACE
-		if(hal_inp_isKeyDown(HAL_KEY_SPACE)) ed_renderEvent = true;
+		if(hal_inp_isKeyDown(HAL_KEY_SPACE)) dw_renderEvent = true;
         
 		// DELETE (forward)
 		if(hal_inp_isKeyPressed(HAL_KEY_DELETE)) ed_supr();

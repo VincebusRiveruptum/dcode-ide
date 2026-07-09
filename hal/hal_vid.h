@@ -1,3 +1,4 @@
+
 #ifndef HAL_VID_H
 #define HAL_VID_H
 

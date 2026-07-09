@@ -8,6 +8,7 @@
 #include "../deps/mem/mem.h"
 #include "../deps/sort/sort.h"
 #include "../deps/ext/vsnprntf.h"
+#include "../deps/str/str.h"
 
 // HAL (Hardware Abstraction Layer)
 #include "../hal/hal_vid.h"

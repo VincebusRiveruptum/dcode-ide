@@ -1,6 +1,7 @@
 #include "../../../hal/hal_vid.h"
 #include "../../../core/config/config.h"
 #include "../../../core/editor/editor.h"
+#include "../../../core/draw/draw.h"
 #include <sys/ioctl.h>
 #include <unistd.h>
 
@@ -157,8 +158,8 @@ void hal_vid_refresh(void) {
             printf("\033[2J");
             fflush(stdout);
             
-            ed_renderEvent = true;
-			ed_fullRenderEvent = true;
+            dw_renderEvent = true;
+            dw_renderEventType = DW_RENDER_ALL;
             return;
         }
     }

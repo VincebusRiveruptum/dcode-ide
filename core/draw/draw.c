@@ -1,5 +1,8 @@
 #include "draw.h"
 
+bool dw_renderEvent = true;
+RenderType dw_renderEventType=DW_RENDER_ALL;
+
 // Private functions
 
 // SENTENCE - WORD 
@@ -1044,8 +1047,10 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
     return;
 }
 
+// SINGLE LINE FORMATTING ===========================================
+
 // TODO: IMPLEMENT FORMATTING
-void dw_copyFormatted(
+void dw_c_lineFormatter(
 	unsigned short *destBuffer, 
 	int x, 
 	int y, 
@@ -1053,6 +1058,70 @@ void dw_copyFormatted(
 	size_t destWidth,
 	char *srcBuffer
 ){
+	unsigned char tjump=0;
+	unsigned int i = 0;
+	unsigned short *start = NULL;
+	char *commentStartPtr = NULL;
+	unsigned char fgcolor = COLOR_LIGHT_GRAY;
+	unsigned char bgcolor = COLOR_BLACK;
+	bool isComment = false;
+
+	if(!destBuffer) return;
+	if(!srcBuffer) return;
+
+	// Check if it starts with a comment somewher
+	commentStartPtr = strstr(srcBuffer,"//");
+
+	start = destBuffer + ( y * destWidth) + x;
+
+	while(*srcBuffer != NULL){
+		// Check if current character is a comment or not
+		if(commentStartPtr && srcBuffer >= commentStartPtr)
+			fgcolor = settings.clang_colors[DW_RESWORD_COMMENT];
+
+		switch(*srcBuffer){
+			case '\t':
+				tjump=0;
+				while(tjump<3){
+					*(++start) = 
+						(unsigned short) ((unsigned char) ' ' | 
+						((bgcolor << 4 | fgcolor) << 8));		
+					
+					tjump++;
+				};
+
+				// TAB INDICATOR
+				*(start) = 
+						(unsigned short) ((unsigned char) 
+						((settings.TAB_INDICATOR == true) ? 179 : ' ') | 
+						((bgcolor << 4 | COLOR_DARK_GRAY) << 8));
+						
+						
+					
+				
+				break;
+			default:
+				*start = 
+					(unsigned short) ((unsigned char) *srcBuffer | 
+					((bgcolor << 4 | fgcolor) << 8));
+		}
+		srcBuffer++;
+		start++;
+	};
+
+	return;
+}
+
+// TODO: IMPLEMENT FORMATTING
+void dw_txt_lineFormatter(
+	unsigned short *destBuffer, 
+	int x, 
+	int y, 
+	size_t len, 
+	size_t destWidth,
+	char *srcBuffer
+){
+	unsigned char tjump=0;
 	unsigned int i = 0;
 	unsigned short *start = NULL;
 
@@ -1061,11 +1130,65 @@ void dw_copyFormatted(
 
 	start = destBuffer + ( y * destWidth) + x;
 
-	for(i=0; i<(unsigned int) len ; i++){
-		start[i] = 
-			(unsigned short) ((unsigned char) srcBuffer[i] | 
-			((COLOR_BLACK << 4 | COLOR_WHITE) << 8));
+	while(*srcBuffer != NULL){
+		switch(*srcBuffer){
+			case '\t':
+				tjump=0;
+				while(tjump<3){
+					*(++start) = 
+						(unsigned short) ((unsigned char) ' ' | 
+						((COLOR_BLACK << 4 | COLOR_LIGHT_GRAY) << 8));		
+					
+					tjump++;
+				};
+				
+				break;
+			default:
+				*start = 
+					(unsigned short) ((unsigned char) *srcBuffer | 
+					((COLOR_BLACK << 4 | COLOR_LIGHT_GRAY) << 8));
+		}
+		srcBuffer++;
+		start++;
 	};
 
 	return;
+}
+
+void dw_copyFormatted(
+	unsigned short *destBuffer, 
+	int x, 
+	int y, 
+	size_t len, 
+	size_t destWidth,
+	char *srcBuffer,
+	File *file
+){
+	switch(file->ext){
+        case FILE_EXTENSION_C:
+            dw_c_lineFormatter(
+				destBuffer, 
+				x,
+				y,
+				len,
+				destWidth,
+				srcBuffer
+			);
+            break;
+        case FILE_EXTENSION_PYTHON:
+        case FILE_EXTENSION_JS:
+        case FILE_EXTENSION_TXT:
+        default:
+			dw_txt_lineFormatter(
+				destBuffer, 
+				x,
+				y,
+				len,
+				destWidth,
+				srcBuffer
+			);
+    }
+
+    return;
+
 }

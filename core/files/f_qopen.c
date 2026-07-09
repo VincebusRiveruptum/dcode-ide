@@ -111,7 +111,7 @@ void f_quickOpenFileDialog(){
                 sprintf(selectedEntryFullPath, "%s%s", currentPath, selectedFileEntry->name);
                 f_openFile(selectedEntryFullPath);
                 ed_updateCursor();
-                ed_renderEvent = true;
+                dw_renderEvent = true;
                 if (currPathDirectory) hal_fs_freeDirectory(currPathDirectory);
                 return;
             }
@@ -254,5 +254,5 @@ void f_quickOpenFileDialog(){
         ed_updateCursor();
     }
 
-    ed_renderEvent = true;
+    dw_renderEvent = true;
 }

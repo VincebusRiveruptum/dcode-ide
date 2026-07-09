@@ -1,4 +1,3 @@
-
 #include "files.h"
 #include "../config/config.h"
 
@@ -181,7 +180,10 @@ void f_newFile(char *filename){
     currentWindow->currentFile = newFile;
 
     ed_statusBarMessage("Created a new file.");
-    ed_resetCursor();
+    ed_updateCursor();
+
+	dw_renderEvent = true;
+	dw_renderEventType = DW_RENDER_ALL;
 }
 
 /* OPEN FILE ==============================================================================*/
@@ -324,7 +326,11 @@ bool f_openFile(char *filename){
     free(fileParsingBuffer);
 
     ed_statusBarMessage("Opened %s successfully.", currentWindow->currentFile->name);
-    return true;
+
+	dw_renderEvent = true;
+	dw_renderEventType = DW_RENDER_ALL;
+
+	return true;
 }
 
 /* SAVE FILE ==============================================================================*/
@@ -463,6 +469,9 @@ void f_saveFile(){
 
     ed_statusBarMessage("File %s saved successfully.", newFile->name);
     logger("[f_saveFile]: File %s saved successfully", newFile->name);
+
+	dw_renderEvent = true;
+	dw_renderEventType = DW_RENDER_WINDOW;
 }
 
 /* CLOSE FILE ==================================================================*/
@@ -590,6 +599,9 @@ void f_triggerClose(bool end_program){
 
     f_saveFile();
     f_closeCurrentFile();
+
+	dw_renderEvent = true;
+	dw_renderEventType = DW_RENDER_ALL;
 }
 
 void f_closeCurrentFile(){
@@ -650,8 +662,9 @@ void f_closeCurrentFile(){
     logger("[f_closdeCurrentFile]: %s closed successfully.", oldFileName);
 
     ed_updateCursor();
-    ed_renderEvent = true;
-
+	
+	dw_renderEvent = true;
+	dw_renderEventType = DW_RENDER_ALL;
     return;
 }
 
@@ -660,13 +673,13 @@ void f_closeCurrentFile(){
 void f_prepareFileNavDialog(){
 	if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LALT, HAL_KEY_LSHIFT)){
 		f_onFileNavigation = true;
-		ed_renderEvent = true;
+		dw_renderEvent = true;
 	}
 
 	if (f_onFileNavigation) {
 		if (!hal_inp_isKeyDown(HAL_KEY_LALT)) {
 			f_onFileNavigation = false;
-			ed_renderEvent = true;
+			dw_renderEvent = true;
 			return;
 		}
 
@@ -686,7 +699,7 @@ void f_prepareFileNavDialog(){
 				} else {
 					currentWindow->currentFile = (File *)currentWindow->fileList->firstNode->data;
 				}
-				ed_renderEvent = true;
+				dw_renderEvent = true;
 			}
 		}
 	}

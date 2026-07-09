@@ -33,14 +33,14 @@
 // Splits string into array of string pointers by a separator
 // This array is null terminated
 char **strsplit(char *str, const char *separator){
-        char **arr = NULL;
-        char *strStart = NULL;
-        char *strEnd = NULL;
         size_t sepLen = 0;
         size_t sepCount = 0;
         size_t strFoundLen = 0;
-        int i = 0;
-        int j = 0;
+        size_t i = 0;
+        size_t j = 0;
+        char **arr = NULL;
+        char *strStart = NULL;
+        char *strEnd = NULL;
 
         if(!str) return NULL;
         if(!separator) return NULL;
@@ -120,11 +120,11 @@ char *strinv(char *str){
 }
 // Joins array into a string by a separator
 char *strjoinint(int *arr, size_t arrlen, char *separator){
-        char *newstr = NULL;
         size_t len = 0;
-        int i;
-        char numbuff[48];
+        size_t i = 0;
         int numlen = 0;
+        char numbuff[48];
+        char *newstr = NULL;
 
         if(!separator) return NULL;
 
@@ -160,11 +160,11 @@ char *strjoinint(int *arr, size_t arrlen, char *separator){
 
 // Joins array into a string by a separator
 char *strjoinfloat(float *arr, size_t arrlen, char *separator){
-        char *newstr = NULL;
         size_t len = 0;
-        int i;
+        size_t i = 0;
+        int numlen = 0;
         char numbuff[64];
-        int numlen;
+        char *newstr = NULL;
 
         if(!separator) return NULL;
 
@@ -203,11 +203,11 @@ char *strjoinfloat(float *arr, size_t arrlen, char *separator){
 }
 
 char *strjoindouble(double *arr, size_t arrlen, char *separator){
-        char *newstr = NULL;
         size_t len = 0;
-        int i;
+        size_t i = 0;
+        int numlen = 0;
         char numbuff[64];
-        int numlen;
+        char *newstr = NULL;
 
         if(!separator) return NULL;
 
@@ -247,10 +247,9 @@ char *strjoindouble(double *arr, size_t arrlen, char *separator){
 
 // Joins array of pointed strings into a string by a separator
 char *strjoinstr(char **arr, size_t arrlen, char *separator){
-        char *newstr = NULL;
-        size_t len = 0;
-        int i;
         size_t bufflen = 0;
+        size_t i = 0;
+        char *newstr = NULL;
 
         if(!separator) return NULL;
 
@@ -297,7 +296,7 @@ char *strjoin(void *arr,unsigned char type, size_t arrlen,  char *separator){
                 case TYPE_DOUBLE:
                         return strjoindouble((double*)arr, arrlen, separator);
                 case TYPE_STR:
-                        return strjoinstr((char*)arr, arrlen, separator);
+                        return strjoinstr((char**)arr, arrlen, separator);
                 default:
                         return NULL;
         }

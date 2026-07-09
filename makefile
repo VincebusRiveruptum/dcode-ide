@@ -8,7 +8,7 @@ CFLAGS_LNK = $(OBJDIR)\CFLAGS.lnk
 
 # Split OBJS to avoid long expansion strings in some wmake versions
 OBJS_1 = $(OBJDIR)\input.obj $(OBJDIR)\vgaregs.obj $(OBJDIR)\data.obj $(OBJDIR)\sort.obj $(OBJDIR)\draw.obj
-OBJS_2 = $(OBJDIR)\test.obj $(OBJDIR)\vismem.obj $(OBJDIR)\env.obj $(OBJDIR)\mem.obj $(OBJDIR)\vsnprntf.obj
+OBJS_2 = $(OBJDIR)\test.obj $(OBJDIR)\vismem.obj $(OBJDIR)\env.obj $(OBJDIR)\mem.obj $(OBJDIR)\vsnprntf.obj $(OBJDIR)\str.obj
 OBJS_3 = $(OBJDIR)\log.obj $(OBJDIR)\editor.obj $(OBJDIR)\config.obj $(OBJDIR)\f_base.obj $(OBJDIR)\f_qopen.obj $(OBJDIR)\f_wnd.obj $(OBJDIR)\private.obj $(OBJDIR)\f_search.obj $(OBJDIR)\fs.obj $(OBJDIR)\video.obj $(OBJDIR)\main.obj 
 OBJS = $(OBJS_1) $(OBJS_2) $(OBJS_3)
 
@@ -51,6 +51,9 @@ $(OBJDIR)\sort.obj: .\deps\sort\sort.c $(CFLAGS_LNK)
 
 $(OBJDIR)\env.obj: .\deps\env\env.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\deps\env\env.c
+
+$(OBJDIR)\str.obj: .\deps\str\str.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\deps\str\str.c
 
 $(OBJDIR)\mem.obj: .\deps\mem\mem.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\deps\mem\mem.c

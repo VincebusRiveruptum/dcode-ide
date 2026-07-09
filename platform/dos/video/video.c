@@ -130,8 +130,8 @@ void hal_vid_cycleVideoModes(void){
 
     hal_vid_setVideoMode(v_currentMode, HAL_SHOW_MSG);
 	
-	ed_renderEvent = true;
-	ed_fullRenderEvent = true;
+	dw_renderEvent = true;
+	dw_renderEventType = DW_RENDER_ALL;
 }
 
 void hal_vid_refresh(void){

@@ -20,10 +20,6 @@ unsigned char VIDEO_ROWS = 25;
 unsigned char currentCursorX = 0;
 unsigned char currentCursorY = 0;
 
-bool ed_renderLineEvent = true;
-bool ed_renderEvent = true;
-bool ed_fullRenderEvent = true;
-
 bool on_selection_tool = false;
 bool ed_onSearchTool = false;
 
@@ -215,10 +211,12 @@ void _updateScrollY(){
     if((currentFile->cursorLine - currentFile->scrollY) > displayHeight) {
         //currentFile->scrollY += currentFile->cursorLine - (displayHeight - 1);
         currentFile->scrollY++;
-		ed_renderEvent = true;
+		dw_renderEvent = true;
+		dw_renderEventType = DW_RENDER_WINDOW;
     }else if(currentFile->cursorLine <= currentFile->scrollY){
         currentFile->scrollY = currentFile->cursorLine;
-		ed_renderEvent = true;
+		dw_renderEvent = true;
+		dw_renderEventType = DW_RENDER_WINDOW;
     }
 }
 
@@ -239,7 +237,8 @@ void _updateScrollX(){
     // If cursor is to the left of the visible area
     if (visualCursor < visualScroll) {
         currentFile->scrollX = currentFile->cursorCol;
-		ed_renderEvent = true;
+		dw_renderEvent = true;
+		dw_renderEventType = DW_RENDER_WINDOW;
     } 
     // If cursor is to the right of the visible area
     else if (visualCursor >= visualScroll + displayWidth) {
@@ -250,7 +249,8 @@ void _updateScrollX(){
 			<= visualCursor
 		) {
             currentFile->scrollX++;
-			ed_renderEvent = true;
+			dw_renderEvent = true;
+			dw_renderEventType = DW_RENDER_WINDOW;
         }
     }
 }
@@ -262,7 +262,6 @@ void ed_updateCursor(){
     _updateCurrentCursorX();
 
     ed_putCursor(currentCursorX, currentCursorY);
-
 }
 
 void ed_initConfig(int argc, char *argv[]){
@@ -282,7 +281,7 @@ void ed_initConfig(int argc, char *argv[]){
 
     v_currentMode = settings.DEFAULT_VIDEO_MODE;
 
-    ed_resetCursor();
+    ed_updateCursor();
 }
 
 void ed_handleArguments(int argc, char *argv[]){
@@ -306,7 +305,7 @@ void ed_handleArguments(int argc, char *argv[]){
         f_newFile(NULL);
     }
 
-    ed_renderEvent = true;
+    dw_renderEvent = true;
 }
 
 void ed_resetActity(){
@@ -370,7 +369,8 @@ void ed_renderCurrentLine(){
 		ypos,
 		len,
 		VIDEO_COLS,
-		tempLineBuffer
+		tempLineBuffer,
+		currentWindow->currentFile
 	);
 
 	return;
@@ -420,7 +420,7 @@ void ed_renderWindows(Workspace *workspace){
 		return;
 	}
 	
-	hal_vid_clearBuffer(editormemptr);
+	hal_vid_clearBuffer(textmemptr);
 
 	rec = workspace->windowList->firstNode;
 	//winLen = workspace->windowList->length;
@@ -461,15 +461,6 @@ void ed_renderWindows(Workspace *workspace){
 	return;
 }
 
-// We reset the cursor to X:0 Y:0 relative to the active currentFileext area
-void ed_resetCursor(){
-    if (!currentWindow || !currentWindow->currentFile) return;
-
-    // In th future, when the text area became a movable element we will 
-	// have to  calculate the cursor position relative to the text area 
-	// position.
-    ed_updateCursor();
-}
 
 void ed_putCursor(unsigned char x, unsigned char y){
     hal_vid_putCursor(x, y);
@@ -492,8 +483,8 @@ void ed_moveCursor(short x, short y){
 
     if( y > 0 && !(
         currentFile->cursorLine < currentFile->lines->length - 1
-    )
-)    return;
+    	)
+	)    return;
 
     // We check if we are in the current line
     if(! currentFile->currentLineNode){
@@ -571,7 +562,8 @@ void ed_moveCursor(short x, short y){
     }
     // END VERTICAL SCROLLING =====================================================
 
-    // HORIZ, SCROLLING ===========================================================
+    // HORIZ, SCROLLING =
+	// ==========================================================
     if(x){
         if(currentFile->cursorCol + x <= 0){
             currentFile->cursorCol = 0;
@@ -589,14 +581,17 @@ void ed_moveCursor(short x, short y){
     
     // END HORIZ, SCROLLING =====================================================
 
+	dw_renderEvent = true;
+	dw_renderEventType = DW_RENDER_CURSOR;
+
 	_updateScrollX();
 	_updateScrollY();
 
-    ed_updateCursor();
+
 }
 
 void ed_typeChar(char c){
-    // We type the char at 
+    // We type the char a
     // X : currentCursorX + LINE_COUNTER_WIDTH + 1
     // Y : currentCursorY + file->scrollY + 1 
     int x = 0;
@@ -641,8 +636,13 @@ void ed_typeChar(char c){
     _updateScrollX();
     ed_updateCursor();
 
-	ed_renderEvent = true;
-	ed_renderLineEvent = true;
+	dw_renderEvent = true;
+
+	if(isspace(c)){
+		dw_renderEventType = DW_RENDER_WINDOW;
+	}else{
+		dw_renderEventType = DW_RENDER_LINE;
+	}
 }
 
 // Deletes a selectrion
@@ -773,6 +773,8 @@ void ed_backspace(){
             ? (Line*) currentFile->currentLineNode->next->data
             : NULL;
 
+		dw_renderEventType = DW_RENDER_WINDOW;
+
     }else{
         if(currentFile->cursorCol > 0){
             memcpy(
@@ -791,7 +793,7 @@ void ed_backspace(){
 			if(currentFile->currentLine->length > currentWindow->width){
             	_updateScrollX();
 			}else{
-				ed_renderLineEvent = true;
+				dw_renderEventType = DW_RENDER_WINDOW;
 			}
         }
     }
@@ -801,7 +803,7 @@ void ed_backspace(){
     ed_markActive(ED_ACTIVITY_DEL);
     ed_updateCursor();
 
-	ed_renderEvent = true;
+	dw_renderEvent = true;
 }
 void ed_supr(){
         // We type the char at 
@@ -837,7 +839,8 @@ void ed_supr(){
     ed_markActive(ED_ACTIVITY_SUPR);
     ed_updateCursor();
 
-	ed_renderEvent = true;
+	dw_renderEventType = DW_RENDER_WINDOW;
+	dw_renderEvent = true;
 }
 
 void ed_newLine(){
@@ -1025,7 +1028,8 @@ void ed_newLine(){
     ed_markActive(ED_ACTIVITY_NEWLINE);
     ed_updateCursor();
 
-	ed_renderEvent = true;
+	dw_renderEventType = DW_RENDER_WINDOW;
+	dw_renderEvent = true;
 }
 
 // PROMPT ELEMENT
@@ -1243,6 +1247,8 @@ void ed_putCursorEnd(){
 		currentFile->currentLine->length;
 
     _updateScrollX();
+
+	dw_renderEventType = DW_RENDER_WINDOW;
     ed_updateCursor();
 }
 
@@ -1256,6 +1262,8 @@ void ed_putCursorStart(){
     currentFile->cursorCol = 0;
 
     _updateScrollX();
+	
+	dw_renderEventType = DW_RENDER_WINDOW;
     ed_updateCursor();
 }
 
@@ -1310,6 +1318,7 @@ void ed_putCursorFistLine(){
     currentFile->cursorLine = 0;
     currentFile->cursorCol = currentCursorX - LINE_COUNTER_WIDTH;
     
+	dw_renderEventType = DW_RENDER_WINDOW;
     ed_updateCursor();
 }
 
@@ -1374,6 +1383,7 @@ void ed_putCursorLastLine(){
 		currentFile->cursorCol = currentFile->currentLine->length - 1;
 	}
 
+	dw_renderEventType = DW_RENDER_WINDOW;
 	ed_updateCursor();
 }
 
@@ -1388,7 +1398,7 @@ void ed_statusBarMessage(const char *format,  ...){
     vsprintf(statusBarMessage, format, args);
     va_end(args);
 
-	ed_renderEvent = true;
+	dw_renderEvent = true;
 
     return;
 }
@@ -1405,7 +1415,7 @@ bool ed_checkStatusBarMessage(){
     if(difftime(endClock, ed_globalAuxTimer) > 5){
         memset(statusBarMessage, '\0', ED_STATUSBAR_WIDTH - 1);
         ed_globalAuxTimer = 0;
-        ed_renderEvent = true;
+        dw_renderEvent = true;
         return false;
     }  
 
@@ -1584,7 +1594,8 @@ void ed_swapLine(short lineJump){
 
     ed_updateCursor();
 	
-	ed_renderEvent = true;
+	dw_renderEventType = DW_RENDER_WINDOW;
+	dw_renderEvent = true;
 }
 
 void ed_prepareSelectionTool(){
@@ -1980,7 +1991,6 @@ void ed_searchMoveCursor(){
         ((WordMetadata*) currentFileSearch->currentWordNode->data)->cursorLine
         ? ((WordMetadata *)currentFileSearch->currentWordNode->data)->cursorLine
         : 0;
-	logger("ed_searchMoveCursor!!");
 
     _updateScrollY();
     _updateScrollX();
@@ -1999,18 +2009,18 @@ void ed_prepareSearchTool(){
     if(ed_onSearchTool == true){
         if(hal_inp_isKeyPressed(HAL_KEY_ESC)){
             ed_onSearchTool = false;
-            ed_renderEvent = true;
+            dw_renderEvent = true;
         }else{
             ed_drawSearchTool();
             if(hal_inp_isKeyPressed(HAL_KEY_ESC)){
                 ed_onSearchTool = false;
-                ed_renderEvent = true;
+                dw_renderEvent = true;
             }else if (!hal_inp_isKeyDown(HAL_KEY_ENTER)){
                 ed_findWord();
-                ed_renderEvent = true;
+                dw_renderEvent = true;
             }else{                
                 ed_searchMoveCursor();
-                ed_renderEvent = true;
+                dw_renderEvent = true;
             }
         }
     } 
@@ -2074,47 +2084,47 @@ void ed_shellSpawn(){
     
     hal_vid_setVideoMode(v_currentMode, false);
 
-    ed_renderEvent = true;
+    dw_renderEvent = true;
 }
 
 // EVENT LISTENER
 void ed_eventListener(){
-	if(ed_renderEvent == true){
-		if(ed_renderLineEvent == true){
-			ed_renderCurrentLine();
-			ed_renderEvent = false;
-			ed_renderLineEvent = false;
-			return;
-		}
-		// Before rendering everything, we need
-		// to handle the resolution change
-		// and update all window bounds, coordinates
-		// and sizes.
-		
-		if(ed_fullRenderEvent == true){
-			ed_renderWindows(currentWorkspace);
-			ed_fullRenderEvent = false;
-		}else{
-			ed_updateWindow(currentWorkspace);
-			ed_renderEvent = false;
-			return;
-		}	
-		
-		// Draw overlays on top of the formatted editor buffer
-		if(settings.DEBUG == true) 
-			t_drawDebugger();
+	if(dw_renderEvent == true){
+		switch (dw_renderEventType){
+			case DW_RENDER_CURSOR:
+				ed_updateCursor();
+				hal_vid_refresh();
+				dw_renderEvent = false;
+				return;
+			case DW_RENDER_LINE:
+				ed_renderCurrentLine();
+				break;
+			case DW_RENDER_WINDOW:
+				ed_updateWindow(currentWorkspace);
+				break;
+			case DW_RENDER_UI:
+				// not used yet
+				break;
+			case DW_RENDER_ALL:
+				ed_renderWindows(currentWorkspace);
+				break;
+			default:
+				break;
+			}
+
 		if(ed_onSearchTool == true) 
 			ed_drawSearchTool();
+
+		if(settings.DEBUG == true) 
+			t_drawDebugger();
+
 		if(f_onFileNavigation== true) 
 			f_drawFileNavDialog();
-		
-		ed_resetCursor();
 
-		if(!ed_onSearchTool) {
-			hal_vid_refresh();
-		}
+		ed_updateCursor();
+		hal_vid_refresh();
 		
-		ed_renderEvent = false;
+		dw_renderEvent = false;
 	}
 
 }

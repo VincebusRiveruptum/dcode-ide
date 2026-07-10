@@ -174,7 +174,7 @@ void ed_renderWindows(struct Workspace *workspace);
 
 void ed_updateCursor();
 
-void ed_eventListener();
+void dw_renderEventDispatcher();
 
 #endif
 

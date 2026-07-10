@@ -27,6 +27,8 @@ int main(int argc, char *argv[]){
 		logger("[main]: %d (no args)", argc);
 	}
 
+    dw_requestRenderEvent(DW_RENDER_ALL);
+	
 	while(endProgram == false){
 		ed_prepareSelectionTool();
 		
@@ -161,9 +163,8 @@ int main(int argc, char *argv[]){
 
 		// Independent from render-event. as it always poll
 		// globalAuxTimer if there is any timer activated.
-		ed_statusBar();	
 
-		ed_eventListener();
+		dw_renderEventDispatcher();
 		
 		hal_inp_updateKeyboard();
 	}

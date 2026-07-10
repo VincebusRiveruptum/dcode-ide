@@ -60,12 +60,13 @@ typedef enum {
 } RectangleSides;
 
 typedef enum {
-	DW_RENDER_NONE,
-	DW_RENDER_ALL,
-	DW_RENDER_WINDOW,
-	DW_RENDER_LINE,
+	DW_RENDER_NONE = 0,
 	DW_RENDER_CURSOR,
+	DW_RENDER_LINE,
+	DW_RENDER_STATUSBAR,
 	DW_RENDER_UI,
+	DW_RENDER_WINDOW,
+	DW_RENDER_ALL,
 } RenderType;
 
 void dw_cls(unsigned short *buffer);
@@ -128,6 +129,9 @@ void dw_copyFormatted(
 	char *srcBuffer,
 	struct File *file
 );
+
+void dw_renderEventDispatcher();
+void dw_requestRenderEvent(RenderType renderType);
 
 extern unsigned char currentCursorX;
 extern unsigned char currentCursorY;

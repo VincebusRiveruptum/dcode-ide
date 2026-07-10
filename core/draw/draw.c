@@ -1192,3 +1192,71 @@ void dw_copyFormatted(
     return;
 
 }
+
+// RENDER EVENT REQUEST-DISPATCH=====================================
+
+void dw_requestRenderEvent(RenderType renderType){
+    if(dw_renderEventType < renderType)
+        dw_renderEventType = renderType;
+
+    dw_renderEvent = true;
+}
+
+// EVENT DISPATCHER
+void dw_renderEventDispatcher(){
+    if(ed_globalAuxTimer > 0)
+        ed_checkStatusBarMessage();
+
+	if(dw_renderEvent == true){
+		switch (dw_renderEventType){
+			case DW_RENDER_CURSOR:
+				ed_updateCursor();
+                dw_renderEventType = DW_RENDER_NONE;
+				dw_renderEvent = false;
+				hal_vid_refresh();
+				return;
+			case DW_RENDER_LINE:
+				ed_renderCurrentLine();
+                dw_renderEventType = DW_RENDER_NONE;
+				dw_renderEvent = false;
+                hal_vid_refresh();
+				return;
+            case DW_RENDER_STATUSBAR:
+		        ed_statusBar();	
+                dw_renderEventType = DW_RENDER_NONE;
+                dw_renderEvent = false;
+                hal_vid_refresh();
+                return;
+			case DW_RENDER_WINDOW:
+				ed_updateWindow(currentWorkspace);
+				break;
+			case DW_RENDER_UI:
+				ed_updateWindow(currentWorkspace);
+				break;
+			case DW_RENDER_ALL:
+                ed_renderWindows(currentWorkspace);
+                	
+				break;
+			default:
+				break;
+			}
+
+        ed_statusBar();
+
+		if(ed_onSearchTool == true) 
+			ed_drawSearchTool();
+
+		if(settings.DEBUG == true) 
+			t_drawDebugger();
+
+		if(f_onFileNavigation== true) 
+			f_drawFileNavDialog();
+
+		ed_updateCursor();
+		hal_vid_refresh();
+		
+		dw_renderEvent = false;
+        dw_renderEventType = DW_RENDER_NONE;
+	}
+
+}

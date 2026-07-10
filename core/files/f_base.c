@@ -1,5 +1,4 @@
 #include "files.h"
-#include "../config/config.h"
 
 bool f_onFileNavigation = false;
 bool endProgram = false;
@@ -103,7 +102,7 @@ void f_newFile(char *filename){
 		? settings.MAX_FILE_INSTANCE_SIZE 
 		: MEM_ARENA_256K;
     
-	arena = (MemoryArena *)mem_create_arena(tempName, arenaSize);
+	arena = (MemoryArena *)mem_arena_create(tempName, arenaSize);
     if(!arena){
         logger("[f_newFile]: Failed creating memory arena");
         return;
@@ -114,8 +113,7 @@ void f_newFile(char *filename){
         logger("[f_newFile]: Could not create new file!.");
         return;
     }
-    memset(newFile, 0, sizeof(File));
-    
+
     newFile->arena = arena;
     newFile->name = (char*)mem_arena_alloc(arena, sizeof(tempName) * sizeof(char));
     if(!newFile->name){
@@ -123,17 +121,14 @@ void f_newFile(char *filename){
         return;
     }
     
-    memset(newFile->name, '\0', MAX_FILE_NAME * sizeof(char));
     strcpy(newFile->name, tempName);
+
 	newFile->ext = f_getExtensionId(newFile->name);
     newFile->bufferLength = 0;
     
     newFile->lines = (List*)mem_arena_alloc(arena, sizeof(List));
-    memset(newFile->lines, 0, sizeof(List));
-    
     newFile->deletedLines = (List*)mem_arena_alloc(arena, sizeof(List));
-    memset(newFile->deletedLines, 0, sizeof(List));
-    
+
 	firstLine = (Line*)mem_arena_alloc(arena, sizeof(Line));
     if(!firstLine){
         logger("[f_newFile]: Could not create initial line to new file!");
@@ -147,7 +142,6 @@ void f_newFile(char *filename){
     }
     
     firstLine->length = 0;
-    memset(firstLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
 
     addGenericNode(&newFile->lines, (void*)firstLine, arena);
         
@@ -174,7 +168,7 @@ void f_newFile(char *filename){
 
     newFile->isModified = false;
     newFile->isActive = false;
-	newFile->currentFileSearch = NULL;
+	newFile->currentFileSearch = f_createSearchMetadata(newFile->name);
 
     f_addFileToWindow(currentWindow, newFile);
     currentWindow->currentFile = newFile;
@@ -182,8 +176,7 @@ void f_newFile(char *filename){
     ed_statusBarMessage("Created a new file.");
     ed_updateCursor();
 
-	dw_renderEvent = true;
-	dw_renderEventType = DW_RENDER_ALL;
+  	dw_requestRenderEvent(DW_RENDER_ALL);
 }
 
 /* OPEN FILE ==============================================================================*/
@@ -229,7 +222,7 @@ bool f_openFile(char *filename){
         fileSize += defaultMax;
     }
 
-    arena = mem_create_arena(filename + fs_getFileName(filename), fileSize);
+    arena = mem_arena_create(fs_getFileName(filename), fileSize);
     if(!arena){
         logger("[f_openFile]: Failed creating memory arena");
         fclose(fp);
@@ -270,8 +263,10 @@ bool f_openFile(char *filename){
     file->selectedEndLine = 0;
     file->selectedStartNode = NULL;
     file->selectedEndNode = NULL;
-
+	
+	file->currentFileSearch = f_createSearchMetadata(file->name);
     fseek(fp, 0, SEEK_END);
+
     file->bufferLength = ftell(fp);
     rewind(fp);
     
@@ -284,7 +279,6 @@ bool f_openFile(char *filename){
 	memset(fileParsingBuffer, '\0', file->bufferLength + 1);
 	
     file->bufferLength = fread(fileParsingBuffer, sizeof(char), file->bufferLength, fp);
-    file->currentFileSearch = NULL;
 
     f_addFileToWindow(currentWindow, file);
     currentWindow->currentFile = file;
@@ -327,8 +321,7 @@ bool f_openFile(char *filename){
 
     ed_statusBarMessage("Opened %s successfully.", currentWindow->currentFile->name);
 
-	dw_renderEvent = true;
-	dw_renderEventType = DW_RENDER_ALL;
+  	dw_requestRenderEvent(DW_RENDER_ALL);
 
 	return true;
 }
@@ -360,7 +353,7 @@ void f_saveFile(){
         return;
     }
     
-    newArena = mem_create_arena(newArenaName, oldFile->arena->size);
+    newArena = mem_arena_create(newArenaName, oldFile->arena->size);
     if(!newArena){
         logger("[f_saveFile]: Could not create swapping arena!");
         return;
@@ -463,6 +456,8 @@ void f_saveFile(){
     f_closeFile(oldFile);
 
     newFile->isModified = false;
+	newFile->currentFileSearch = f_createSearchMetadata(newFile->name);
+
     currentWindow->currentFile = newFile;
 
     free(fileParsingBuffer);
@@ -470,8 +465,7 @@ void f_saveFile(){
     ed_statusBarMessage("File %s saved successfully.", newFile->name);
     logger("[f_saveFile]: File %s saved successfully", newFile->name);
 
-	dw_renderEvent = true;
-	dw_renderEventType = DW_RENDER_WINDOW;
+  	dw_requestRenderEvent(DW_RENDER_ALL);
 }
 
 /* CLOSE FILE ==================================================================*/
@@ -481,6 +475,7 @@ void f_closeFile(File *file){
     sprintf(arenaName, "%s", file->arena->name);
 
     mem_arena_free(file->arena);
+	f_freeSearchMetadata(file->currentFileSearch);
     logger("[f_closeFile]: File %s closed successfully", arenaName);    
 }
 
@@ -542,7 +537,7 @@ void f_triggerClose(bool end_program){
             return;
         } 
         
-        ed_renderWindows(currentWorkspace);
+        //ed_renderWindows(currentWorkspace);
         
         if(_isDefaultFileName() == true){
             dw_writeBuffer(textmemptr, 
@@ -575,7 +570,7 @@ void f_triggerClose(bool end_program){
 
                 len = strlen(filename);
 
-                ed_renderWindows(currentWorkspace);
+                //ed_renderWindows(currentWorkspace);
 
                 if(len <= 3 || len > 12){
                     dw_writeBuffer(
@@ -600,8 +595,7 @@ void f_triggerClose(bool end_program){
     f_saveFile();
     f_closeCurrentFile();
 
-	dw_renderEvent = true;
-	dw_renderEventType = DW_RENDER_ALL;
+  	dw_requestRenderEvent(DW_RENDER_ALL);
 }
 
 void f_closeCurrentFile(){
@@ -663,8 +657,7 @@ void f_closeCurrentFile(){
 
     ed_updateCursor();
 	
-	dw_renderEvent = true;
-	dw_renderEventType = DW_RENDER_ALL;
+	dw_requestRenderEvent(DW_RENDER_ALL);
     return;
 }
 
@@ -673,13 +666,14 @@ void f_closeCurrentFile(){
 void f_prepareFileNavDialog(){
 	if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LALT, HAL_KEY_LSHIFT)){
 		f_onFileNavigation = true;
-		dw_renderEvent = true;
+		
+		dw_requestRenderEvent(DW_RENDER_ALL);
 	}
 
 	if (f_onFileNavigation) {
 		if (!hal_inp_isKeyDown(HAL_KEY_LALT)) {
 			f_onFileNavigation = false;
-			dw_renderEvent = true;
+			dw_requestRenderEvent(DW_RENDER_ALL);
 			return;
 		}
 
@@ -699,7 +693,7 @@ void f_prepareFileNavDialog(){
 				} else {
 					currentWindow->currentFile = (File *)currentWindow->fileList->firstNode->data;
 				}
-				dw_renderEvent = true;
+				dw_requestRenderEvent(DW_RENDER_ALL);
 			}
 		}
 	}

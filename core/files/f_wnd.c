@@ -222,7 +222,7 @@ void f_splitWindow(){
 	currentWorkspace->currentWindow = newWnd;
 	currentWindow = newWnd;
 
-	dw_renderEvent = true;
+  	dw_requestRenderEvent(DW_RENDER_ALL);
 }
 
 void f_cycleActiveWindow(){
@@ -251,6 +251,6 @@ void f_cycleActiveWindow(){
 		currentWorkspace->currentWindow = (Window *)nextNode->data;
 		currentWindow = currentWorkspace->currentWindow;
 
-		dw_renderEvent = true;
+	  	dw_requestRenderEvent(DW_RENDER_ALL);
 	}
 }

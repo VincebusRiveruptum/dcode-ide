@@ -6,7 +6,7 @@
     Instructions:
 
     1. First before everything, you need to call mem_init()
-    2. Then you need to call mem_create_arena() to create an arena
+    2. Then you need to call mem_arena_create() to create an arena
     3. Then you can use mem_arena_alloc() to allocate memory
     4. Then you can use mem_arena_reset() to reset the arena
     5. Then you can use mem_arena_free() to free the arena
@@ -14,10 +14,10 @@
 
 */ 
 
-void *mem_create_arena(char *name, size_t size){
+void *mem_arena_create(char *name, size_t size){
     MemoryArena *newArena = (MemoryArena *)malloc(sizeof(MemoryArena));
     if (!newArena) {
-        logger("[mem_create_arena]: Could not allocate MemoryArena header");
+        logger("[mem_arena_create]: Could not allocate MemoryArena header");
         return NULL;
     }
     mem_arena_init(newArena, name, size);
@@ -73,6 +73,8 @@ void *mem_arena_alloc(MemoryArena *arenaPtr, size_t size){
 
     ptr = (void *)((unsigned char *)arenaPtr->base + arenaPtr->offset);
     arenaPtr->offset += size;
+
+	memset(ptr, 0, sizeof(size));
 
     return ptr;
 }

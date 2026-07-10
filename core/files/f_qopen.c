@@ -1,4 +1,3 @@
-
 #include "files.h"
 
 /*
@@ -111,7 +110,7 @@ void f_quickOpenFileDialog(){
                 sprintf(selectedEntryFullPath, "%s%s", currentPath, selectedFileEntry->name);
                 f_openFile(selectedEntryFullPath);
                 ed_updateCursor();
-                dw_renderEvent = true;
+                dw_requestRenderEvent(DW_RENDER_ALL);
                 if (currPathDirectory) hal_fs_freeDirectory(currPathDirectory);
                 return;
             }
@@ -254,5 +253,5 @@ void f_quickOpenFileDialog(){
         ed_updateCursor();
     }
 
-    dw_renderEvent = true;
+    dw_requestRenderEvent(DW_RENDER_ALL);
 }

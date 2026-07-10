@@ -28,5 +28,5 @@ Directory *hal_fs_getDirectoryFileList(const char *path);
 void hal_fs_freeDirectory(Directory *d);
 
 char *fs_getFileExtension(char *filename);
-size_t fs_getFileName(char *filename);
+char *fs_getFileName(char *filename);
 #endif

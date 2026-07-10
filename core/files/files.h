@@ -2,6 +2,7 @@
 #define APP_FILES_H
 
 #include "../std.h"
+
 #include "../../app/main.h"
 #include "../../deps/data/data.h"
 
@@ -176,7 +177,13 @@ void f_prepareFileNavDialog();
 void f_drawFileNavDialog();
 
 // f_search
+void ed_prepareSearchTool();
+SearchMetadata *f_createSearchMetadata(char *filename);
+void f_freeSearchMetadata(SearchMetadata *data);
 void f_flushSearchMetadata();
+void ed_drawSearchTool();
+void ed_searchMoveCursor();
+void ed_findWord();
 
 // f_qopen
 void f_quickOpenFileDialog();

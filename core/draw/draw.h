@@ -4,6 +4,8 @@
 #include "../std.h"
 
 #include "../../app/main.h"
+#include "../config/config.h"
+#include "../editor/editor.h"
 
 struct File;
 
@@ -65,6 +67,7 @@ typedef enum {
 	DW_RENDER_LINE,
 	DW_RENDER_STATUSBAR,
 	DW_RENDER_UI,
+	DW_RENDER_SEARCH,
 	DW_RENDER_WINDOW,
 	DW_RENDER_ALL,
 } RenderType;

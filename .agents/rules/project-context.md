@@ -31,10 +31,11 @@ This app could be helpful for anyone in my scenario, where there is interest in 
     make -f makefile.linux
     ```
     This compiles and links the Linux-specific source files to produce `dcode` inside `bin/linux/`.
- 
+
 ## Coding Style Rules
 
 The project strictly follows the coding standards defined in the sibling rules file `.agents/rules/c-code-stlye.md` (note the spelling typo in the filename):
+
 - **Standard**: C89 (strict 90's compatibility).
 - **Naming Scheme**: Function names must follow a module abbreviation prefix structure: `moduleabreviation_functionName` (e.g., `vid_putPixel` or `ed_typeChar`).
 - **Defensive Coding**: Early error validation to avoid heavily nested `if` blocks (e.g., `if (!videoMemory) return 0;`).
@@ -42,29 +43,35 @@ The project strictly follows the coding standards defined in the sibling rules f
 ## Advanced Architecture & Subsystems
 
 ### 1. Rendering & Buffering Pipeline
+
 DCode IDE uses a multi-layered, flicker-free rendering pipeline:
+
 - **File Buffer / Doubly Linked List**: Text is managed in memory as a doubly linked list of lines.
 - **Editor Buffer (`editormemptr`)**: A local buffer containing the formatted/rendered editor text and UI components.
 - **Video Buffer (`textmemptr` at `0xB8000` on DOS)**: Direct memory access write for VGA Text Mode 3 (or ANSI escape rendering on Linux).
 
 ### 2. Memory Arena Management
+
 To prevent memory fragmentation in vintage DOS environments, a custom arena memory allocation system is implemented under `deps/mem/`:
+
 - Each open file gets its own dynamically allocated memory "arena" (`MemoryArena`) to store its line structures and data.
-- Standard memory allocation helper functions (`mem_create_arena` and `mem_arena_alloc`) do not use fixed types or static arrays; they allocate structures on the heap dynamically, scaling with the number of open windows and tabs.
+- Standard memory allocation helper functions (`mem_arena_create` and `mem_arena_alloc`) do not use fixed types or static arrays; they allocate structures on the heap dynamically, scaling with the number of open windows and tabs.
 
 ### 3. Keyboard Input & ISR Handling
+
 - The editor employs a platform-specific keyboard driver defined under `platform/dos/input/` and `platform/linux/input/` through `hal/hal_inp.h`. On DOS, it uses a custom ISR (Interrupt Service Routine) to detect complex key combinations and modifier edge states (e.g., holding `Alt` while pressing `Shift`).
 - Standard characters and arrow navigation keys are captured by querying `kbhit()` and `getch()` to leverage standard BIOS translation for different codepages (e.g., CP437).
 - Buffer syncing is crucial: to prevent hotkeys (like `Ctrl+O`) from leaking as ghost inputs into dialog text prompts, the input buffer must be synchronized by waiting for key release (`inp_waitForRelease()`) and clearing the buffer (`inp_clearKeyboardBuffer()`) before opening prompts.
 
 ### 4. Direct VGA/VESA Video Modes
+
 - Direct register manipulation is used to modify the CRT controller and sequencer registers for changing display resolutions under DOS (`platform/dos/video/`).
 - Supports standard `80x25` as well as high-density modes (`80x43`, `80x50`, `132x50`, `132x60`, etc.), cycled using the `F11` hotkey (or specified via settings).
 
 ## Sub-dialogs & Core IDE Features
 
 - **Quick Open Dialog (`Ctrl+O`)**: Reactive filesystem viewer that dynamically updates the list of files in the current folder as the user types an absolute path.
-- **File Switcher (`Alt+Shift`)**: Non-blocking async visual overlay triggered by holding `Alt` and tapping `Shift` to cycle through tabs opened *in the current window* using the main loop's cycle.
+- **File Switcher (`Alt+Shift`)**: Non-blocking async visual overlay triggered by holding `Alt` and tapping `Shift` to cycle through tabs opened _in the current window_ using the main loop's cycle.
 - **Window Split (`Ctrl + \`)**: Splits the screen vertically. The new pane duplicates the active tab, sharing the exact same file memory space so that edits are instantly synchronized.
 - **Window Switcher (`Ctrl + W`)**: Cycles cursor focus through open split panes. Closing all tabs in a split automatically closes the split window and expands the remaining split back to full screen.
 - **Search Tool (`Ctrl+F`)**: Dialogue that counts matching occurrences of a string in the current file; navigates matches forward with `Enter` and backward with `Shift+Enter`.
@@ -75,25 +82,31 @@ To prevent memory fragmentation in vintage DOS environments, a custom arena memo
 ## Folder & Component Structure
 
 ### Root
+
 - **`makefile`**: Build instructions for Watcom C (MS-DOS).
 - **`makefile.linux`**: Build instructions for GCC (Linux).
 - **`readme.md`**: High-level details of key features, building, and running.
 - **`.agents/rules/`**: Context guidelines for AI coding assistants.
 
 ### `app/`
+
 - **`main.c` / `main.h`**: Application entry point, main event loop, global keybinding declarations, and keyboard ISR initialization/teardown.
 
 ### `hal/` (Hardware Abstraction Layer)
+
 Defines unified cross-platform interfaces for hardware control:
+
 - **`hal_fs.h`**: Filesystem and directory listing abstraction.
 - **`hal_inp.h`**: Keyboard input and ISR driver abstraction.
 - **`hal_vid.h`**: Text-mode/video mode abstraction.
 
 ### `platform/` (Platform-Specific Implementations)
+
 - **`dos/`**: MS-DOS specific implementations for fs, input ISR, and VGA text mode video.
 - **`linux/`**: Linux specific implementations for terminal keyboard input, ANSI escape video rendering, and filesystem operations.
 
 ### `core/` (Core Engine Modules)
+
 - **`config/`**: Handling editor configuration options (smart closing, indentation, colors).
 - **`draw/`**: Low-level screen buffering, borders, box drawing characters, window layouts, and editor token syntax highlighting.
 - **`editor/`**: Central text manipulation (backspace, type character, newline), cursor navigation, search logic, selection logic, and shell spawning.
@@ -103,6 +116,7 @@ Defines unified cross-platform interfaces for hardware control:
 - **`std.h`**: Aggregate header of standard libraries.
 
 ### `deps/` (Generic/Reusable Dependencies)
+
 - **`data/`**: Doubly linked list implementation for text lines and generic collections.
 - **`env/`**: Deserialization of config files (`.cfg` / `.env`). Loads editor config.
 - **`ext/`**: Extends standard C library functions (e.g., custom `vsnprintf` implementation).
@@ -113,11 +127,14 @@ Defines unified cross-platform interfaces for hardware control:
 - **`str/`**: Custom string utilities (trimming, slicing, reversing).
 
 ### `bin/` (Build Outputs)
+
 - **`dos/`**: Intermediate object files (`.OBJ`) and the compiled `dcode.exe` DOS binary.
 - **`linux/`**: Compiled `dcode` Linux binary.
 
 ### `books/`
+
 - Reference manuals, cheatsheets, and architectural documentation for the editor's development.
 
 ### `pground/`
+
 - A playground directory containing standalone code (`pground.c`) for testing.

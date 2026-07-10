@@ -43,7 +43,7 @@ typedef struct MemoryArena{
 /* PROTOTYPES ===========================================================================*/
 
 void mem_arena_init(MemoryArena *arenaPtr, char *name,size_t size);
-void *mem_create_arena(char *name, size_t size);
+void *mem_arena_create(char *name, size_t size);
 void *mem_arena_alloc(MemoryArena *arenaPtr, size_t size);
 void mem_arena_reset(MemoryArena *arenaPtr);
 void mem_arena_free( MemoryArena *arenaPtr);

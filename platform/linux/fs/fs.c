@@ -94,19 +94,21 @@ char *fs_getFileExtension(char *filename){
     return strrchr(filename, '.');
 }
 
-size_t fs_getFileName(char *filename){
+// We get where the file name starts
+char *fs_getFileName(char *filename){
     size_t length = 0;
-    size_t slashPos = 0;
-    char pathSep = FS_PATH_SEPARATOR[0];
+    char *end = NULL;
+	if(!filename) return NULL;
     
-    while(filename[length] != '\0'){
-        if(filename[length] == pathSep){
-            slashPos = length;
+	length = strlen(filename);
+	end = filename + length;
+
+    while(end >= filename){ 
+        if(*end == FS_PATH_SEPARATOR[0] ){ 
+			return end + 1;
         }
-        length++;
+        end--;
     }
 
-    if(slashPos == 0) return 0;
-
-    return slashPos + 1;
+	return filename;
 }

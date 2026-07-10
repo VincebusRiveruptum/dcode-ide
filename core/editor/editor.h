@@ -172,6 +172,8 @@ void ed_renderCurrentLine();
 void ed_updateWindow(struct Workspace *workspace);
 void ed_renderWindows(struct Workspace *workspace);
 
+void ed_updateScrollX();
+void ed_updateScrollY();
 void ed_updateCursor();
 
 void dw_renderEventDispatcher();

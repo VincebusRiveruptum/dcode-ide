@@ -1227,6 +1227,10 @@ void dw_renderEventDispatcher(){
                 dw_renderEvent = false;
                 hal_vid_refresh();
                 return;
+			case DW_RENDER_SEARCH:
+				ed_updateWindow(currentWorkspace);
+				ed_drawSearchTool();
+				break;
 			case DW_RENDER_WINDOW:
 				ed_updateWindow(currentWorkspace);
 				break;
@@ -1242,9 +1246,6 @@ void dw_renderEventDispatcher(){
 			}
 
         ed_statusBar();
-
-		if(ed_onSearchTool == true) 
-			ed_drawSearchTool();
 
 		if(settings.DEBUG == true) 
 			t_drawDebugger();

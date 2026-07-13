@@ -1,7 +1,7 @@
 
 #include "files.h"
 
-int _checkAvailableName(){
+int _checkAvailableName(void){
 	int maxIndex = 0;
     int index = 0;
     char *fileName;
@@ -187,7 +187,7 @@ int _goBackPath(char *path){
 }
 
 // We check if the filename is a default one (ie newfile1.c)
-bool _isDefaultFileName(){
+bool _isDefaultFileName(void){
     char filename[8] = {'\0'};
     bool res = false;
 	File *currentFile = NULL;

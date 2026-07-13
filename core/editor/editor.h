@@ -2,6 +2,7 @@
 #define ENG_EDITOR_H
 
 #include "../std.h"
+#include "../files/files.h"
 
 // THIS REQUIRE THE INPUT DEPS
 #include "../../app/main.h"
@@ -126,11 +127,16 @@ extern bool ed_onSearchTool;
 
 extern time_t ed_globalAuxTimer;
 extern char statusBarMessage[ED_STATUSBAR_WIDTH];
+
 /* Prototypes ==============================================*/
 
+#include "private.h"
+
+// ed_cfg
 void ed_initConfig(int argc, char *argv[]);
 void ed_handleArguments(int argc, char *argv[]);
 
+// ed_base
 void ed_putCursor(unsigned char x, unsigned char y);
 void ed_moveCursor(short x, short y);
 void ed_typeChar(char c);
@@ -150,19 +156,25 @@ void ed_putCursorStart();
 
 void ed_putCursorFistLine();
 void ed_putCursorLastLine();
-void ed_statusBarMessage(const char *format,  ...);
-bool ed_checkStatusBarMessage();
-void ed_statusBar();
 
 void ed_wordJump(short wordJump);
 void ed_swapLine(short lineJump);
 
+// ed_statb
+void ed_statusBarMessage(const char *format,  ...);
+bool ed_checkStatusBarMessage();
+void ed_statusBar();
+
+// ed_sel
 void ed_prepareSelectionTool();
 void ed_clearSelection();
 void ed_handleSelection();
 
+// ed_search
 void ed_drawSearchTool();
 int ed_wordCountInStr(char *str);
+
+// ed_shell
 void ed_shellSpawn();
 
 struct Workspace;

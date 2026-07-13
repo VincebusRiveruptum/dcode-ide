@@ -9,7 +9,6 @@
 */
 
 #include "editor.h"
-#include "../files/files.h"
 
 //unsigned char attrib = 0x07; // Default attribute: White on Black
 struct Container *root;
@@ -25,177 +24,6 @@ bool ed_onSearchTool = false;
 
 time_t ed_globalAuxTimer = 0;
 char statusBarMessage[ED_STATUSBAR_WIDTH] = {'\0'};
-
-int _get_tab_counts_until(int col){
-    int i = 0;
-    int tabCount = 0;
-	File *currentFile = NULL;
-    if (
-		!currentWindow->currentFile ||
-		!currentWindow->currentFile->currentLine
-	) return 0;
-
-	currentFile = currentWindow->currentFile;
-
-    while(i < col && i < (int)currentFile->currentLine->length){
-        if(currentFile->currentLine->buffer[i] == CHAR_TAB) tabCount++;
-        i++; 
-    }
-    
-    return tabCount;
-}
-
-int _get_tab_counts_someline(Line *someLine, int col){
-    int i = 0;
-    int tabCount = 0;
-
-    if (!someLine) return 0;
-
-    while(i < col && i < (int)someLine->length){
-        if(someLine->buffer[i] == CHAR_TAB) tabCount++;
-        i++; 
-    }
-    
-    return tabCount;
-}
-
-int _get_auto_close_pos(){
-    Node *travelingBackwards = NULL;
-	File *currentFile = NULL;
-
-	currentFile = currentWindow->currentFile;
-    travelingBackwards = currentFile->currentLineNode;
-
-    if(!travelingBackwards) return 0;
-    
-    while(travelingBackwards != NULL){
-        if( travelingBackwards->data &&
-            ((Line*)travelingBackwards->data)->buffer &&
-            ((Line*)travelingBackwards->data)->length){
-                
-            if(
-				((Line*)travelingBackwards->data)->buffer[
-					((Line *)travelingBackwards->data)->length-1
-				] == '{'
-			){
-                return _get_tab_counts_someline((
-					Line*)travelingBackwards->data, 
-					((Line *)travelingBackwards->data)->length
-				);
-            }
-        }
-
-        travelingBackwards = travelingBackwards->prev;
-    }
-
-    return 0;
-}
-
-int _calculateVisualOffset(int col){
-    return col + (_get_tab_counts_until(col) * 3);
-}
-// Calculate current line number of tabs
-int _calculateTabCount(){
-    unsigned int i = 0, tabCount = 0;
-	char c;
-    File *currentFile = NULL;
-	
-	currentFile = currentWindow->currentFile;
-
-    do{
-        c = currentFile->currentLine->buffer[i];
-
-        if(c == CHAR_TAB) tabCount++;
-
-        i++;
-    }while ( c != '\0');
-
-    return tabCount;
-}
-
-int _calculateTabStart(){
-    int i = 0;
-    int tabCount = 0;
-    char c = '\0';
-    char cnext = '\0';
-    File *currentFile = NULL;
-	currentFile = currentWindow->currentFile;
-
-    do{
-        c = currentFile->currentLine->buffer[i];
-
-        if (c == CHAR_TAB){
-            tabCount++;
-
-            cnext = currentFile->currentLine->buffer[i + 1];
-
-            if(cnext == '\0' && cnext != CHAR_TAB){
-                return tabCount;
-            }
-        }
-        i++;
-    }while (c != '\0');
-
-    return tabCount;
-}
-
-void _updateCurrentCursorY(){
-	File *currentFile = NULL;
-
-	currentFile = currentWindow->currentFile;
-	
-    if (!currentFile || !currentWindow) return;
-
-     // If the cursor is closer to the bottom
-    if(currentCursorY <= currentWindow->y) currentCursorY = currentWindow->y;
-    
-    if( currentFile->cursorLine - currentFile->scrollY >= 0){
-        currentCursorY = currentFile->cursorLine - currentFile->scrollY + currentWindow->y;
-    }
-
-    if(currentCursorY >= currentWindow->y + currentWindow->height) {
-        currentCursorY = currentWindow->y + currentWindow->height;
-    }
-}
-
-void _updateCurrentCursorX(){
-    int visualCursor = 0;
-    int visualScroll = 0;
-	File *currentFile = NULL;
-    
-	currentFile = currentWindow->currentFile;
-
-    if (!currentFile || !currentWindow) return;
-
-    visualCursor = _calculateVisualOffset(currentFile->cursorCol);
-    visualScroll = _calculateVisualOffset(currentFile->scrollX);
-
-    currentCursorX = (visualCursor - visualScroll) + LINE_COUNTER_WIDTH + currentWindow->x;
-
-    // Boundary check to keep cursor on active window split
-    if(currentCursorX < currentWindow->x + LINE_COUNTER_WIDTH) {
-        currentCursorX = currentWindow->x + LINE_COUNTER_WIDTH;
-    }
-
-    if(currentCursorX >= currentWindow->x + currentWindow->width) {
-        currentCursorX = currentWindow->x + currentWindow->width - 1;
-    }
-
-    currentFile->prevChar = 
-        currentFile->cursorCol > 0 
-        ? currentFile->currentLine->buffer[currentFile->cursorCol - 1]
-        : 0;
-
-    currentFile->currentChar = 
-        currentFile->cursorCol > 0 
-        ? currentFile->currentLine->buffer[currentFile->cursorCol]
-        : 0;
-
-    currentFile->nextChar = 
-        currentFile->cursorCol < currentFile->currentLine->length
-        ? currentFile->currentLine->buffer[currentFile->cursorCol + 1]
-        : 0;
-}
 
 void ed_updateScrollY(){
     int displayHeight = 0;
@@ -262,47 +90,7 @@ void ed_updateCursor(){
     ed_putCursor(currentCursorX, currentCursorY);
 }
 
-void ed_initConfig(int argc, char *argv[]){
-    //f_defaultExtension
 
-    // We will hardcode the default extension until i implement .ENV/CFG LOADING
-    if(!cfg_loadConfig()){
-        //logger("[ed_initConfig]: Could not load config file!");
-        // App exits
-        printf("\nCould not load config file!.");
-        return ;
-    }
-
-    log_init();   
-    logger("[ed_initConfig]: %d %s", argc, argv[1]);
-    ed_handleArguments(argc, argv);
-
-    v_currentMode = settings.DEFAULT_VIDEO_MODE;
-
-    ed_updateCursor();
-}
-
-void ed_handleArguments(int argc, char *argv[]){
-    int i;
-    // File opening
-    logger("[ed_handleArguments]: %d %s", argc, argv[1]);
-    
-    if(argc > 1 || (argv != NULL && argv[1] != NULL)){
-        // Multiple file opening
-        for(i=1;i<argc;i++){
-            if(!f_openFile(argv[i])){
-                logger(
-					"[ed_handleArguments]: File %s not found. Falling back to new file.", 
-					argv[i]
-				);
-
-                f_newFile(argv[i]);
-            }
-        }
-    }else{
-        f_newFile(NULL);
-    }
-}
 
 void ed_resetActity(){
     if(currentWindow->currentFile && currentWindow->currentFile)
@@ -316,7 +104,6 @@ void ed_markActive(unsigned char activity){
     if(currentWindow->currentFile && currentWindow->currentFile)
         currentWindow->currentFile->isActive = true;
 }
-
 
 // =======================================================================
 // Window refreshing
@@ -860,7 +647,7 @@ void ed_newLine(){
     // RECYCLING/NEW LINE LOGIC ==========================================
     newLineNode = pop(&currentFile->deletedLines);
     
-    if(newLineNode && currentFile->deletedLines->length > 0){
+    if(newLineNode){
         logger("[ed_newLine]: reusing deleted line");
         newLine = (Line*)newLineNode->data;
         memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
@@ -922,7 +709,7 @@ void ed_newLine(){
     copyLen = 
         (x <= currentFile->currentLine->length)
         ?
-            currentFile->currentLine->length - x + autoIdentMovement
+            currentFile->currentLine->length - x
         :
             0
         ;
@@ -933,7 +720,7 @@ void ed_newLine(){
 		copyLen
 	);
 
-    newLine->length = copyLen;
+    newLine->length = copyLen + autoIdentMovement;
 
     // Copy prev line tabs
     if(autoIdentMovement > 0) 
@@ -1376,103 +1163,6 @@ void ed_putCursorLastLine(){
 	ed_updateCursor();
 }
 
-void ed_statusBarMessage(const char *format,  ...){
-    va_list args;
-
-    time(&ed_globalAuxTimer);
-
-    memset(statusBarMessage, '\0', ED_STATUSBAR_WIDTH - 1);
-
-    va_start(args, format);
-    vsprintf(statusBarMessage, format, args);
-    va_end(args);
-
-	dw_requestRenderEvent(DW_RENDER_STATUSBAR);
-
-    return;
-}
-
-bool ed_checkStatusBarMessage(){
-    static time_t endClock;
-
-    if(statusBarMessage[0] == '\0') return false;
-    if(ed_globalAuxTimer == 0) return false;
-
-    time(&endClock);
-
-    // 5 seconds of duration
-    if(difftime(endClock, ed_globalAuxTimer) > 5){
-        memset(statusBarMessage, '\0', ED_STATUSBAR_WIDTH - 1);
-        ed_globalAuxTimer = 0;
-        dw_requestRenderEvent(DW_RENDER_STATUSBAR);
-        return false;
-    }  
-
-    return true;
-}
-
-// Statusbar drawing function
-void ed_statusBar(){
-	static File *currentFile = NULL;
-
-	if(!currentWindow || !currentWindow->currentFile)
-		return;
-
-	currentFile = currentWindow->currentFile;
-
-	if(ed_checkStatusBarMessage() == true){
-		dw_writeBuffer(
-			textmemptr, 
-			"%s", 
-			0, 
-			VIDEO_ROWS - 1, 
-			VIDEO_COLS - 1, 
-			VIDEO_ROWS - 1, 
-			settings.STATUSBAR_COLOR_TEXT,
-			settings.STATUSBAR_COLOR_BG, 
-			statusBarMessage
-		);            
-	}else if (currentFile) {
-		dw_writeBuffer(
-			textmemptr, 
-			"Line %d, Col %d %c", 
-			0, 
-			VIDEO_ROWS - 1, 
-			39, 
-			VIDEO_ROWS - 1, 
-			settings.STATUSBAR_COLOR_TEXT,
-			settings.STATUSBAR_COLOR_BG, 
-			currentFile->cursorLine + 1, 
-			currentFile->cursorCol + 1, 
-			179, 
-			currentFile->currentLine->length
-		);
-
-		dw_writeBuffer(
-			textmemptr, 
-			" %s", 
-			40, 
-			VIDEO_ROWS - 1, 
-			VIDEO_COLS - 1, 
-			VIDEO_ROWS - 1, 
-			settings.STATUSBAR_COLOR_TEXT,
-			settings.STATUSBAR_COLOR_BG, 
-			currentFile->name
-		);
-	}else{
-		dw_writeBuffer(
-			textmemptr, 
-			"No files opened", 
-			0, 
-			VIDEO_ROWS - 1, 
-			VIDEO_COLS - 1,
-			VIDEO_ROWS - 1, 
-			settings.STATUSBAR_COLOR_TEXT,
-			settings.STATUSBAR_COLOR_BG
-		);
-	}        
-}
-
 void ed_wordJump(short wordJump){
     size_t currentCharPos = 0;
     char *currentLineBuffer = NULL;
@@ -1586,147 +1276,3 @@ void ed_swapLine(short lineJump){
 	dw_requestRenderEvent(DW_RENDER_WINDOW);
 }
 
-void ed_prepareSelectionTool(){
-    static File *currentFile = NULL;
-
-    if(!currentWindow || !currentWindow->currentFile)
-		return;
-	
-	currentFile = currentWindow->currentFile;
-
-	currentFile->oldLineNode = 
-		(struct Node *)currentFile->currentLineNode;
-
-	currentFile->oldLine = currentFile->cursorLine;
-	currentFile->oldCol = currentFile->cursorCol;
-}
-
-void ed_clearSelection(){
-	static File *currentFile = NULL;
-
-    if(!currentWindow || !currentWindow->currentFile) 
-		return;
-
-	currentFile = currentWindow->currentFile;
-
-    currentFile->selectedStartNode = NULL;
-    currentFile->selectedEndNode = NULL;
-    currentFile->selectedStartX = 0;
-    currentFile->selectedEndX = 0;
-    currentFile->selectedStartLine = 0;
-    currentFile->selectedEndLine = 0;
-    on_selection_tool = false;
-}
-
-void ed_handleSelection() {
-    File *currentFile;
-    bool isNav;
-
-    if(!currentWindow || !currentWindow->currentFile) return;
-    
-    currentFile = currentWindow->currentFile;
-
-    // Check if cursor actually moved
-    if (
-		currentFile->currentLineNode == currentFile->oldLineNode && 
-		currentFile->cursorCol == currentFile->oldCol
-	) return;
-    
-
-    isNav = 
-		hal_inp_isKeyDown(HAL_KEY_UP) || 
-		hal_inp_isKeyDown(HAL_KEY_DOWN) ||
-        hal_inp_isKeyDown(HAL_KEY_LEFT) || 
-		hal_inp_isKeyDown(HAL_KEY_RIGHT) ||
-        hal_inp_isKeyDown(HAL_KEY_HOME) || 
-		hal_inp_isKeyDown(HAL_KEY_END) ||
-        hal_inp_isKeyDown(HAL_KEY_PAGEUP) || 
-		hal_inp_isKeyDown(HAL_KEY_PAGEDOWN);
-
-    if (isNav) {
-        if (
-			hal_inp_isKeyDown(HAL_KEY_LSHIFT) || 
-			hal_inp_isKeyDown(HAL_KEY_RSHIFT)) 
-		{
-            // If selection is not active, anchor it at the old position
-            if (currentFile->selectedStartNode == NULL) {
-                currentFile->selectedStartNode = currentFile->oldLineNode;
-                currentFile->selectedStartX = currentFile->oldCol;
-                currentFile->selectedStartLine = currentFile->oldLine;
-            }
-            // Always update selection end to the new position
-            currentFile->selectedEndNode = currentFile->currentLineNode;
-            currentFile->selectedEndX = currentFile->cursorCol;
-            currentFile->selectedEndLine = currentFile->cursorLine;
-            on_selection_tool = true;
-        } else {
-            // Clear selection since we moved cursor without Shift
-            ed_clearSelection();
-        }
-    } else {
-        // Any other cursor movement (e.g. typing, backspace, new line) 
-		// clears selection
-        ed_clearSelection();
-    }
-}
-
-// Shell spawn.. 
-void ed_shellSpawn(){
-    char cmd[255];
-    char currPath[255];
-    char *comspec = NULL;
-    File *currentFile = NULL;
-
-    memset(cmd, '\0', 255);
-    memset(currPath, '\0', 255);
-
-#if defined(__MSDOS__) || defined(__WATCOMC__)
-    comspec = getenv("COMSPEC");
-#else
-    comspec = getenv("SHELL");
-#endif
-
-    currentFile = currentWindow ? currentWindow->currentFile : NULL;
-
-    if(!currentFile) return;
-    
-    hal_inp_closeKeyboard();
-
-    hal_vid_set25Lines();
-    dw_cls(textmemptr);
-
-    // TODO: SAVE FILE
-
-#if defined(__MSDOS__) || defined(__WATCOMC__)
-    if (!comspec) comspec = "COMMAND.COM";
-#else
-    if (!comspec) comspec = "/bin/bash";
-#endif
-
-    strncpy(
-		currPath, 
-		currentFile->name, 
-		hal_fs_getFilePath(currentFile->name)
-	);
-
-#if defined(__MSDOS__) || defined(__WATCOMC__)
-    sprintf(cmd, "cd %s", currPath);
-
-    logger("[ed_shellSpawn]: %s", currPath);
-
-    spawnl(P_WAIT, comspec, comspec, "/K", cmd, NULL);
-#else
-    sprintf(cmd, "cd %s && %s", currPath, comspec);
-
-    logger("[ed_shellSpawn]: %s", currPath);
-
-    system(cmd);
-#endif
-    
-    hal_inp_initKeyboard();
-    hal_inp_clearKeyboardBuffer();
-    
-    hal_vid_setVideoMode(v_currentMode, false);
-
-    dw_requestRenderEvent(DW_RENDER_ALL);
-}

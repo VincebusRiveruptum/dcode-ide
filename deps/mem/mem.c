@@ -74,7 +74,7 @@ void *mem_arena_alloc(MemoryArena *arenaPtr, size_t size){
     ptr = (void *)((unsigned char *)arenaPtr->base + arenaPtr->offset);
     arenaPtr->offset += size;
 
-	memset(ptr, 0, sizeof(size));
+	memset(ptr, 0, size);
 
     return ptr;
 }

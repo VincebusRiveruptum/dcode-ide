@@ -9,8 +9,9 @@ CFLAGS_LNK = $(OBJDIR)\CFLAGS.lnk
 # Split OBJS to avoid long expansion strings in some wmake versions
 OBJS_1 = $(OBJDIR)\input.obj $(OBJDIR)\vgaregs.obj $(OBJDIR)\data.obj $(OBJDIR)\sort.obj $(OBJDIR)\draw.obj
 OBJS_2 = $(OBJDIR)\test.obj $(OBJDIR)\vismem.obj $(OBJDIR)\env.obj $(OBJDIR)\mem.obj $(OBJDIR)\vsnprntf.obj $(OBJDIR)\str.obj
-OBJS_3 = $(OBJDIR)\log.obj $(OBJDIR)\editor.obj $(OBJDIR)\config.obj $(OBJDIR)\f_base.obj $(OBJDIR)\f_qopen.obj $(OBJDIR)\f_wnd.obj $(OBJDIR)\private.obj $(OBJDIR)\f_search.obj $(OBJDIR)\fs.obj $(OBJDIR)\video.obj $(OBJDIR)\main.obj 
-OBJS = $(OBJS_1) $(OBJS_2) $(OBJS_3)
+OBJS_3 = $(OBJDIR)\log.obj $(OBJDIR)\ed_base.obj $(OBJDIR)\ed_cfg.obj $(OBJDIR)\ed_sel.obj $(OBJDIR)\ed_shell.obj $(OBJDIR)\ed_statb.obj $(OBJDIR)\ed_priv.obj $(OBJDIR)\config.obj
+OBJS_4 = $(OBJDIR)\f_base.obj $(OBJDIR)\f_qopen.obj $(OBJDIR)\f_wnd.obj $(OBJDIR)\private.obj $(OBJDIR)\f_search.obj $(OBJDIR)\fs.obj $(OBJDIR)\video.obj $(OBJDIR)\main.obj
+OBJS = $(OBJS_1) $(OBJS_2) $(OBJS_3) $(OBJS_4)
 
 # Final executable
 $(APPNAME).exe: $(OBJS)
@@ -23,6 +24,7 @@ $(APPNAME).exe: $(OBJS)
 	@for %i in ($(OBJS_1)) do @%append $(LNK) file %i
 	@for %i in ($(OBJS_2)) do @%append $(LNK) file %i
 	@for %i in ($(OBJS_3)) do @%append $(LNK) file %i
+	@for %i in ($(OBJS_4)) do @%append $(LNK) file %i
 	wlink @$(LNK)
 
 # Compiler response file - putting all flags and includes here
@@ -34,6 +36,8 @@ $(CFLAGS_LNK): .ALWAYS
 	@%append $@ -i=platform\dos\input -i=platform\dos\video -i=platform\dos\fs
 
 # Compile rules
+
+# deps
 $(OBJDIR)\input.obj: .\platform\dos\input\input.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\platform\dos\input\input.c
 
@@ -71,6 +75,7 @@ $(OBJDIR)\test.obj: .\core\test\test.c $(CFLAGS_LNK)
 $(OBJDIR)\f_base.obj: .\core\files\f_base.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\files\f_base.c
 
+# files
 $(OBJDIR)\f_qopen.obj: .\core\files\f_qopen.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\files\f_qopen.c
 
@@ -83,15 +88,34 @@ $(OBJDIR)\private.obj: .\core\files\private.c $(CFLAGS_LNK)
 $(OBJDIR)\f_search.obj: .\core\files\f_search.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\files\f_search.c
 
+# fs
 $(OBJDIR)\fs.obj: .\platform\dos\fs\fs.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\platform\dos\fs\fs.c
 
-$(OBJDIR)\editor.obj: .\core\editor\editor.c $(CFLAGS_LNK)
-	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\editor\editor.c
+# editor
+$(OBJDIR)\ed_priv.obj: .\core\editor\private.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\editor\private.c
 
+$(OBJDIR)\ed_base.obj: .\core\editor\ed_base.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\editor\ed_base.c
+
+$(OBJDIR)\ed_cfg.obj: .\core\editor\ed_cfg.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\editor\ed_cfg.c
+
+$(OBJDIR)\ed_sel.obj: .\core\editor\ed_sel.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\editor\ed_sel.c
+
+$(OBJDIR)\ed_shell.obj: .\core\editor\ed_shell.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\editor\ed_shell.c
+
+$(OBJDIR)\ed_statb.obj: .\core\editor\ed_statb.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\editor\ed_statb.c
+
+# config
 $(OBJDIR)\config.obj: .\core\config\config.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\config\config.c
 
+# draw
 $(OBJDIR)\draw.obj: .\core\draw\draw.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\draw\draw.c
 

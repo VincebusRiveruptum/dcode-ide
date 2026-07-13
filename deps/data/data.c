@@ -149,25 +149,30 @@ Node *pop(List **list){
     Node *popped = NULL;
 
     if(
-        (*list) &&
-        (*list)->lastNode &&
-        (*list)->length > 0
-    ){
-        popped = (*list)->lastNode;
-        (*list)->lastNode = (*list)->lastNode->prev;
-        if ((*list)->lastNode) {
-            (*list)->lastNode->next = NULL;
-        } else {
-            (*list)->firstNode = NULL;
-        }
-        
-        (*list)->length--;
+        !(*list) ||
+        !(*list)->firstNode ||
+        !(*list)->lastNode ||
+        !(*list)->length > 0
+    )
+		return NULL;
+	
+	popped = (*list)->lastNode;
 
-        popped->next = NULL;
-        popped->prev = NULL;
-        return popped;
-    }
-    return NULL;
+	(*list)->lastNode = 
+		(*list)->lastNode->prev;
+	
+	if ((*list)->lastNode) {
+		(*list)->lastNode->next = NULL;
+	} else {
+		(*list)->firstNode = NULL;
+	}
+	
+	(*list)->length--;
+
+	popped->next = NULL;
+	popped->prev = NULL;
+	return popped;
+
 }
 
 // TODO: TEST THIS FUNCTION

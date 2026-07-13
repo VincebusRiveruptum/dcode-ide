@@ -617,11 +617,11 @@ void ed_supr(){
 }
 
 void ed_newLine(){
-    unsigned int x = 0;
+    unsigned int cursorCol = 0;
     size_t copyLen = 0;
     int prevLineTabs = 0;
     int autoClosePos = 0;
-    int autoIdentMovement = 0;
+    int indentTabs = 0;
     bool isIndent = false;
     bool isAutoClose = false;
     Node *newLineNode = NULL;
@@ -635,7 +635,7 @@ void ed_newLine(){
 
     arena = currentFile->arena;
 
-    x = currentFile->cursorCol;
+    cursorCol = currentFile->cursorCol;
 
     prevLineTabs =
 		 _get_tab_counts_until(currentFile->currentLine->length);
@@ -646,56 +646,61 @@ void ed_newLine(){
 
 	newLine = (Line*)newLineNode->data;
 	
-	if(!newLineNode)
+	if(!newLineNode || !newLine)
 		return;
 
     autoClosePos = _get_auto_close_pos();
 
     if(currentFile->prevChar == '{'){
         isIndent = true;
-        autoIdentMovement = (int)isIndent + prevLineTabs;
+        indentTabs = (int)isIndent + prevLineTabs;
     }else if(currentFile->currentChar == '}'){
         isAutoClose = true;
-        autoIdentMovement = autoClosePos;
+        indentTabs = autoClosePos;
     }else{
-        autoIdentMovement = prevLineTabs;
+        indentTabs = prevLineTabs;
     }
-
-    logger("[ed_newLine]: AutoclosePos %d", autoClosePos);
-
+	
     copyLen = 
-        (x <= currentFile->currentLine->length)
-        ?
-            currentFile->currentLine->length - x
-        :
-            0
-        ;
-        
-    memcpy(
-		newLine->buffer + autoIdentMovement, 
-		currentFile->currentLine->buffer + x, 
+		(cursorCol <= currentFile->currentLine->length)
+		? currentFile->currentLine->length - cursorCol
+		: 0;
+	
+    logger(
+		"[ed_newLine]: indentTabs %d, %d, copyLen : %d", 
+		indentTabs, 
+		currentFile->currentLine->buffer + cursorCol,
 		copyLen
 	);
+    
+	if(indentTabs > 0){
+		memset(newLine->buffer , CHAR_TAB, indentTabs);
+	}
 
-    newLine->length = copyLen + autoIdentMovement;
+	if(copyLen > 0){	
+		memcpy(
+			newLine->buffer + indentTabs, 
+			currentFile->currentLine->buffer + cursorCol, 
+			copyLen
+		);
+		newLine->length = copyLen + indentTabs;
+	}
+
+	// =============
 
     // Copy prev line tabs
-    if(autoIdentMovement > 0) 
-		memset(newLine->buffer , CHAR_TAB, autoIdentMovement);
-
     if(isAutoClose == true){
         memset(newLine->buffer , CHAR_TAB, autoClosePos);
         newLine->buffer[autoClosePos] = '}';
     }         
-
     // We clear the current line position onwards
     memset(
-		currentFile->currentLine->buffer + x, 
+		currentFile->currentLine->buffer + cursorCol, 
 		'\0', 
-		MAX_FILE_LINE_LENGTH - x
+		MAX_FILE_LINE_LENGTH - cursorCol
 	);
     
-    currentFile->currentLine->length = x;
+    currentFile->currentLine->length = cursorCol;
 
     // Pointer logic
     // newLineNode is already allocated or recycled above
@@ -754,7 +759,7 @@ void ed_newLine(){
         currentCursorY++;
     }
 
-    currentFile->cursorCol = 0 + autoIdentMovement;
+    currentFile->cursorCol = 0 + indentTabs;
     currentFile->scrollX = 0;
     currentFile->cursorLine++;
 
@@ -1234,4 +1239,3 @@ void ed_swapLine(short lineJump){
 	
 	dw_requestRenderEvent(DW_RENDER_WINDOW);
 }
-

@@ -12,7 +12,8 @@ int _get_tab_counts_until(int col){
 	currentFile = currentWindow->currentFile;
 
     while(i < col && i < (int)currentFile->currentLine->length){
-        if(currentFile->currentLine->buffer[i] == CHAR_TAB) tabCount++;
+        if(currentFile->currentLine->buffer[i] == CHAR_TAB) 
+			tabCount++;
         i++; 
     }
     
@@ -232,8 +233,14 @@ Node *_resolveNewLine(File *file){
 	newLineNode = pop(&file->deletedLines);
     
     if(newLineNode){
-        logger("[ed_newLine]: reusing deleted line");
+        logger("[_newLine]: reusing deleted line");
         newLine = (Line*)newLineNode->data;
+
+		if(!newLine){
+			logger("[_newLine]: invalid deleted line data");
+			return NULL;
+		}
+
         memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
         newLine->length = 0;
         newLineNode->isDeleted = false; 
@@ -242,7 +249,7 @@ Node *_resolveNewLine(File *file){
     }
 
 	if(!newLineNode){
-		logger("[ed_newLine]: Error creating/reusing line.");
+		logger("[_newLine]: Error creating/reusing line.");
 		return NULL;
 	}
 

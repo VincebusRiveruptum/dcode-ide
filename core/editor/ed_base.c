@@ -673,11 +673,11 @@ void ed_newLine(){
 		copyLen
 	);
     
-	if(indentTabs > 0){
-		memset(newLine->buffer , CHAR_TAB, indentTabs);
-	}
-
-	if(copyLen > 0){	
+	
+	if(copyLen > 0){
+		if(indentTabs > 0){
+			memset(newLine->buffer , CHAR_TAB, indentTabs);
+		}	
 		memcpy(
 			newLine->buffer + indentTabs, 
 			currentFile->currentLine->buffer + cursorCol, 
@@ -689,16 +689,19 @@ void ed_newLine(){
 	// =============
 
     // Copy prev line tabs
-    if(isAutoClose == true){
-        memset(newLine->buffer , CHAR_TAB, autoClosePos);
-        newLine->buffer[autoClosePos] = '}';
+    if(
+		isAutoClose == true &&
+		indentTabs > 0
+	){
+        memset(newLine->buffer , CHAR_TAB, indentTabs);
+        newLine->buffer[indentTabs] = '}';
+		memset(
+			currentFile->currentLine->buffer + cursorCol, 
+			'\0', 
+			MAX_FILE_LINE_LENGTH - cursorCol
+		);
     }         
     // We clear the current line position onwards
-    memset(
-		currentFile->currentLine->buffer + cursorCol, 
-		'\0', 
-		MAX_FILE_LINE_LENGTH - cursorCol
-	);
     
     currentFile->currentLine->length = cursorCol;
 

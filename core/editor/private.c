@@ -232,21 +232,25 @@ Node *_resolveNewLine(File *file){
 	// Get last deleted line
 	newLineNode = pop(&file->deletedLines);
     
-    if(newLineNode){
-        logger("[_newLine]: reusing deleted line");
-        newLine = (Line*)newLineNode->data;
+    if(!newLineNode)
+		newLineNode = _createLineNode(file);
 
-		if(!newLine){
-			logger("[_newLine]: invalid deleted line data");
+	logger("[_newLine]: reusing deleted line");
+	newLine = (Line*)newLineNode->data;
+
+	if(!newLine){
+		logger("[_newLine]: invalid deleted line data, now attemping to create new line.");
+		newLineNode->data = (void*)_createLine(file);
+		
+		if(!newLineNode->data){
+			logger("[_newLine]: Attempt failed. Save and restart dcode.");
 			return NULL;
 		}
+	}
 
-        memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
-        newLine->length = 0;
-        newLineNode->isDeleted = false; 
-    } else {
-		newLineNode = _createLineNode(file);
-    }
+	memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
+	newLine->length = 0;
+	newLineNode->isDeleted = false; 
 
 	if(!newLineNode){
 		logger("[_newLine]: Error creating/reusing line.");

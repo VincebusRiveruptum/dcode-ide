@@ -2,6 +2,7 @@
 #define ED_PRIVATE_H
 
 struct Line;
+struct File;
 struct Node;
 
 int _get_tab_counts_until(int col);

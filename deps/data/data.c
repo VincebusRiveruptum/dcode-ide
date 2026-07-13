@@ -152,7 +152,7 @@ Node *pop(List **list){
         !(*list) ||
         !(*list)->firstNode ||
         !(*list)->lastNode ||
-        !(*list)->length > 0
+        (!(*list)->length) > 0
     )
 		return NULL;
 	

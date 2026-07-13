@@ -35,7 +35,6 @@ void ed_updateScrollY(){
 	
     displayHeight = currentWindow->height;
 	
-
     if((currentFile->cursorLine - currentFile->scrollY) > displayHeight) {
         //currentFile->scrollY += currentFile->cursorLine - (displayHeight - 1);
         currentFile->scrollY++;
@@ -729,9 +728,6 @@ void ed_newLine(){
     }
     currentFile->lines->length++;
 
-    currentFile->cursorLine = 
-		currentFile->scrollY + currentCursorY;
-
     currentFile->prevLine = 
         currentFile->currentLineNode->prev &&
         currentFile->currentLineNode->prev->data
@@ -754,16 +750,7 @@ void ed_newLine(){
             NULL
         ;
 
-    
-    /* Move cursor down and scroll if necessary */
-    if (currentCursorY + 1 >= VIDEO_ROWS) {
-        currentFile->scrollY++;
-    } else {
-        currentCursorY++;
-    }
-
     currentFile->cursorCol = 0 + indentTabs;
-    currentFile->scrollX = 0;
     currentFile->cursorLine++;
 
     // activity flags
@@ -771,6 +758,7 @@ void ed_newLine(){
     
     ed_markActive(ED_ACTIVITY_NEWLINE);
     ed_updateCursor();
+    ed_updateScrollY();
 
 	dw_requestRenderEvent(DW_RENDER_WINDOW);
 }

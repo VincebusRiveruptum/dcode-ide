@@ -1071,7 +1071,7 @@ void dw_c_lineFormatter(
 
 	start = destBuffer + ( y * destWidth) + x;
 
-	while(*srcBuffer != NULL){
+	while(*srcBuffer != '\0'){
 		// Check if current character is a comment or not
 		if(commentStartPtr && srcBuffer >= commentStartPtr)
 			fgcolor = settings.clang_colors[DW_RESWORD_COMMENT];
@@ -1125,7 +1125,7 @@ void dw_txt_lineFormatter(
 
 	start = destBuffer + ( y * destWidth) + x;
 
-	while(*srcBuffer != NULL){
+	while(*srcBuffer != '\0'){
 		switch(*srcBuffer){
 			case '\t':
 				tjump=0;
@@ -1196,8 +1196,9 @@ void dw_requestRenderEvent(RenderType renderType){
 
 // EVENT DISPATCHER
 void dw_renderEventDispatcher(){
-    if(ed_globalAuxTimer > 0)
+    if(ed_globalAuxTimer > 0){
         ed_checkStatusBarMessage();
+    }
 
 	if(dw_renderEvent == true){
 		switch (dw_renderEventType){

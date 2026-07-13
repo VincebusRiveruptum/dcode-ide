@@ -170,3 +170,81 @@ void _updateCurrentCursorX(){
         ? currentFile->currentLine->buffer[currentFile->cursorCol + 1]
         : 0;
 }
+
+
+Line *_createLine(File *file){
+	Line *newLine = NULL;
+
+	if(!file || !file->arena){
+		logger("[_createLine]: Invalid file/arena");
+		return NULL;
+	}
+
+	newLine = (Line*)mem_arena_alloc(file->arena, sizeof(Line));
+
+	if (!newLine){
+		logger("[_createLine]: Could not make new line");
+		return NULL;
+	}
+
+	newLine->length = 0;
+	newLine->buffer = 
+		(char*)mem_arena_alloc(
+			file->arena,
+			sizeof(char) * MAX_FILE_LINE_LENGTH
+		);
+
+	if (!newLine->buffer){
+		logger("[_createLine]: Could not alloc new line buffer");
+		return NULL;
+	}
+
+	memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
+	return newLine;
+}
+
+Node *_createLineNode(File *file){
+	Node *newLineNode = NULL;
+
+	if(!file || !file->arena){
+		logger("[_createLine]: Invalid file/arena");
+		return NULL;
+	}
+
+	newLineNode = (Node *)mem_arena_alloc(file->arena, sizeof(Node));
+	
+	if (!newLineNode){
+		logger("[_createLineNode]: Could not alloc new line NODE");
+		return NULL;
+	}
+	
+	newLineNode->data = (Line*) _createLine(file);
+
+	return newLineNode;
+}
+
+// This is for reusing a deleted line or creating a new one..
+Node *_resolveNewLine(File *file){
+	Node *newLineNode = NULL;
+	Line *newLine = NULL;
+
+	// Get last deleted line
+	newLineNode = pop(&file->deletedLines);
+    
+    if(newLineNode){
+        logger("[ed_newLine]: reusing deleted line");
+        newLine = (Line*)newLineNode->data;
+        memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
+        newLine->length = 0;
+        newLineNode->isDeleted = false; 
+    } else {
+		newLineNode = _createLineNode(file);
+    }
+
+	if(!newLineNode){
+		logger("[ed_newLine]: Error creating/reusing line.");
+		return NULL;
+	}
+
+	return newLineNode;
+}

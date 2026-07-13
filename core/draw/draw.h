@@ -109,7 +109,6 @@ void dw_c_lineFormatter(
 	unsigned short *destBuffer, 
 	int x, 
 	int y, 
-	size_t len, 
 	size_t destWidth,
 	char *srcBuffer
 );
@@ -118,7 +117,6 @@ void dw_txt_lineFormatter(
 	unsigned short *destBuffer, 
 	int x, 
 	int y, 
-	size_t len, 
 	size_t destWidth,
 	char *srcBuffer
 );
@@ -127,7 +125,6 @@ void dw_copyFormatted(
 	unsigned short *destBuffer, 
 	int x, 
 	int y, 
-	size_t len,
 	size_t destWidth,
 	char *srcBuffer,
 	struct File *file

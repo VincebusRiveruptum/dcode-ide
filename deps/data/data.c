@@ -135,6 +135,7 @@ Node *insertByIndex(List **list, Node *newNode, unsigned int index){
             (*list)->length++;
             return newNode;
         }else{
+
             return NULL;
         }
     }else{

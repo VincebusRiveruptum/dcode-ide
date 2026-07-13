@@ -1053,18 +1053,15 @@ void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, i
 void dw_c_lineFormatter(
 	unsigned short *destBuffer, 
 	int x, 
-	int y, 
-	size_t len, 
+	int y,
 	size_t destWidth,
 	char *srcBuffer
 ){
 	unsigned char tjump=0;
-	unsigned int i = 0;
 	unsigned short *start = NULL;
 	char *commentStartPtr = NULL;
 	unsigned char fgcolor = COLOR_LIGHT_GRAY;
 	unsigned char bgcolor = COLOR_BLACK;
-	bool isComment = false;
 
 	if(!destBuffer) return;
 	if(!srcBuffer) return;
@@ -1117,12 +1114,10 @@ void dw_txt_lineFormatter(
 	unsigned short *destBuffer, 
 	int x, 
 	int y, 
-	size_t len, 
 	size_t destWidth,
 	char *srcBuffer
 ){
 	unsigned char tjump=0;
-	unsigned int i = 0;
 	unsigned short *start = NULL;
 
 	if(!destBuffer) return;
@@ -1158,8 +1153,7 @@ void dw_txt_lineFormatter(
 void dw_copyFormatted(
 	unsigned short *destBuffer, 
 	int x, 
-	int y, 
-	size_t len, 
+	int y,  
 	size_t destWidth,
 	char *srcBuffer,
 	File *file
@@ -1170,7 +1164,6 @@ void dw_copyFormatted(
 				destBuffer, 
 				x,
 				y,
-				len,
 				destWidth,
 				srcBuffer
 			);
@@ -1183,7 +1176,6 @@ void dw_copyFormatted(
 				destBuffer, 
 				x,
 				y,
-				len,
 				destWidth,
 				srcBuffer
 			);

@@ -112,7 +112,6 @@ void ed_markActive(unsigned char activity){
 void ed_renderCurrentLine(){
 	// TODO : CAREFUL OF THIS ARRAY SIZE...
 	int xpos = 0, ypos = 0;
-	size_t len = 0;
 
 	static char tempLineBuffer[1024] = {'\0'};
 	
@@ -143,14 +142,11 @@ void ed_renderCurrentLine(){
 		) +
 		currentWindow->y; 
 
-	len = 
-		currentWindow->currentFile->currentLine->length + 1;
 
 	dw_copyFormatted(
 		textmemptr,
 		xpos, 
 		ypos,
-		len,
 		VIDEO_COLS,
 		tempLineBuffer,
 		currentWindow->currentFile
@@ -641,57 +637,18 @@ void ed_newLine(){
 
     x = currentFile->cursorCol;
 
-    prevLineTabs = _get_tab_counts_until(currentFile->currentLine->length);
+    prevLineTabs =
+		 _get_tab_counts_until(currentFile->currentLine->length);
 
-    // Creating the new line then zeroing
-    // RECYCLING/NEW LINE LOGIC ==========================================
-    newLineNode = pop(&currentFile->deletedLines);
-    
-    if(newLineNode){
-        logger("[ed_newLine]: reusing deleted line");
-        newLine = (Line*)newLineNode->data;
-        memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
-        newLine->length = 0;
-        newLineNode->isDeleted = false; 
-    } else {
-        newLine = (Line*)mem_arena_alloc(arena, sizeof(Line));
 
-        if (!newLine){
-            logger("[ed_newLine]: Could not make new line");
-            return;
-        }
+	// Creating new line/reusing deleted line
+    newLineNode = _resolveNewLine(currentFile);
 
-        newLine->length = 0;
-        newLine->buffer = 
-			(char*)mem_arena_alloc(
-				arena,
-				sizeof(char) * MAX_FILE_LINE_LENGTH
-			);
+	newLine = (Line*)newLineNode->data;
+	
+	if(!newLineNode)
+		return;
 
-        if (!newLine->buffer){
-            logger("[ed_newLine]: Could not alloc new line buffer");
-            return;
-        }
-
-        memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
-        
-        newLineNode = (Node *)mem_arena_alloc(arena, sizeof(Node));
-
-        
-        if (!newLineNode){
-            logger("[ed_newLine]: Could not alloc new line NODE");
-            return;
-        }
-        
-        newLineNode->data = newLine;
-    }
-
-    // ==============================
-
-    // We copy the content from the current line in the current 
-	// cursor position onwards to the now line
-    // We detect opening and closing of function
-        
     autoClosePos = _get_auto_close_pos();
 
     if(currentFile->prevChar == '{'){
@@ -751,7 +708,8 @@ void ed_newLine(){
             NULL
         ;
 
-    if(newLineNode->next) newLineNode->next->prev = newLineNode;
+    if(newLineNode->next) 
+		newLineNode->next->prev = newLineNode;
  
 
     currentFile->currentLineNode->next = newLineNode;
@@ -763,7 +721,8 @@ void ed_newLine(){
     }
     currentFile->lines->length++;
 
-    currentFile->cursorLine = currentFile->scrollY + currentCursorY;
+    currentFile->cursorLine = 
+		currentFile->scrollY + currentCursorY;
 
     currentFile->prevLine = 
         currentFile->currentLineNode->prev &&

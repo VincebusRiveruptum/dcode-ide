@@ -36,8 +36,8 @@ void ed_updateScrollY(){
     displayHeight = currentWindow->height;
 	
     if((currentFile->cursorLine - currentFile->scrollY) > displayHeight) {
-        //currentFile->scrollY += currentFile->cursorLine - (displayHeight - 1);
-        currentFile->scrollY++;
+        currentFile->scrollY = currentFile->cursorLine - (displayHeight);
+        //currentFile->scrollY++;
 		
 		dw_requestRenderEvent(DW_RENDER_WINDOW);
     }else if(currentFile->cursorLine <= currentFile->scrollY){
@@ -965,7 +965,47 @@ char *ed_async_scanf(
     return buffer;
 }
 
+// Update a window currentFile currentLine from cursorLine
+void ed_updateCurrentLine(Window *window){
+    Node *currNode = NULL;
+    Line *currLine = NULL;
 
+    if(!window || !window->currentFile){
+        logger("[ed_updateCurrentLine]: Invalid window/currentLine data.");
+        return;
+    }
+
+    currNode = getNodeByIndex(
+        (&window->currentFile->lines), 
+        window->currentFile->cursorLine
+    );
+
+    if(!currNode || !currNode->data){
+        logger("[ed_updateCurrentLine]: Invalid currNode.");
+        return;
+    }
+
+    currLine = (Line *)currNode->data;
+
+    window->currentFile->currentLineNode = currNode;
+    window->currentFile->currentLine = currLine;
+    
+    window->currentFile->prevLine = 
+        (currNode->prev &&
+        currNode->prev->data)
+        ? (Line*)currNode->prev
+        : NULL;
+
+    window->currentFile->nextLine = 
+        (currNode->next &&
+        currNode->next->data)
+        ? (Line*)currNode->next->data
+        : NULL;
+        
+    return;
+}
+
+// HOME
 void ed_putCursorEnd(){
 	static File *currentFile = NULL;
 
@@ -983,6 +1023,7 @@ void ed_putCursorEnd(){
     ed_updateCursor();
 }
 
+// END
 void ed_putCursorStart(){   
 	static File *currentFile = NULL;
 
@@ -998,124 +1039,94 @@ void ed_putCursorStart(){
     ed_updateCursor();
 }
 
+// PG UP
 void ed_putCursorFistLine(){
-    int lineposX;
+    int screenHeightJump = 0;
 	static File *currentFile = NULL;
 
 	if(!currentWindow || !currentWindow->currentFile)
 		return;
 
-	currentFile = currentWindow->currentFile;
+    screenHeightJump = currentWindow->height;
+    currentFile = currentWindow->currentFile;
 
-    currentFile->currentLineNode = 
-		currentFile->lines->firstNode;
+    // if we are on any line but the line position is
+    // over the screeen height
+    if(currentFile->cursorLine > currentFile->scrollY){
+        currentFile->cursorLine = currentFile->scrollY;
+    }else if(
+        // If we are on any page after the third one
+        currentFile->cursorLine == currentFile->scrollY &&
+        (currentFile->cursorLine - screenHeightJump > 0)
+    ){
+        currentFile->cursorLine -= screenHeightJump;
+    }else if( 
+        // if we are on top but already on the second page
+        currentFile->cursorLine == currentFile->scrollY
+    ){
+        currentFile->cursorLine = 0;
+    }
+    
+    // We update the currentLineNode, currentLine, prevLine, nextLine
+    // File attrs. 
+    ed_updateCurrentLine(currentWindow);
 
-    currentFile->prevLine =
-        currentFile->currentLineNode &&
-        currentFile->currentLineNode->prev 
-        ?
-            currentFile->currentLineNode->prev->data
-        :
-            NULL
-        ;
-        
-    currentFile->currentLine = 
-		currentFile->currentLineNode->data;
+    // Truncate cursorCol if next position line length is
+    // shorter than the previous one
+    if(currentFile->cursorCol > currentFile->currentLine->length)
+        currentFile->cursorCol = currentFile->currentLine->length;
     
-    currentFile->nextLine =
-        currentFile->currentLineNode &&
-        currentFile->currentLineNode->next
-        ?
-            currentFile->currentLineNode->next->data
-        :
-            NULL
-        ;
-    
-    lineposX = 
-        (int)currentFile->currentLine->length - 1 
-		< currentCursorX - LINE_COUNTER_WIDTH
-        ?
-            LINE_COUNTER_WIDTH + (int)currentFile->currentLine->length - 1
-        :
-            currentCursorX
-        ;
-    
-    currentCursorX = lineposX;
-    currentCursorY = 0;
-    
-    // then we need to reset some flags so we can redraw the screen properly
-    /* Sync file cursor */
-    currentFile->scrollY = 0;
-    currentFile->cursorLine = 0;
-    currentFile->cursorCol = currentCursorX - LINE_COUNTER_WIDTH;
-    
+    // Sync file cursor
+    ed_updateScrollY();
 	dw_requestRenderEvent(DW_RENDER_WINDOW);
     ed_updateCursor();
 }
 
+// PG DOWN
 void ed_putCursorLastLine(){
-	int lineJump = 0;
-	Node *newLineNode = NULL;
-	Line *newLine = NULL;
+    int screenHeightJump = 0;
 	static File *currentFile = NULL;
 
 	if(!currentWindow || !currentWindow->currentFile)
 		return;
 
-	currentFile = currentWindow->currentFile;
-
+    screenHeightJump = currentWindow->height;
+    currentFile = currentWindow->currentFile;
+    
+    // If we are sitting on the last line of the page
     if(
-		currentFile->lines->length > 0 &&
-		currentFile->cursorLine < currentFile->lines->length
-	){
-		lineJump = 
-			(currentFile->lines->length < VIDEO_ROWS)	
-			? currentFile->lines->length - 1
-			: VIDEO_ROWS - 1;
-			 
-		currentFile->cursorLine += lineJump;
-		currentFile->scrollY += 
-			currentFile->lines->length < VIDEO_ROWS
-			? 0 
-			: lineJump;	
-	}
-	
-	newLineNode = currentFile->lines->lastNode;
+        (currentFile->cursorLine - currentFile->scrollY) == 
+        (screenHeightJump)
+    ){
+        if(
+            (currentFile->cursorLine + screenHeightJump) >
+            (currentFile->lines->length)
+        ){
+            currentFile->cursorLine = currentFile->lines->length - 1;
+        }else{
+            currentFile->cursorLine += screenHeightJump;
+        }
+    }else{
+        // If we are sitting in the middle of the page, we just go
+        // to the bottom of the page
+        currentFile->cursorLine = 
+            currentFile->scrollY + screenHeightJump;
+    }
+    
+    // We update the currentLineNode, currentLine, prevLine, nextLine
+    // File attrs. 
+    ed_updateCurrentLine(currentWindow);
 
-	if(!newLineNode){
-		logger("[ed_putCursorLastLine]: Error trying to obtain last line node.");
-		return;
-	}
-	
-	newLine = (Line*)newLineNode->data;
-
-	if(!newLine){
-		logger("[ed_putCursorLastLine]: Error trying to obtain last line object.");
-		return;
-	}	        
-	// Line metadata updating
-
-	currentFile->currentLineNode = newLineNode;
-	currentFile->currentLine = newLine;
-
-	currentFile->prevLine = 
-		currentFile->currentLineNode->prev 
-		? (Line*) currentFile->currentLineNode->prev->data
-		: NULL;
-
-	currentFile->nextLine = 
-		currentFile->currentLineNode->next
-		? (Line*) currentFile->currentLineNode->next->data
-		: NULL;
-	
-	// If on the new line the previous position is larger than the new 
-	// line length, then we do the following
-	if(currentFile->cursorCol >= currentFile->currentLine->length - 1){
-		currentFile->cursorCol = currentFile->currentLine->length - 1;
-	}
-
+    // Truncate cursorCol if next position line length is
+    // shorter than the previous one
+    if(currentFile->cursorCol > currentFile->currentLine->length)
+        currentFile->cursorCol = currentFile->currentLine->length;
+    // then we need to reset some flags so we can redraw the screen properly
+    
+    // Sync file cursor
+    ed_updateScrollY();
 	dw_requestRenderEvent(DW_RENDER_WINDOW);
-	ed_updateCursor();
+    ed_updateCursor();
 }
 
 void ed_wordJump(short wordJump){

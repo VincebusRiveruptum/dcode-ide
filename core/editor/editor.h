@@ -132,6 +132,9 @@ extern char statusBarMessage[ED_STATUSBAR_WIDTH];
 
 #include "private.h"
 
+struct Window;
+struct Workspace;
+
 // ed_cfg
 void ed_initConfig(int argc, char *argv[]);
 void ed_handleArguments(int argc, char *argv[]);
@@ -151,6 +154,7 @@ char *ed_getDefaultExtension();
 char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars);
 char *ed_async_scanf(unsigned char x, unsigned char y, unsigned char maxChars, char *buffer, size_t bufflen, int *stepIndex);
 
+void ed_updateCurrentLine(struct Window *window);
 void ed_putCursorEnd();
 void ed_putCursorStart();
 
@@ -176,8 +180,6 @@ int ed_wordCountInStr(char *str);
 
 // ed_shell
 void ed_shellSpawn();
-
-struct Workspace;
 
 // RENDERING
 void ed_renderCurrentLine();

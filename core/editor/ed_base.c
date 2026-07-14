@@ -37,7 +37,6 @@ void ed_updateScrollY(){
 	
     if((currentFile->cursorLine - currentFile->scrollY) > displayHeight) {
         currentFile->scrollY = currentFile->cursorLine - (displayHeight);
-        //currentFile->scrollY++;
 		
 		dw_requestRenderEvent(DW_RENDER_WINDOW);
     }else if(currentFile->cursorLine <= currentFile->scrollY){

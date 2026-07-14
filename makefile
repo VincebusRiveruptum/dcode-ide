@@ -10,7 +10,7 @@ CFLAGS_LNK = $(OBJDIR)\CFLAGS.lnk
 OBJS_1 = $(OBJDIR)\input.obj $(OBJDIR)\vgaregs.obj $(OBJDIR)\data.obj $(OBJDIR)\sort.obj $(OBJDIR)\draw.obj
 OBJS_2 = $(OBJDIR)\test.obj $(OBJDIR)\vismem.obj $(OBJDIR)\env.obj $(OBJDIR)\mem.obj $(OBJDIR)\vsnprntf.obj $(OBJDIR)\str.obj
 OBJS_3 = $(OBJDIR)\log.obj $(OBJDIR)\ed_base.obj $(OBJDIR)\ed_cfg.obj $(OBJDIR)\ed_sel.obj $(OBJDIR)\ed_shell.obj $(OBJDIR)\ed_statb.obj $(OBJDIR)\ed_priv.obj $(OBJDIR)\config.obj
-OBJS_4 = $(OBJDIR)\f_base.obj $(OBJDIR)\f_qopen.obj $(OBJDIR)\f_wnd.obj $(OBJDIR)\private.obj $(OBJDIR)\f_search.obj $(OBJDIR)\fs.obj $(OBJDIR)\video.obj $(OBJDIR)\main.obj
+OBJS_4 = $(OBJDIR)\f_base.obj $(OBJDIR)\f_qopen.obj $(OBJDIR)\f_nav.obj  $(OBJDIR)\f_wnd.obj $(OBJDIR)\private.obj $(OBJDIR)\f_search.obj $(OBJDIR)\fs.obj $(OBJDIR)\video.obj $(OBJDIR)\main.obj
 OBJS = $(OBJS_1) $(OBJS_2) $(OBJS_3) $(OBJS_4)
 
 # Final executable
@@ -87,6 +87,9 @@ $(OBJDIR)\private.obj: .\core\files\private.c $(CFLAGS_LNK)
 
 $(OBJDIR)\f_search.obj: .\core\files\f_search.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\files\f_search.c
+
+$(OBJDIR)\f_nav.obj: .\core\files\f_nav.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\files\f_nav.c
 
 # fs
 $(OBJDIR)\fs.obj: .\platform\dos\fs\fs.c $(CFLAGS_LNK)

@@ -40,7 +40,7 @@ void f_quickOpenFileDialog(){
     }
 
     if (strlen(currentPath) < sizeof(currentPath) - 1) {
-        strcat(currentPath, "\\");
+        strcat(currentPath, FS_PATH_SEPARATOR);
     }
 
     vis_offset = (VIDEO_COLS / 4);
@@ -99,7 +99,7 @@ void f_quickOpenFileDialog(){
             }else if(selectedFileEntry && selectedFileEntry->isDirectory){
                 //// Nothing happens
                 strcat(currentPath, selectedFileEntry->name);
-                strcat(currentPath, "\\");
+                strcat(currentPath, FS_PATH_SEPARATOR);
                 stepIndex = strlen(currentPath);
                 selectedEntry = 0;
                 selectedFileEntry = NULL;
@@ -114,6 +114,7 @@ void f_quickOpenFileDialog(){
                 if (currPathDirectory) hal_fs_freeDirectory(currPathDirectory);
                 return;
             }
+			
         }else{
 
             // Freeing up list of files each time there is a change 

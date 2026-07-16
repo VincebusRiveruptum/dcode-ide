@@ -474,8 +474,8 @@ void f_closeFile(File *file){
     char arenaName[64];
     sprintf(arenaName, "%s", file->arena->name);
 
-    mem_arena_free(file->arena);
 	f_freeSearchMetadata(file->currentFileSearch);
+    mem_arena_free(file->arena);
     logger("[f_closeFile]: File %s closed successfully", arenaName);    
 }
 
@@ -616,7 +616,7 @@ void f_closeCurrentFile(){
 
     f_deleteFileFromWindow(currentWindow, toClose);
     f_closeFile(toClose);    
-    f_flushSearchMetadata();
+    f_resetSearchMetadata(currentWindow->currentFile->currentFileSearch);
 
 	if (currentWindow->fileList->length > 0) {
 		nextFile = (File *)(currentWindow->fileList->firstNode->data);

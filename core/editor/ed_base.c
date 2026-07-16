@@ -93,7 +93,6 @@ void ed_updateCursor(){
 void ed_resetActity(){
     if(currentWindow->currentFile && currentWindow->currentFile)
         currentWindow->currentFile->isActive = false;
-    //f_flushSearchMetadata();
 }
 
 void ed_markActive(unsigned char activity){

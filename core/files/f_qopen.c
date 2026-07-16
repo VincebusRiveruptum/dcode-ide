@@ -78,7 +78,6 @@ void f_quickOpenFileDialog(){
 
             if(selectedEntry - entryScrollY <= 0){
                 entryScrollY--;
-                logger("[f_quickOpenFileDialog] : entryScrollY : %d ", entryScrollY);
             }
 
         }else if(hal_inp_isKeyPressed(HAL_KEY_DOWN)){
@@ -90,7 +89,6 @@ void f_quickOpenFileDialog(){
             // We calculate the scrolling
             if(selectedEntry - entryScrollY - 2 > MAX_LIST_HEIGHT ){
                 entryScrollY++;
-                logger("[f_quickOpenFileDialog] : entryScrollY : %d ", entryScrollY);
             }
             
                 

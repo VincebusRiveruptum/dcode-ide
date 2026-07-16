@@ -31,7 +31,7 @@ void ed_prepareSearchTool(){
     if(ed_onSearchTool == true){
         if(hal_inp_isKeyPressed(HAL_KEY_ESC)){
             ed_onSearchTool = false;
-            dw_requestRenderEvent(DW_RENDER_SEARCH);
+            dw_requestRenderEvent(DW_RENDER_ALL);
         }else{
             ed_drawSearchTool();
 			
@@ -78,30 +78,43 @@ SearchMetadata *f_createSearchMetadata(char *filename){
 	return new;
 }
 
-// FLUSH METADATA
-void f_flushSearchMetadata(){
+// Free a search meta data object
+void f_freeSearchMetadata(SearchMetadata *searchMetaData){
     if(
-		!currentWindow || 
-		!currentWindow->currentFile ||
-		!currentWindow->currentFile->currentFileSearch) 
-	return;
+        !searchMetaData ||
+        !searchMetaData->arena
+    ) return;
 
     mem_arena_free(
-		currentWindow->currentFile->currentFileSearch->arena
+        searchMetaData->arena
 	);
 	
-    currentWindow->currentFile->currentFileSearch->arena = NULL; // Ensure pointer is cleared
+    searchMetaData->arena = NULL; // Ensure pointer is cleared
 
-    //currentFileSearch->dialogInputIndex = 0;
-    //memset(currentFileSearch->dialogInputBuffer, '\0', 255);
+    //searchMetaData->dialogInputIndex = 0;
+    //memset(searchMetaData->dialogInputBuffer, '\0', 255);
 
-    currentWindow->currentFile->currentFileSearch->wordCount = 0;
-    currentWindow->currentFile->currentFileSearch->words = NULL;
-    currentWindow->currentFile->currentFileSearch->currentWordNode = NULL;
+    searchMetaData->wordCount = 0;
+    searchMetaData->words = NULL;
+    searchMetaData->currentWordNode = NULL;
 }
 
-void f_freeSearchMetadata(SearchMetadata *data){
-	mem_arena_free(data->arena);
+// Reset search metadata, by creating a new fresh arena with
+SearchMetadata *f_resetSearchMetadata(SearchMetadata *searchMetadata){
+    char *oldName = NULL;
+    if(
+        !searchMetadata ||
+        !searchMetadata->arena
+    ) return NULL;
+
+    // Offeted to the end  of the SRCH- prefix
+    oldName = strdup(searchMetadata->arena->name + 5);
+
+    f_freeSearchMetadata(searchMetadata);
+
+    searchMetadata = f_createSearchMetadata(oldName);
+
+    return searchMetadata;
 }
 // This is a small program for testing. 
 // The purpose is take a phrase and count the words.e

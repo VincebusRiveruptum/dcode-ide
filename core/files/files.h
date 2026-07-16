@@ -73,7 +73,7 @@ typedef struct File {
     Line *currentLine;
     Line *nextLine;
 
-    // Current line position chars
+    // Current line posPition chars
     char prevChar;
     char currentChar;
     char nextChar;
@@ -180,7 +180,7 @@ void f_drawFileNavDialog();
 void ed_prepareSearchTool();
 SearchMetadata *f_createSearchMetadata(char *filename);
 void f_freeSearchMetadata(SearchMetadata *data);
-void f_flushSearchMetadata();
+SearchMetadata *f_resetSearchMetadata(SearchMetadata *data);
 void ed_drawSearchTool();
 void ed_searchMoveCursor();
 void ed_findWord();

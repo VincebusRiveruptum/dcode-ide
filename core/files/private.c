@@ -173,12 +173,12 @@ int _goBackPath(char *path){
     
     endptr = path + end;
 
-    if(*endptr == FS_PATH_SEPARATOR ){
+    if(*endptr == FS_PATH_SEPARATOR[0] ){
         *endptr = '\0';
         endptr--;
     }
 
-    while(endptr > path && *(endptr) != FS_PATH_SEPARATOR){
+    while(endptr > path && *(endptr) != FS_PATH_SEPARATOR[0] ){
         *endptr = '\0';
         endptr--;
     };

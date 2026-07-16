@@ -13,11 +13,11 @@ void f_quickOpenFileDialog(){
     int vis_offset = 0;
     int dialogStartY = 0;
     int dialogEndY = 0;
-    int entriesLen = 0;
+    int filesLength = 0;
     int selectedEntry = 0;
-    int entryIndex = 0;
+    int nodeIndex = 0;
     int clearMarkPoint = 0;
-    int listHeight = 11;
+    int MAX_LIST_HEIGHT = 11;
     int entryScrollY = 0;
     int selectedEntryScrollY = 0;
     char scrollChar = '\0';
@@ -76,18 +76,23 @@ void f_quickOpenFileDialog(){
                 ? selectedEntry - 1
                 : 1; 
 
-            if(selectedEntry - entryScrollY <= 0)
+            if(selectedEntry - entryScrollY <= 0){
                 entryScrollY--;
+                logger("[f_quickOpenFileDialog] : entryScrollY : %d ", entryScrollY);
+            }
 
         }else if(hal_inp_isKeyPressed(HAL_KEY_DOWN)){
             selectedEntry = 
-            selectedEntry < entriesLen
+            selectedEntry < filesLength
                 ? selectedEntry + 1
-                : entriesLen; 
+                : filesLength; 
 
             // We calculate the scrolling
-            if(selectedEntry - entryScrollY - 2 > listHeight )
+            if(selectedEntry - entryScrollY - 2 > MAX_LIST_HEIGHT ){
                 entryScrollY++;
+                logger("[f_quickOpenFileDialog] : entryScrollY : %d ", entryScrollY);
+            }
+            
                 
         }else if(hal_inp_isKeyPressed(HAL_KEY_ENTER)){
             // If we press enter, we have to detect if the entry is either a directory or a file
@@ -136,20 +141,26 @@ void f_quickOpenFileDialog(){
             }
 
             // Draw list of files
-            entriesLen = currPathDirectory->fileEntries->length;
+            filesLength = currPathDirectory->fileEntries->length;
             node = currPathDirectory->fileEntries->firstNode;
-            entryIndex = 0;
+            nodeIndex = 0;
             selectedEntryScrollY = 0;
 
-            while(node != NULL && (selectedEntryScrollY) - 1 <= listHeight){
+            while(node != NULL && 
+                (selectedEntryScrollY) - 1 <= MAX_LIST_HEIGHT
+            ){
                 fileEntry = (FileEntry*)node->data;
-                entryIndex++;
+                nodeIndex++;
                 // We write the filename under the prompt
-                selectedEntryScrollY = entryIndex - entryScrollY;
-                
-                isSelected = (entryIndex == selectedEntry) ? true : false;
+                selectedEntryScrollY = (nodeIndex - entryScrollY);
                         
-                if(selectedEntryScrollY <= 0) continue;
+                if(selectedEntryScrollY <= 0) {
+                    node = node->next;
+                    continue;
+                }
+                
+                isSelected = 
+                    (nodeIndex == selectedEntry) ? true : false;
                     // We mar the selected item or not
                 if(isSelected == true){
 
@@ -181,12 +192,12 @@ void f_quickOpenFileDialog(){
 
                 // Draw scrollbar if there are more items than the 
                 // the height of the list
-                if(entriesLen - 2 > listHeight){
+                if(filesLength - 2 > MAX_LIST_HEIGHT){
                     // UP ARROW
                     if((selectedEntryScrollY - 1) == 0){
                         scrollChar = 0x1E;
                     // DOWN ARROW
-                    }else if(selectedEntryScrollY - 2 == listHeight){
+                    }else if(selectedEntryScrollY - 2 == MAX_LIST_HEIGHT){
                         scrollChar = 0x1F;
                     }else{
                         scrollChar = 0xB1;
@@ -231,6 +242,7 @@ void f_quickOpenFileDialog(){
             // Draw rect in the middle, 1/4 will be the start and the
             // end, so i it will always be in the center
             hal_vid_refresh();
+            
             ed_async_scanf(
                 vis_offset + 1, 
                 3, (2 * vis_offset) - 1, 

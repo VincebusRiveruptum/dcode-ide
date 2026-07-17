@@ -39,6 +39,7 @@ Window *f_createWindow(){
 // Inits workspace with all atributtes zeroed.
 Workspace *f_createWorkspace(){
 	char *fullPath = NULL;
+	char pathBuf[512];
 	Workspace *newWorkspace = NULL;
 
 	if(currentWorkspace){
@@ -46,19 +47,19 @@ Workspace *f_createWorkspace(){
 		return NULL;
 	}
 		
-    {
-        char pathBuf[512];
-        if (!hal_fs_getAbsoluteCurrentPath(pathBuf, sizeof(pathBuf))) {
-            logger("[f_createWorkspace]: invalid fullpath.");
-            return NULL;
-        }
-        fullPath = (char *)malloc(strlen(pathBuf) + 1);
-        if (!fullPath) {
-            logger("[f_createWorkspace]: malloc failed for fullPath.");
-            return NULL;
-        }
-        strcpy(fullPath, pathBuf);
-    }
+	if (!hal_fs_getAbsoluteCurrentPath(pathBuf, sizeof(pathBuf))) {
+		logger("[f_createWorkspace]: invalid fullpath.");
+		return NULL;
+	}
+
+	fullPath = (char *)malloc(strlen(pathBuf) + 1);
+
+	if (!fullPath) {
+		logger("[f_createWorkspace]: malloc failed for fullPath.");
+		return NULL;
+	}
+	strcpy(fullPath, pathBuf);
+
 		
 	newWorkspace = (Workspace*)malloc(sizeof(Workspace));
 	memset(newWorkspace, 0, sizeof(Workspace));
@@ -180,20 +181,64 @@ void f_deleteFileFromWindow(Window *window, File *file){
 		return;
 	}
 
-	deleteNodeByPtr(&(window->fileList), (void*)file, file->arena);
+	deleteNodeByPtr(&(window->fileList), (void*)file);
 
+	f_closeFile(file);    
+	
 	return;
 }
 
 void f_deleteWindowFromWorkspace(Workspace *workspace, Window *window){
+	Node *rec = NULL;
+	File *file = NULL;
+
 	if(!workspace || !workspace->windowList || !window){
 		logger("[f_deleteWindowFromWorkspace]: invalid data.");
 		return;
 	}
 
-	deleteNodeByPtr(&(workspace->windowList), (void*)window, NULL);
+	deleteNodeByPtr(&(workspace->windowList), (void*)window);
+
+	// Close all files
+	rec = window->fileList->firstNode;
+
+	if(rec){
+		while(rec){
+			file = (File*)rec->data;
+
+			if(file)
+				f_closeFile(file);
+			
+			rec = rec->next;
+		}
+	}
 
 	return;
+}
+
+void f_deleteWorkspace(Workspace *workspace){
+	Node *rec = NULL;
+	Window *window = NULL;
+
+	if(!workspace ){
+		logger("[f_deleteWorkspace]: Invalid data");
+		return;
+	}
+
+	if(workspace->windowList){
+		rec = workspace->windowList->firstNode;
+
+		while(rec){
+			window = (Window*)rec->data;
+
+			if(window)
+				f_deleteWindowFromWorkspace(workspace, window);
+
+			rec = rec->next;
+		}
+	}
+
+	free(workspace);
 }
 
 void f_splitWindow(){

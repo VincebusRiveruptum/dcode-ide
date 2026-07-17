@@ -80,23 +80,16 @@ SearchMetadata *f_createSearchMetadata(char *filename){
 
 // Free a search meta data object
 void f_freeSearchMetadata(SearchMetadata *searchMetaData){
+    MemoryArena *arena = NULL;
+
     if(
         !searchMetaData ||
         !searchMetaData->arena
     ) return;
 
-    mem_arena_free(
-        searchMetaData->arena
-	);
-	
-    searchMetaData->arena = NULL; // Ensure pointer is cleared
+    arena = searchMetaData->arena;
 
-    //searchMetaData->dialogInputIndex = 0;
-    //memset(searchMetaData->dialogInputBuffer, '\0', 255);
-
-    searchMetaData->wordCount = 0;
-    searchMetaData->words = NULL;
-    searchMetaData->currentWordNode = NULL;
+    mem_arena_free(arena);
 }
 
 // Reset search metadata, by creating a new fresh arena with

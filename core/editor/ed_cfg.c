@@ -1,5 +1,4 @@
 #include "editor.h"
-
 void ed_initConfig(int argc, char *argv[]){
     //f_defaultExtension
 

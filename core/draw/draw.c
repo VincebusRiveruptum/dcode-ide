@@ -1033,6 +1033,7 @@ void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2
 }
 /* This also will take care of reserved word coloring */
 void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, File *file){
+    if (!file) return;
     switch(file->ext){
         case FILE_EXTENSION_C:
             dw_c_formatter(destBuffer, x1,y1,x2,y2,foregroundColor,backgroundColor,file);

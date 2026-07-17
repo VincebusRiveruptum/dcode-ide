@@ -104,6 +104,8 @@ void mem_arena_free(MemoryArena *arenaPtr){
 	arenaPtr->size = 0;
 	free(arenaPtr);
 	
+	logger("\n[mem_arena_free]: Arena freed successfully.");
+	
 	return;
 }
 

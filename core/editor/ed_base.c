@@ -154,7 +154,7 @@ void ed_renderCurrentLine(){
 
 // This just renders the current window.
 void ed_updateWindow(Workspace *workspace){
-    Window *wnd;
+    Window *wnd = NULL;
 	
     if (
 		!workspace || 
@@ -165,6 +165,7 @@ void ed_updateWindow(Workspace *workspace){
     //hal_vid_clearBuffer(editormemptr);
 
     wnd = workspace->currentWindow;
+    if (!wnd->currentFile) return;
 
 	dw_writeBufferEditorFormatted(
 		//editormemptr, 

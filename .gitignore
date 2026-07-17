@@ -27,3 +27,5 @@ BOOKS
 PGROUND
 
 **/*.o
+**/*.lib
+**/*.LIB

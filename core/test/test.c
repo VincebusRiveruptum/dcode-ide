@@ -2,6 +2,9 @@
 #include "test.h"
 
 void t_drawDebugger(){
+    if (!currentWindow || !currentWindow->currentFile) {
+        return;
+    }
 
     dw_writeBuffer(
 		textmemptr, 

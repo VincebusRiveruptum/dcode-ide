@@ -51,9 +51,15 @@ void deleteNodeByIndex(List **list, int index){
     return;
 }
 
-void deleteNodeByPtr(List **list, void *ptr, MemoryArena *ptrArena){
-    Node *rec;
-    void *nodeData;
+
+// This removes a node from a list
+// NOTE: This does not free the node data,
+// you have to free it after removing the node betwen.
+void deleteNodeByPtr(List **list, void *ptr){
+    void *nodeData = NULL;
+    Node *rec = NULL;
+    Node *next = NULL;
+    Node *prev = NULL;
 
     if (!list || !*list) return;
 
@@ -62,8 +68,8 @@ void deleteNodeByPtr(List **list, void *ptr, MemoryArena *ptrArena){
         nodeData = rec->data;
 
         if(nodeData == ptr){
-            Node *next = rec->next;
-            Node *prev = rec->prev;
+            next = rec->next;
+            prev = rec->prev;
 
             if(prev != NULL){
                 prev->next = next;
@@ -78,12 +84,6 @@ void deleteNodeByPtr(List **list, void *ptr, MemoryArena *ptrArena){
             }
 
             (*list)->length--;
-
-            if(ptrArena != NULL){
-                mem_arena_free(ptrArena);
-            } else {
-                free(rec->data);
-            }
 
             free(rec);
             return;

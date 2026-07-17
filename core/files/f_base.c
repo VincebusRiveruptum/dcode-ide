@@ -103,6 +103,7 @@ void f_newFile(char *filename){
 		: MEM_ARENA_256K;
     
 	arena = (MemoryArena *)mem_arena_create(tempName, arenaSize);
+	
     if(!arena){
         logger("[f_newFile]: Failed creating memory arena");
         return;
@@ -215,7 +216,12 @@ bool f_openFile(char *filename){
     }
 
 	fileSize = mem_getFileClosestSize(fp);
-    defaultMax = settings.MAX_FILE_INSTANCE_SIZE > 0 ? settings.MAX_FILE_INSTANCE_SIZE : MEM_ARENA_512K;
+
+    defaultMax =
+		(settings.MAX_FILE_INSTANCE_SIZE > 0) 
+		? settings.MAX_FILE_INSTANCE_SIZE 
+		: MEM_ARENA_512K;
+
     if (fileSize < defaultMax) {
         fileSize = defaultMax;
     } else {
@@ -230,6 +236,7 @@ bool f_openFile(char *filename){
     }
 
     file = (File *)mem_arena_alloc(arena, sizeof(File));
+	
     if(!file){
         logger("[f_openFile]: Failed allocating File struct");
         fclose(fp);
@@ -479,6 +486,73 @@ void f_closeFile(File *file){
     logger("[f_closeFile]: File %s closed successfully", arenaName);    
 }
 
+void f_closeCurrentFile(){
+    char oldFileName[255];
+	File *nextFile = NULL;
+	
+	Window *toDelete = NULL, *wnd = NULL;
+	Node *rec = NULL;
+	Window *neighbor = NULL;
+
+    memset(oldFileName, '\0', 255);
+
+    if(!currentWindow || !currentWindow->currentFile) 
+		return;
+
+    strcpy(oldFileName, currentWindow->currentFile->name);
+
+    f_deleteFileFromWindow(
+		currentWindow, 
+		currentWindow->currentFile
+	);
+	
+	if (currentWindow->fileList->length > 0) {
+		nextFile = (File *)(currentWindow->fileList->firstNode->data);
+		currentWindow->currentFile = nextFile;
+	} else {
+
+		currentWindow->currentFile = NULL;
+		
+		if (currentWorkspace->windowList->length > 1) {
+			toDelete = currentWindow;
+			rec = currentWorkspace->windowList->firstNode;
+			neighbor = NULL;
+			
+			while (rec != NULL) {
+				wnd = (Window *)rec->data;
+				if (wnd != toDelete) {
+					neighbor = wnd;
+					if (wnd->x + wnd->width + 1 == toDelete->x) {
+						break;
+					}
+				}
+				rec = rec->next;
+			}
+			
+			if (neighbor != NULL) {
+				if (toDelete->x > neighbor->x) {
+					neighbor->width += toDelete->width + 1;
+				} else {
+					neighbor->x = toDelete->x;
+					neighbor->width += toDelete->width + 1;
+				}
+			}
+			
+			f_cycleActiveWindow();
+			f_deleteWindowFromWorkspace(currentWorkspace, toDelete);
+			free(toDelete);
+		}
+	}
+    
+    ed_statusBarMessage("%s closed successfully.", oldFileName);
+    logger("[f_closdeCurrentFile]: %s closed successfully.", oldFileName);
+
+    ed_updateCursor();
+	
+	dw_requestRenderEvent(DW_RENDER_ALL);
+    return;
+}
+
 void f_triggerClose(bool end_program){
     int len = 0;
     char input = '\0';
@@ -601,65 +675,3 @@ void f_triggerClose(bool end_program){
   	dw_requestRenderEvent(DW_RENDER_ALL);
 }
 
-void f_closeCurrentFile(){
-    char oldFileName[255];
-	File *nextFile = NULL;
-	File *toClose = NULL;
-	
-    memset(oldFileName, '\0', 255);
-
-    if(!currentWindow || !currentWindow->currentFile) 
-		return;
-
-	toClose = currentWindow->currentFile;
-    strcpy(oldFileName, toClose->name);
-
-    f_deleteFileFromWindow(currentWindow, toClose);
-    f_closeFile(toClose);    
-    f_resetSearchMetadata(currentWindow->currentFile->currentFileSearch);
-
-	if (currentWindow->fileList->length > 0) {
-		nextFile = (File *)(currentWindow->fileList->firstNode->data);
-		currentWindow->currentFile = nextFile;
-	} else {
-		currentWindow->currentFile = NULL;
-		
-		if (currentWorkspace->windowList->length > 1) {
-			Window *toDelete = currentWindow;
-			Node *rec = currentWorkspace->windowList->firstNode;
-			Window *neighbor = NULL;
-			
-			while (rec != NULL) {
-				Window *wnd = (Window *)rec->data;
-				if (wnd != toDelete) {
-					neighbor = wnd;
-					if (wnd->x + wnd->width + 1 == toDelete->x) {
-						break;
-					}
-				}
-				rec = rec->next;
-			}
-			
-			if (neighbor != NULL) {
-				if (toDelete->x > neighbor->x) {
-					neighbor->width += toDelete->width + 1;
-				} else {
-					neighbor->x = toDelete->x;
-					neighbor->width += toDelete->width + 1;
-				}
-			}
-			
-			f_cycleActiveWindow();
-			f_deleteWindowFromWorkspace(currentWorkspace, toDelete);
-			free(toDelete);
-		}
-	}
-    
-    ed_statusBarMessage("%s closed successfully.", oldFileName);
-    logger("[f_closdeCurrentFile]: %s closed successfully.", oldFileName);
-
-    ed_updateCursor();
-	
-	dw_requestRenderEvent(DW_RENDER_ALL);
-    return;
-}

@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -O2 -Ihal -Iapp -Icore -Ideps/data -Ideps/sort \
+CFLAGS = -Wall -Wextra -g -O2 -Ihal -Iapp -Icore -Ideps/data -Ideps/sort \
 -Ideps/env -Ideps/str -Ideps/mem -Ideps/log -Ideps/ext -Iplatform/linux/input \
 -Iplatform/linux/video -Iplatform/linux/fs
 

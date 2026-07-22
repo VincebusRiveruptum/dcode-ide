@@ -10,8 +10,8 @@
 #include <dos.h>
 #include <stdarg.h>
 
-#include "..\..\..\hal\hal_inp.h"
-#include "..\video\vgaregs.h"
+#include "../../../hal/hal_inp.h"
+#include "../video/vgaregs.h"
 
 #ifndef __cplusplus
 typedef unsigned char bool;

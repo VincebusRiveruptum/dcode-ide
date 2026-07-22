@@ -6,6 +6,6 @@
 #include <dos.h>
 #include <direct.h>
 
-#include "..\..\..\hal\hal_fs.h"
+#include "../../../hal/hal_fs.h"
 
 #endif

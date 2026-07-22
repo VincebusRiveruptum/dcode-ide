@@ -1,7 +1,7 @@
 #include "video.h"
 #include "vgaregs.h"
-#include "..\..\..\core\draw\draw.h"
-#include "..\..\..\core\editor\editor.h"
+#include "../../../core/draw/draw.h"
+#include "../../../core/editor/editor.h"
 
 unsigned short *textmemptr;
 unsigned short *editormemptr = NULL;

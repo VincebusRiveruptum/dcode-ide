@@ -56,15 +56,10 @@ The IDE can be configured via `bin/default.cfg`. Available settings include:
 1. Open your Linux terminal.
 2. Navigate to the project root.
 3. Run `make -f makefile.linux`. This compiles and links the Linux binary `dcode` inside `bin/linux/`.
-
-#### High-Fidelity Input Setup (Optional)
-To support direct keyboard release events (e.g., allowing the `Alt+Shift` file switcher to close automatically upon releasing `Alt`), DCode can read directly from `/dev/input/event*`. 
-
-This requires the running user to have read permissions for input devices (typically by joining the `input` group):
-```bash
-sudo usermod -a -G input $USER
-```
-*Note: If permissions are not set up, DCode will automatically fall back to standard stdin polling with a key-release timeout emulator.*
+### Linux OpenWatcom v2.0 (32 Bit DOS Target)
+1. Open your Linux terminal.
+2. Navigate to the project root.
+3. Run `wmake build -f makefile.watcom-linux`. This compiles and links the Linux binary `dcode` inside `bin/dos/`.
 
 ## Development Status
 

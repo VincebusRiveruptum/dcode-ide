@@ -65,6 +65,7 @@ typedef enum {
 	DW_RENDER_NONE = 0,
 	DW_RENDER_CURSOR,
 	DW_RENDER_LINE,
+	DW_RENDER_SELECTION,  // REndering just the selected line
 	DW_RENDER_STATUSBAR,
 	DW_RENDER_UI,
 	DW_RENDER_SEARCH,

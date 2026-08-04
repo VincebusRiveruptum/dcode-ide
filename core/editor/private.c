@@ -171,6 +171,97 @@ void _updateCurrentCursorX(){
         ? currentFile->currentLine->buffer[currentFile->cursorCol + 1]
         : 0;
 }
+// This gets the pointer of the start offset of the currentWindow's
+// currentFile's  current Line relative to the screen buffer ptr (or any)
+unsigned short * _getCurrentLinePtrInBuffer(
+    unsigned short *ptr, 
+    Window *currentWindow
+){
+    unsigned short x, y;
+    unsigned short abs_line = 0, abs_col = 0;
+    unsigned short cursorLine = 0;
+    unsigned short cursorCol = 0;
+    unsigned short scrollY = 0;
+    unsigned short scrollX = 0;
+    unsigned short winX = 0;
+    unsigned short winY = 0;
+
+    if(
+        !currentWindow ||
+        !currentWindow->currentFile
+    ) return NULL;
+
+    if(!ptr)
+        return NULL;
+
+    cursorLine = currentWindow->currentFile->cursorLine;
+    cursorCol = currentWindow->currentFile->cursorCol;
+    scrollX = currentWindow->currentFile->scrollX;
+    scrollY = currentWindow->currentFile->scrollY;
+
+    winX = currentWindow->x;
+    winY = currentWindow->y;
+
+    abs_col = cursorCol - scrollX;
+    abs_line = cursorLine - scrollY;
+
+    x = abs_col + winX;
+    y = abs_line + winY;
+
+    if(
+        x >= VIDEO_COLS ||
+        y >= VIDEO_ROWS
+    ) return NULL;
+
+    return &ptr[(y * VIDEO_COLS) + x];
+
+}
+
+void _calculateSelectedLineStartEnd(
+    Window *currentWindow, 
+    unsigned short *selectedStartX, 
+    unsigned short *selectedEndX,
+    int *step
+){
+    int winWidth;
+    int lineWidth;
+    File *currentFile;
+
+    if (!currentWindow )
+        return;
+
+    currentFile = currentWindow->currentFile;
+
+    if (!currentFile)
+        return;
+
+    winWidth = currentWindow->width;
+
+    if (!currentFile->currentLine)
+        return;
+
+    lineWidth = currentFile->currentLine->length;
+
+    *step = 
+        (currentFile->selectedStartX < currentFile->selectedEndX)
+        ? 1
+        : -1;
+
+    if(lineWidth > winWidth)
+        lineWidth = winWidth;
+
+    *selectedStartX = 
+        currentFile->selectedStartX > lineWidth
+        ? lineWidth
+        : currentFile->selectedStartX;
+
+    *selectedEndX =
+        currentFile->selectedEndX > lineWidth
+        ? lineWidth
+        : currentFile->selectedEndX;
+        
+    return;
+}
 
 
 Line *_createLine(File *file){

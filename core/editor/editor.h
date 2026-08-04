@@ -108,7 +108,8 @@
  *   ■ -> þ -> (254 / 0xFE) - Solid square
  *   ° -> ø -> (248 / 0xF8) - Degree symbol
  *   · -> ú -> (250 / 0xFA) - Middle dot
- *   √ -> û -> (251 / 0xFB) - Square root
+ *   √ -> û -> (251 / 0xFB)
+ - Square root
  *   ≈ -> ÷ -> (247 / 0xF7) - Approximately equal
  *   ± -> ± -> (241 / 0xF1) - Plus-minus
  *   ÷ -> ö -> (246 / 0xF6) - Division
@@ -173,6 +174,7 @@ void ed_statusBar();
 void ed_prepareSelectionTool();
 void ed_clearSelection();
 void ed_handleSelection();
+void ed_renderLineSelection();
 
 // ed_search
 void ed_drawSearchTool();

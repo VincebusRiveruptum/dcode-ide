@@ -1187,7 +1187,6 @@ void dw_copyFormatted(
 }
 
 // RENDER EVENT REQUEST-DISPATCH=====================================
-
 void dw_requestRenderEvent(RenderType renderType){
     if(dw_renderEventType < renderType)
         dw_renderEventType = renderType;
@@ -1211,6 +1210,12 @@ void dw_renderEventDispatcher(){
 				return;
 			case DW_RENDER_LINE:
 				ed_renderCurrentLine();
+                dw_renderEventType = DW_RENDER_NONE;
+				dw_renderEvent = false;
+                hal_vid_refresh();
+				return;
+			case DW_RENDER_SELECTION:
+				ed_renderLineSelection();
                 dw_renderEventType = DW_RENDER_NONE;
 				dw_renderEvent = false;
                 hal_vid_refresh();

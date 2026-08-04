@@ -73,6 +73,7 @@ void ed_handleSelection() {
             currentFile->selectedEndX = currentFile->cursorCol;
             currentFile->selectedEndLine = currentFile->cursorLine;
             on_selection_tool = true;
+            dw_requestRenderEvent(DW_RENDER_SELECTION);
         } else {
             // Clear selection since we moved cursor without Shift
             ed_clearSelection();
@@ -82,4 +83,60 @@ void ed_handleSelection() {
 		// clears selection
         ed_clearSelection();
     }
+}
+
+// This is agnostic to draw.c line rendering methods as this
+// copy the screen line portion on the screen and 
+// applies the selection mask
+
+// This is WIP
+// currently just renders the last state of the selected line
+// if we are selecting more that one line, the lines between will 
+// not be rendered yet.
+void ed_renderLineSelection(){
+    // Copy crrent line video memory area
+    unsigned short *lineBuffer = NULL;
+    File *currentFile = NULL;
+    // Selectection metadata
+    unsigned short selectedStartX = 0;
+    unsigned short selectedEndX = 0;
+    int step = 0;
+    int i=0;
+
+    if(
+        !currentWorkspace || 
+        !currentWorkspace->currentWindow ||
+        !currentWorkspace->currentWindow->currentFile
+    )   return ;
+
+    currentFile = currentWorkspace->currentWindow->currentFile;
+
+    lineBuffer = 
+        _getCurrentLinePtrInBuffer(
+            textmemptr, 
+            currentWorkspace->currentWindow
+        );
+
+    if(!lineBuffer)
+        return;
+
+    // This retruns the start and position of the selection
+    // highlingting depending on the selection direction
+    _calculateSelectedLineStartEnd(
+        currentWorkspace->currentWindow,
+        &selectedStartX, 
+        &selectedEndX,
+        &step 
+    );
+
+    logger("[ed_renderLineSelection]: %d, %d, %d", selectedStartX, selectedEndX, step);
+    // Selection Highlighting
+    for(i=selectedStartX; i != selectedEndX ; i += step){
+        lineBuffer[i] = lineBuffer[i] & 0x00FF;
+        lineBuffer[i] = lineBuffer[i] | ((COLOR_LIGHT_GRAY << 4 | COLOR_BLACK) << 8);
+    }
+
+    ed_updateCursor();
+
+    return;
 }

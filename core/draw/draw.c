@@ -1213,23 +1213,18 @@ void dw_renderEventDispatcher(){
                 dw_renderEventType = DW_RENDER_NONE;
 				dw_renderEvent = false;
                 hal_vid_refresh();
-				return;
-			case DW_RENDER_SELECTION:
-				ed_renderLineSelection();
-                dw_renderEventType = DW_RENDER_NONE;
-				dw_renderEvent = false;
-                hal_vid_refresh();
-				return;
+				return;                
             case DW_RENDER_STATUSBAR:
 		        ed_statusBar();	
                 dw_renderEventType = DW_RENDER_NONE;
                 dw_renderEvent = false;
                 hal_vid_refresh();
                 return;
-			case DW_RENDER_SEARCH:
+            case DW_RENDER_SEARCH:
 				ed_updateWindow(currentWorkspace);
 				ed_drawSearchTool();
 				break;
+            case DW_RENDER_SELECTION:
 			case DW_RENDER_WINDOW:
 				ed_updateWindow(currentWorkspace);
 				break;

@@ -93,6 +93,7 @@ void ed_handleSelection() {
 // currently just renders the last state of the selected line
 // if we are selecting more that one line, the lines between will 
 // not be rendered yet.
+// 
 void ed_renderLineSelection(){
     // Copy crrent line video memory area
     unsigned short *lineBuffer = NULL;
@@ -100,6 +101,7 @@ void ed_renderLineSelection(){
     // Selectection metadata
     unsigned short selectedStartX = 0;
     unsigned short selectedEndX = 0;
+    unsigned short tmp = 0;
     int step = 0;
     int i=0;
 
@@ -131,6 +133,7 @@ void ed_renderLineSelection(){
 
     logger("[ed_renderLineSelection]: %d, %d, %d", selectedStartX, selectedEndX, step);
     // Selection Highlighting
+
     for(i=selectedStartX; i != selectedEndX ; i += step){
         lineBuffer[i] = lineBuffer[i] & 0x00FF;
         lineBuffer[i] = lineBuffer[i] | ((COLOR_LIGHT_GRAY << 4 | COLOR_BLACK) << 8);

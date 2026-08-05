@@ -149,6 +149,7 @@ void ed_renderCurrentLine(){
 		currentWindow->currentFile
 	);
 
+    ed_updateCursor();
 	return;
 }
 
@@ -249,7 +250,7 @@ void ed_putCursor(unsigned char x, unsigned char y){
 void ed_moveCursor(short x, short y){
     Node *tempNode = NULL;
 	static File *currentFile = NULL;
-
+    int tabCount = 0;
 	currentFile = currentWindow->currentFile;
 
     if (!currentFile) return;
@@ -258,8 +259,11 @@ void ed_moveCursor(short x, short y){
     // and the current Y cursor position is less than the nmber of lines
     // DANGEROUS
 
-    if( y > 0 && !(
-        currentFile->cursorLine < currentFile->lines->length - 1
+    if( 
+        y > 0 && 
+        (
+            currentFile->cursorLine >= 
+            currentFile->lines->length - 1
     	)
 	)    return;
 
@@ -336,6 +340,17 @@ void ed_moveCursor(short x, short y){
         if (currentFile->currentLine->length < currentFile->cursorCol){
             currentFile->cursorCol = currentFile->currentLine->length;
         }
+
+        tabCount = _get_tab_counts_until(currentFile->currentLine->length);
+
+        // Only if the last character in the the line to
+        // move is a tab, we get into the tab position 
+        // after.
+        if(
+            tabCount > 0 &&
+            tabCount == currentFile->currentLine->length
+        )
+            currentFile->cursorCol = tabCount;
     }
     // END VERTICAL SCROLLING =====================================================
 
@@ -408,8 +423,8 @@ void ed_typeChar(char c){
     
     ed_markActive(ED_ACTIVITY_TYPE);
     ed_updateScrollX();
-    ed_updateCursor();
 
+    
     if(isspace(c)){
 		dw_requestRenderEvent(DW_RENDER_WINDOW);
 	}else{
@@ -620,7 +635,6 @@ void ed_newLine(){
     int prevLineTabs = 0;
     int autoClosePos = 0;
     int indentTabs = 0;
-    bool isIndent = false;
     bool isAutoClose = false;
     Node *newLineNode = NULL;
     Line *newLine = NULL;
@@ -638,7 +652,6 @@ void ed_newLine(){
     prevLineTabs =
 		 _get_tab_counts_until(currentFile->currentLine->length);
 
-
 	// Creating new line/reusing deleted line
     newLineNode = _resolveNewLine(currentFile);
 
@@ -650,8 +663,7 @@ void ed_newLine(){
     autoClosePos = _get_auto_close_pos();
 
     if(currentFile->prevChar == '{'){
-        isIndent = true;
-        indentTabs = (int)isIndent + prevLineTabs;
+        indentTabs = prevLineTabs + 1;
     }else if(currentFile->currentChar == '}'){
         isAutoClose = true;
         indentTabs = autoClosePos;
@@ -672,26 +684,24 @@ void ed_newLine(){
 	);
     
 	
+    if(indentTabs > 0){
+        memset(newLine->buffer , CHAR_TAB, indentTabs);
+        newLine->length = indentTabs;
+    }	
+
 	if(copyLen > 0){
-		if(indentTabs > 0){
-			memset(newLine->buffer , CHAR_TAB, indentTabs);
-		}	
-		memcpy(
+        memcpy(
 			newLine->buffer + indentTabs, 
 			currentFile->currentLine->buffer + cursorCol, 
 			copyLen
 		);
-		newLine->length = copyLen + indentTabs;
+		newLine->length += copyLen;
 	}
 
 	// =============
 
     // Copy prev line tabs
-    if(
-		isAutoClose == true &&
-		indentTabs > 0
-	){
-        memset(newLine->buffer , CHAR_TAB, indentTabs);
+    if(isAutoClose == true){
         newLine->buffer[indentTabs] = '}';
 		memset(
 			currentFile->currentLine->buffer + cursorCol, 

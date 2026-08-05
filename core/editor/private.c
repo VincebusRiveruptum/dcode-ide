@@ -178,11 +178,9 @@ unsigned short * _getCurrentLinePtrInBuffer(
     Window *currentWindow
 ){
     unsigned short x, y;
-    unsigned short abs_line = 0, abs_col = 0;
+    unsigned short abs_line = 0;
     unsigned short cursorLine = 0;
-    unsigned short cursorCol = 0;
     unsigned short scrollY = 0;
-    unsigned short scrollX = 0;
     unsigned short winX = 0;
     unsigned short winY = 0;
 
@@ -195,17 +193,15 @@ unsigned short * _getCurrentLinePtrInBuffer(
         return NULL;
 
     cursorLine = currentWindow->currentFile->cursorLine;
-    cursorCol = currentWindow->currentFile->cursorCol;
-    scrollX = currentWindow->currentFile->scrollX;
+
     scrollY = currentWindow->currentFile->scrollY;
 
     winX = currentWindow->x;
     winY = currentWindow->y;
 
-    abs_col = cursorCol - scrollX;
     abs_line = cursorLine - scrollY;
 
-    x = abs_col + winX;
+    x = winX;
     y = abs_line + winY;
 
     if(
@@ -213,7 +209,7 @@ unsigned short * _getCurrentLinePtrInBuffer(
         y >= VIDEO_ROWS
     ) return NULL;
 
-    return &ptr[(y * VIDEO_COLS) + x];
+    return &ptr[(y * VIDEO_COLS) + x + LINE_COUNTER_WIDTH ];
 
 }
 
@@ -223,8 +219,8 @@ void _calculateSelectedLineStartEnd(
     unsigned short *selectedEndX,
     int *step
 ){
-    int winWidth;
-    int lineWidth;
+    unsigned short winWidth;
+    unsigned short lineWidth;
     File *currentFile;
 
     if (!currentWindow )

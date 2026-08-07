@@ -176,6 +176,9 @@ int _deleteInSingleLine(){
     // Null termination, so remaining garbage is ignored.
     line->buffer[start + lenBetween + 1] = '\0';
     line->length = start + lenBetween;
+
+    currentFile->cursorCol = start;
+    
     return (end - start);
 }
 

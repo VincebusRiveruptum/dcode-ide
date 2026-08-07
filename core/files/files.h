@@ -203,3 +203,4 @@ void f_cycleActiveWindow();
 void f_refreshWindows(Workspace *workspace);
 
 #endif
+

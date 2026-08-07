@@ -473,7 +473,9 @@ void ed_backspace(){
     }
 
     if(on_selection_tool == true){
-        ed_backspaceSelection();
+        ed_deleteSelection();
+        ed_clearSelection();
+        dw_requestRenderEvent(DW_RENDER_SELECTION);
         return;
     }
     // Current character we are on

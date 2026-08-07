@@ -46,7 +46,6 @@ void ed_handleSelection() {
 		currentFile->cursorCol == currentFile->oldCol
 	) return;
     
-
     isNav = 
 		hal_inp_isKeyDown(HAL_KEY_UP) || 
 		hal_inp_isKeyDown(HAL_KEY_DOWN) ||
@@ -83,6 +82,7 @@ void ed_handleSelection() {
 		// clears selection
         ed_clearSelection();
     }
+    
 }
 
 // This is agnostic to draw.c line rendering methods as this
@@ -142,4 +142,89 @@ void ed_renderLineSelection(){
     ed_updateCursor();
 
     return;
+}
+
+// SAFE, no validation!!
+// Returns number of deleted chars in a selected
+// block in a line.
+int _deleteInSingleLine(){
+    File *currentFile =
+        currentWorkspace->currentWindow->currentFile;
+    Line *line = currentFile->currentLine;
+    unsigned short start, end, lenBetween;
+
+    // Start must be a minor index 
+    // than the end index.
+    if(
+        currentFile->selectedStartX <
+        currentFile->selectedEndX
+     ){
+        start =  currentFile->selectedStartX;
+        end =  currentFile->selectedEndX;
+    }else{
+        start = currentFile->selectedEndX;
+        end = currentFile->selectedStartX;
+    }
+
+    lenBetween = line->length - end;
+
+    if(!line->buffer || !line->length) 
+        return -1;
+    
+    memcpy(line->buffer + start, line->buffer + end, lenBetween);
+
+    // Null termination, so remaining garbage is ignored.
+    line->buffer[start + lenBetween + 1] = '\0';
+    line->length = start + lenBetween;
+    return (end - start);
+}
+
+void ed_deleteSelection(){
+    // 
+    Window *currentWindow = NULL;
+    File *currentFile = NULL;
+    Line *deletedLine = NULL;
+    
+    if(!currentWorkspace)
+        return;
+
+    currentWindow = currentWorkspace->currentWindow;
+
+    if(!currentWindow)
+        return;
+
+    currentFile = currentWindow->currentFile;
+
+    if(!currentFile)
+        return;
+
+    // Check selected line nodes
+    if(
+        !currentFile->selectedStartNode ||
+        !currentFile->selectedEndNode
+    )
+    return;
+    
+    //  Simple deletion,, in the same line
+    if(
+        (
+            currentFile->selectedStartNode ==
+            currentFile->selectedEndNode
+        ) &&
+        (
+            currentFile->selectedStartLine ==
+            currentFile->selectedEndLine
+        )
+    ){
+        if(_deleteInSingleLine() < 0){
+            logger(
+                "[ed_deleteSelection]: Error while" 
+                " deleting selected text"
+            );
+        }
+            
+    }else{
+        // deletion if more lines involved ( >1)
+        logger("[ed_deleteSelection]: WIP");
+    }
 }

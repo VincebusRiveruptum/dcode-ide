@@ -175,7 +175,7 @@ void ed_prepareSelectionTool();
 void ed_clearSelection();
 void ed_handleSelection();
 void ed_renderLineSelection();
-
+void ed_clearSelection();
 // ed_search
 void ed_drawSearchTool();
 int ed_wordCountInStr(char *str);

@@ -432,17 +432,6 @@ void ed_typeChar(char c){
 	}
 }
 
-// Deletes a selectrion
-void ed_backspaceSelection(){
-
-    //if(currentFilectedStartLine == currentFilectedEndLine){
-        // We delete in the same line
-        // No line reuse   
- 
-    //}    
-
-}
-
 void ed_backspace(){
         // We type the char at 
     // X : currentCursorX + LINE_COUNTER_WIDTH + 1

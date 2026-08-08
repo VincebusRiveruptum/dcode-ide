@@ -11,6 +11,12 @@
   #include <stdbool.h>
 #endif
 
+typedef enum ListDirection {
+  DATA_TRAVEL_UNSET,
+  DATA_TRAVEL_BACKWARDS,
+  DATA_TRAVEL_ONWARDS
+} ListDirection;
+
 typedef struct Node{
     void *data;
     unsigned char isDeleted; //bool

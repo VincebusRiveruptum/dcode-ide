@@ -1109,8 +1109,13 @@ void ed_putCursorLastLine(){
     }else{
         // If we are sitting in the middle of the page, we just go
         // to the bottom of the page
-        currentFile->cursorLine = 
-            currentFile->scrollY + screenHeightJump;
+        if(currentFile->lines->length > screenHeightJump){
+            currentFile->cursorLine = 
+                currentFile->scrollY + screenHeightJump;
+        }else{
+            currentFile->cursorLine = 
+                currentFile->lines->length - 1;
+        }
     }
     
     // We update the currentLineNode, currentLine, prevLine, nextLine

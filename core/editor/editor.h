@@ -116,6 +116,11 @@
  */
 
 /* Types ===================================================*/
+typedef struct Clipboard {
+    List *lines;
+    unsigned short selectedStartX;
+    unsigned short selectedEndX;
+} Clipboard;
 
 extern struct Container *root;
 
@@ -128,6 +133,8 @@ extern bool ed_onSearchTool;
 
 extern time_t ed_globalAuxTimer;
 extern char statusBarMessage[ED_STATUSBAR_WIDTH];
+
+extern Clipboard ed_clipboard;
 
 /* Prototypes ==============================================*/
 

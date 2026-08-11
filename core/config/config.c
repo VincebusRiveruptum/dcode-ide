@@ -38,6 +38,9 @@ bool cfg_loadConfig(){
     settings.DEFAULT_VIDEO_MODE             
         = (unsigned char)atoi(getEnv("DEFAULT_VIDEO_MODE", "1"));
     
+    settings.CLIPBOARD_SIZE             
+        = (unsigned char)atoi(getEnv("CLIPBOARD_SIZE", "%ld", (MEM_ARENA_8K / 1024)))
+        * 1024;
     // Validate that DEFUALT_VIDEO_MODE is never 0 or ther will be an infite loop when trying to switch video modes.
     if (
         settings.DEFAULT_VIDEO_MODE <= 0 || 

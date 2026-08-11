@@ -239,9 +239,27 @@ void ed_renderWindows(Workspace *workspace){
 	return;
 }
 
+// Makes a line duplicate
+Line *ed_dupLine(Line *src, MemoryArena *arena){
+    Line *newLine = NULL;
 
-void ed_putCursor(unsigned char x, unsigned char y){
-    hal_vid_putCursor(x, y);
+    if( !src || !arena){
+        logger("[_dupLine]: Invalid src or arena.");
+        return;
+    }
+     
+    newLine = (Line*)mem_arena_allow(arena, sizeof(Line));
+     
+    if(!newLine){
+        logger("[_dupLine]: Could not instantiate new line.");
+        return;
+    }
+
+    newLine->length = src->length;
+    newLine->buffer = (char*)mem_arena_alloc(arena, MAX_LINE_WIDTH);
+    memcpy(newLine->buffer, src->buffer, MAX_LINE_WIDTH);
+
+    return newLine;
 }
 
 /*

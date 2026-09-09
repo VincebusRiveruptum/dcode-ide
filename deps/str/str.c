@@ -62,30 +62,30 @@ char **strsplit(char *str, const char *separator){
 
         strStart = str;
         
-        for(i=0; i <= sepCount; i++){
-			strEnd = strstr(strStart, separator);
-			if (strEnd) {
-					strFoundLen = strEnd - strStart;
-			} else {
-					strFoundLen = strlen(strStart);
-			}
-			
-			arr[i] = (char*)malloc(strFoundLen + 1);
+        for(i=0; i < sepCount + 1; i++){
+                strEnd = strstr(strStart, separator);
+                if (strEnd) {
+                                strFoundLen = strEnd - strStart;
+                } else {
+                                strFoundLen = strlen(strStart);
+                }
+                
+                arr[i] = (char*)malloc(strFoundLen + 1);
 
-			if(!arr[i]){
-					for(j = 0; j < i; j++){
-							free(arr[j]);
-					}
-					free(arr);
-					return NULL;
-			}
+                if(!arr[i]){
+                                for(j = 0; j < i; j++){
+                                                free(arr[j]);
+                                }
+                                free(arr);
+                                return NULL;
+                }
 
-			strncpy(arr[i], strStart, strFoundLen);
-			arr[i][strFoundLen] = '\0';
-			
-			if (strEnd) {
-					strStart = strEnd + sepLen;
-			}
+                strncpy(arr[i], strStart, strFoundLen);
+                arr[i][strFoundLen] = '\0';
+                
+                if (strEnd) {
+                                strStart = strEnd + sepLen;
+                }
         }
 
         // NULL-terminated pointer array.

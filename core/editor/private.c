@@ -279,7 +279,7 @@ Line *_createLine(File *file){
 	newLine->buffer = 
 		(char*)mem_arena_alloc(
 			file->arena,
-			sizeof(char) * MAX_FILE_LINE_LENGTH
+			sizeof(char) * MAX_FILE_LINE_LENGTH + 1
 		);
 
 	if (!newLine->buffer){
@@ -287,7 +287,7 @@ Line *_createLine(File *file){
 		return NULL;
 	}
 
-	memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
+	memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH + 1);
 	return newLine;
 }
 
@@ -335,7 +335,7 @@ Node *_resolveNewLine(File *file){
 		}
 	}
 
-	memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
+	memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH + 1);
 	newLine->length = 0;
 	newLineNode->isDeleted = false; 
 

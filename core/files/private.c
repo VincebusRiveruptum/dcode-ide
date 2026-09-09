@@ -92,14 +92,14 @@ void _splitIntoLines(char *buffer, size_t bufferLength, File *file) {
             if (lineLen > 0 && *(p - 1) == '\r') {
                 lineLen--;
             }
-            if (lineLen >= MAX_FILE_LINE_LENGTH) {
-                lineLen = MAX_FILE_LINE_LENGTH - 1;
+            if (lineLen >= MAX_FILE_LINE_LENGTH + 1) {
+                lineLen = MAX_FILE_LINE_LENGTH;
             }
             line = (Line *)mem_arena_alloc(file->arena, sizeof(Line));
             if (line != NULL) {
-                line->buffer = (char *)mem_arena_alloc(file->arena, MAX_FILE_LINE_LENGTH);
+                line->buffer = (char *)mem_arena_alloc(file->arena, MAX_FILE_LINE_LENGTH + 1);
                 if (line->buffer != NULL) {
-                    memset(line->buffer, '\0', MAX_FILE_LINE_LENGTH);
+                    memset(line->buffer, '\0', MAX_FILE_LINE_LENGTH + 1);
                     memcpy(line->buffer, start, lineLen);
                     line->length = lineLen;
                     addGenericNode(&file->lines, line, file->arena);
@@ -114,15 +114,15 @@ void _splitIntoLines(char *buffer, size_t bufferLength, File *file) {
     if (start <= end) {
         lineLen = end - start;
         if (lineLen > 0 && start[lineLen-1] == '\r') lineLen--;
-        if (lineLen >= MAX_FILE_LINE_LENGTH) {
-            lineLen = MAX_FILE_LINE_LENGTH - 1;
+        if (lineLen >= MAX_FILE_LINE_LENGTH + 1) {
+            lineLen = MAX_FILE_LINE_LENGTH;
         }
 
         line = (Line *)mem_arena_alloc(file->arena, sizeof(Line));
         if (line != NULL) {
-            line->buffer = (char *)mem_arena_alloc(file->arena, MAX_FILE_LINE_LENGTH);
+            line->buffer = (char *)mem_arena_alloc(file->arena, MAX_FILE_LINE_LENGTH + 1);
             if (line->buffer != NULL) {
-                memset(line->buffer, '\0', MAX_FILE_LINE_LENGTH);
+                memset(line->buffer, '\0', MAX_FILE_LINE_LENGTH + 1);
                 memcpy(line->buffer, start, lineLen);
                 line->length = lineLen;
                 addGenericNode(&file->lines, line, file->arena);
@@ -146,8 +146,8 @@ size_t _copyLines(File *old, File *new){
         oldLine = (Line *)currentNode->data;
         
         newLine = (Line *)mem_arena_alloc(new->arena, sizeof(Line));
-        newLine->buffer = (char *)mem_arena_alloc(new->arena, sizeof(char) * MAX_FILE_LINE_LENGTH);
-        memset(newLine->buffer, '\0', sizeof(char) * MAX_FILE_LINE_LENGTH);
+        newLine->buffer = (char *)mem_arena_alloc(new->arena, sizeof(char) * MAX_FILE_LINE_LENGTH + 1);
+        memset(newLine->buffer, '\0', sizeof(char) * MAX_FILE_LINE_LENGTH + 1);
 
         lineLen = strlen(oldLine->buffer);
 

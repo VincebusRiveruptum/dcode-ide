@@ -60,4 +60,32 @@ void substring(char *str, int start, int end) {
 
 5. String length is always real useful chars count, it does not consider null-terminator, this is the C standard convention, for example, strlen() follows this scheme.
 
+6. Static buffer string length: Strings size is set by a constant which also follow the
+rule of useful real characters, however we need to always add null character to the size constant. 
+
+'''c
+#define MAX_LINE_LEN 256
+
+typedef struct {
+    char buffer[MAX_LINE_LEN + 1];  // +1 for NULL
+    int length;  // DOES NOT INCLUDE NULL
+} Line;
+
+// Invariant: buffer[length] == '\0' ALWAYS
+// buffer[0..length-1] are valid chars.
+
+void append_char(Line *line, char ch) {
+    if (line->length < MAX_LINE_LEN) {
+        line->buffer[line->length++] = ch;
+        line->buffer[line->length] = '\0';  // keep invariant
+    }
+}
+
+void process_line(Line *line) {
+    for (int i = 0; i < line->length; i++) {
+        printf("%c", line->buffer[i]);
+    }
+}
+'''
+
 NOTE: We need to improve the dependency management so each one are fully isolated from the rest, avoiding cross-references.

@@ -253,8 +253,8 @@ void _glueLines(Node *start, Node *end, unsigned short startLineIndex, char ld){
     // Update editor metadata
     currentFile->currentLineNode = start;
     currentFile->currentLine = startLine;
-    currentFile->prevLine = start->prev;
-    currentFile->nextLine = start->next;
+    currentFile->prevLine = start->prev ? (Line*)start->prev->data : NULL;
+    currentFile->nextLine = start->next ? (Line*)start->next->data : NULL;
 
     currentFile->cursorCol = startX;
     currentFile->cursorLine = startLineIndex;
@@ -315,6 +315,7 @@ int _deleteSelectedLines(){
     _glueLines(start, end, startLineIndex, ld);
 
     ed_clearSelection();
+    return 1;
 }
 
 void ed_deleteSelection(){

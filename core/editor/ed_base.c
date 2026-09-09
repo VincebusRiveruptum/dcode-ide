@@ -245,21 +245,25 @@ Line *ed_dupLine(Line *src, MemoryArena *arena){
 
     if( !src || !arena){
         logger("[_dupLine]: Invalid src or arena.");
-        return;
+        return NULL;
     }
      
-    newLine = (Line*)mem_arena_allow(arena, sizeof(Line));
+    newLine = (Line*)mem_arena_alloc(arena, sizeof(Line));
      
     if(!newLine){
         logger("[_dupLine]: Could not instantiate new line.");
-        return;
+        return NULL;
     }
 
     newLine->length = src->length;
-    newLine->buffer = (char*)mem_arena_alloc(arena, MAX_LINE_WIDTH);
-    memcpy(newLine->buffer, src->buffer, MAX_LINE_WIDTH);
+    newLine->buffer = (char*)mem_arena_alloc(arena, MAX_FILE_LINE_LENGTH + 1);
+    memcpy(newLine->buffer, src->buffer, MAX_FILE_LINE_LENGTH + 1);
 
     return newLine;
+}
+
+void ed_putCursor(unsigned char x, unsigned char y){
+    hal_vid_putCursor(x, y);
 }
 
 /*
@@ -430,8 +434,8 @@ void ed_typeChar(char c){
     
     // Had to use a loop instead of memcpy due to overlapping memory
     
-    for(i = line->length; i > x; i--){
-        line->buffer[i] = line->buffer[i-1];
+    for(i = line->length - 1; i >= x; i--){
+        line->buffer[i+1] = line->buffer[i];
     }
     
     line->buffer[x] = c;
@@ -793,9 +797,9 @@ char *ed_scanf(
     char c = 0;
     bool esc = false;
 
-    static char buffer[MAX_FILE_LINE_LENGTH];
+    static char buffer[MAX_FILE_LINE_LENGTH + 1];
 
-    memset(buffer, '\0', MAX_FILE_LINE_LENGTH);
+    memset(buffer, '\0', MAX_FILE_LINE_LENGTH + 1);
 
     ed_putCursor(x,y);    
 
@@ -820,7 +824,7 @@ char *ed_scanf(
                 // Shift to the left the buffer from the current 
 				// position 
                 lenbuff = strlen(buffer);
-                for(j=i; j <= lenbuff; j++){
+                for(j=i; j < lenbuff; j++){
                     buffer[j] = buffer[j+1];
                 }
 
@@ -834,7 +838,7 @@ char *ed_scanf(
             // OK
             if(c == CHAR_BACKSPACE && i > 0 ){
                 lenbuff = strlen(buffer);
-                for(j=i; i > 0 && j <= lenbuff; j++){
+                for(j=i; i > 0 && j < lenbuff + 1; j++){
                     buffer[j - 1] = buffer[j];
                 }   
                 
@@ -849,7 +853,8 @@ char *ed_scanf(
 
                 ed_putCursor(x + i, y);
             }else if(c == CHAR_SPACE){                
-                for(j=strlen(buffer); j >= i; j--){
+                lenbuff = strlen(buffer);
+                for(j=lenbuff; j >= i; j--){
                     if(
 						j + 1 < MAX_FILE_LINE_LENGTH &&
 						j + 1 < maxChars 
@@ -935,7 +940,7 @@ char *ed_async_scanf(
         if(c == KEY_DELETE){
             // Shift to the left the buffer from the current position 
             lenbuff = strlen(buffer);
-            for(j=(*stepIndex); j <= lenbuff; j++){
+            for(j=(*stepIndex); j < lenbuff; j++){
                 buffer[j] = buffer[j+1];
             }
 
@@ -944,7 +949,7 @@ char *ed_async_scanf(
         // OK
         if(c == CHAR_BACKSPACE && (*stepIndex) > 0 ){
             lenbuff = strlen(buffer);
-            for(j=(*stepIndex); (*stepIndex) > 0 && j <= lenbuff; j++){
+            for(j=(*stepIndex); (*stepIndex) > 0 && j < lenbuff + 1; j++){
                 buffer[j - 1] = buffer[j];
             }   
             
@@ -953,7 +958,8 @@ char *ed_async_scanf(
 
             ed_putCursor(x + (*stepIndex), y);
         }else if(c == CHAR_SPACE){                
-            for(j=strlen(buffer); j >= (*stepIndex); j--){
+            lenbuff = strlen(buffer);
+            for(j=lenbuff; j >= (*stepIndex); j--){
                 if(j + 1 < MAX_FILE_LINE_LENGTH && j + 1 < charLimit ){
                     buffer[j + 1] = buffer[j];
                 }

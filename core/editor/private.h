@@ -10,6 +10,19 @@ int _get_tab_counts_someline(struct Line *someLine, int col);
 int _get_auto_close_pos();
 
 // New line handling
+struct Line *_createNewEmptyLine(struct File *file);
+
+unsigned short * _getCurrentLinePtrInBuffer(
+    unsigned short *ptr, 
+    struct Window *currentWindow
+);
+
+void _calculateSelectedLineStartEnd(
+    struct Window *currentWindow, 
+    unsigned short *selectedStartX, 
+    unsigned short *selectedEndX,
+    int *step
+);
 struct Line *_createLine(struct File *file);
 struct Node *_createLineNode(struct File *file);
 struct Node *_resolveNewLine(struct File *file);

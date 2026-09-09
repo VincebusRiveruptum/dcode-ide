@@ -136,7 +136,7 @@ void f_newFile(char *filename){
         return;
     }
     
-    firstLine->buffer = (char*)mem_arena_alloc(arena, sizeof(char) * MAX_FILE_LINE_LENGTH);
+    firstLine->buffer = (char*)mem_arena_alloc(arena, sizeof(char) * (MAX_FILE_LINE_LENGTH + 1));
     if(!firstLine->buffer){
         logger("[f_newFile]: Could not create initial line BUFFER to new file!");
         return;

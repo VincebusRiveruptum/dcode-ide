@@ -528,8 +528,8 @@ void dw_writeBuffer(unsigned short *buffer, const char *format, int x1, int y1, 
     // Boundary check
     if(x1 > x2 || y1 > y2) return;
 
-    for(y = y1; y <= y2; y++){
-        for(x = x1; x <= x2; x++){
+    for(y = y1; y < y2 + 1; y++){
+        for(x = x1; x < x2 + 1; x++){
             screenPos = (y * VIDEO_COLS) + x;
             
             if(buffpos < HAL_VIDEO_BUFFER_SIZE){
@@ -652,8 +652,8 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
     /**/
     if(!file->lines || file->lines->length == 0) {
         /* Clear area if no lines */
-        for(y = y1; y <= y2; y++){
-            for(x = x1; x <= x2; x++){
+        for(y = y1; y < y2 + 1; y++){
+            for(x = x1; x < x2 + 1; x++){
                 destBuffer[(y * VIDEO_COLS) + x] = ' ' | ((backgroundColor << 4 | foregroundColor) << 8);
             }
         }
@@ -685,7 +685,7 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
 
     /* End pre-scan */
     
-    for(y = y1; y <= y2; y++){
+    for(y = y1; y < y2 + 1; y++){
         if(currentNode){
             line = (Line *)currentNode->data;
             linePos = 0;
@@ -700,7 +700,7 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
             prevDetectedWordType = DW_RESWORD_NONE;
             detectedWordType = DW_RESWORD_NONE;
             isIdentifier=false;
-            while(screenX <= x2){
+            while(screenX < x2 + 1){
                 //
                 // ============ LINE COUNTER COLUMN ===============================================
                 //
@@ -836,7 +836,7 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
                         
                         if(*c == '\t'){
                             /// UGLYT TEST
-                            for(t=0; t < 4 && screenX <= x2; t++){
+                            for(t=0; t < 4 && screenX < x2 + 1; t++){
                                 if (
                                     dw_isCharSelected(file, lineCount, linePos + file->scrollX) ||
                                     dw_isCharFound(file, lineCount, linePos + file->scrollX)
@@ -880,7 +880,7 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
             lineCount++;
         } else {
             /* Fill remaining lines with spaces */
-            for(x = x1; x <= x2; x++){
+            for(x = x1; x < x2 + 1; x++){
                 destBuffer[(y * VIDEO_COLS) + x] = ' ' | ((backgroundColor << 4 | foregroundColor) << 8);
             }
         }
@@ -916,8 +916,8 @@ void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2
     /**/
     if(!file->lines || file->lines->length == 0) {
         /* Clear area if no lines */
-        for(y = y1; y <= y2; y++){
-            for(x = x1; x <= x2; x++){
+        for(y = y1; y < y2 + 1; y++){
+            for(x = x1; x < x2 + 1; x++){
                 destBuffer[(y * VIDEO_COLS) + x] = ' ' | ((backgroundColor << 4 | foregroundColor) << 8);
             }
         }
@@ -938,13 +938,13 @@ void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2
 
     /* End pre-scan */
     
-    for(y = y1; y <= y2; y++){
+    for(y = y1; y < y2 + 1; y++){
         if(currentNode){
             line = (Line *)currentNode->data;
             linePos = 0;
             screenX = x1;
 
-            while(screenX <= x2){
+            while(screenX < x2 + 1){
                 //
                 // ============ LINE COUNTER COLUMN ===============================================
                 //
@@ -981,7 +981,7 @@ void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2
                         
                         if(*c == '\t'){
                             /// UGLYT TEST
-                            for(t=0; t < 4 && screenX <= x2; t++){
+                            for(t=0; t < 4 && screenX < x2 + 1; t++){
                                 if (
                                     dw_isCharSelected(file, lineCount, linePos + file->scrollX) ||
                                     dw_isCharFound(file, lineCount, linePos + file->scrollX)
@@ -1025,7 +1025,7 @@ void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2
             lineCount++;
         } else {
             /* Fill remaining lines with spaces */
-            for(x = x1; x <= x2; x++){
+            for(x = x1; x < x2 + 1; x++){
                 destBuffer[(y * VIDEO_COLS) + x] = ' ' | ((backgroundColor << 4 | foregroundColor) << 8);
             }
         }

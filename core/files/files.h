@@ -171,6 +171,7 @@ void f_saveFile();
 void f_closeFile(File *file);
 void f_triggerClose(bool end_program);
 void f_closeCurrentFile();
+void f_setCurrentFileAsModified();
 
 // f_nav
 void f_prepareFileNavDialog();

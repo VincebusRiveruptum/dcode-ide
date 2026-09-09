@@ -675,3 +675,12 @@ void f_triggerClose(bool end_program){
   	dw_requestRenderEvent(DW_RENDER_ALL);
 }
 
+void f_setCurrentFileAsModified(){
+    if(
+        !currentWorkpace ||
+        !currentWorkpace->currentWindow ||
+        !currentWorkpace->currentWindow->currentFile ||
+    )   return;
+    
+    currentWorkpace->currentWindow->currentFile->isModified = true;
+}

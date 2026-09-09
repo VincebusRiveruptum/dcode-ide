@@ -116,6 +116,4 @@ void ed_paste(){
     currentFile = 
         currentWorkspace->currentWindow->currentFile;
 
-    
-
 }

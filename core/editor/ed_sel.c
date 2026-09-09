@@ -368,4 +368,6 @@ void ed_deleteSelection(){
             logger("[ed_deleteSelection]: WIP");
         }
     }
+
+    f_setCurrentFileAsModified();
 }

@@ -39,4 +39,25 @@ gets complex, so avoid doing this.
 - The dep module should have generic types, avoid using such as bool that could be cross referenced.
 - Each dep must be written portable as possible.
 
+## OBOE avoiding conventions
+
+For avoiding OBOE type errors, we need to do the following:
+
+1. Incrementing for loops always as [0, n): for(i=0; i < n ; i++)
+2. Decrementing for loops always as: for(i=n-1 ; i >= 0 ; i--)
+3. Length =/= Last index :  Last index is Length - 1;
+4. Semi-open range convention [start, end):
+
+'''c
+// [0, n) means: 0, 1, 2, ..., n-1
+void substring(char *str, int start, int end) {
+    // Copy chars from start to end-1
+    for (int i = start; i < end; i++) {
+        putchar(str[i]);
+    }
+}
+'''
+
+5. String length is always real useful chars count, it does not consider null-terminator, this is the C standard convention, for example, strlen() follows this scheme.
+
 NOTE: We need to improve the dependency management so each one are fully isolated from the rest, avoiding cross-references.

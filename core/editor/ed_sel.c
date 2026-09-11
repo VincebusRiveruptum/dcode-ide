@@ -130,10 +130,7 @@ void ed_renderLineSelection(){
         &selectedEndX,
         &step 
     );
-
-    logger("[ed_renderLineSelection]: %d, %d, %d", selectedStartX, selectedEndX, step);
-    // Selection Highlighting
-
+     // Selection Highlighting
     for(i=selectedStartX; i != selectedEndX ; i += step){
         lineBuffer[i] = lineBuffer[i] & 0x00FF;
         lineBuffer[i] = lineBuffer[i] | ((COLOR_LIGHT_GRAY << 4 | COLOR_BLACK) << 8);
@@ -237,14 +234,22 @@ void _glueLines(Node *start, Node *end, unsigned short startLineIndex){
         endX = currentFile->selectedStartX;
     }
 
-    lenOnwards = endLine->length - endX;
+    lenOnwards = 
+        (int)(endLine->length - endX) > 0
+        ? (endLine->length - endX)
+        : 0;
 
+    memcpy(
+        startLine->buffer + startX, 
+        endLine->buffer + endX, 
+        lenOnwards
+    );
     
-    memcpy(startLine->buffer + startX, endLine->buffer + endX, lenOnwards);
-
     startLine->buffer[startX + lenOnwards + 1] = '\0'; 
     startLine->length = startX + lenOnwards; 
-
+    
+    //;
+    
     // We glue the lines
     start->next = 
         end &&
@@ -281,11 +286,9 @@ int _deleteSelectedLines(){
     Node *end = NULL;
     Node *endPrev = NULL;
     Node *rec = NULL, *tmp=NULL;
-    int i=0;
     unsigned short startLineIndex;
     // Ordering so always start is a a position
     // previous to the end
-    logger("[_deleteSelectedLines]: MUlti line deletion");
 
     if(
         currentFile->selectedStartLine <
@@ -318,7 +321,6 @@ int _deleteSelectedLines(){
     ){
         tmp = rec->next;
         _softDeleteLine(currentFile, rec);
-        logger("[_deleteSelectedLines]: Deleted %d lines", i);
         rec = tmp;
     }
        
@@ -357,7 +359,6 @@ void ed_deleteSelection(){
     return;
     
     //  Simple deletion,, in the same line
-    logger("Farts!");
 
     if(
         (

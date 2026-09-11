@@ -183,6 +183,15 @@ int _deleteInSingleLine(){
 }
 
 Node *_softDeleteLine(File *currentFile, Node *node){
+    // Join adjacent nodes
+    if(!node)
+        return NULL;
+    
+    if(node->prev && node->next){
+        node->prev->next = node->next;
+        node->next->prev = node->prev;
+    }
+    // isolate current node
     node->next = NULL;
     node->prev = NULL;
     node->isDeleted = true;
@@ -196,7 +205,7 @@ Node *_softDeleteLine(File *currentFile, Node *node){
     return node;
 }
 
-void _glueLines(Node *start, Node *end, unsigned short startLineIndex, char ld){
+void _glueLines(Node *start, Node *end, unsigned short startLineIndex){
     Line *startLine, *endLine;
     File *currentFile = 
         currentWorkspace->currentWindow->currentFile;
@@ -229,23 +238,27 @@ void _glueLines(Node *start, Node *end, unsigned short startLineIndex, char ld){
     }
 
     lenOnwards = endLine->length - endX;
+
     
     memcpy(startLine->buffer + startX, endLine->buffer + endX, lenOnwards);
 
     startLine->buffer[startX + lenOnwards + 1] = '\0'; 
     startLine->length = startX + lenOnwards; 
-    
-    // We delete the next line
-    _softDeleteLine(currentFile, start->next);
 
     // We glue the lines
     start->next = 
+        end &&
         end->next
         ? end->next
         : NULL;
          
-    if(end->next)
+    if(
+        end &&
+        end->next &&
+        end->next->prev
+    ){
         end->next->prev = start;
+    }
 
     // Recycle end node
     _softDeleteLine(currentFile, end);
@@ -268,11 +281,12 @@ int _deleteSelectedLines(){
     Node *end = NULL;
     Node *endPrev = NULL;
     Node *rec = NULL, *tmp=NULL;
-    
-    char ld;    // SHORT FOR LIST DIRECTION
+    int i=0;
     unsigned short startLineIndex;
     // Ordering so always start is a a position
     // previous to the end
+    logger("[_deleteSelectedLines]: MUlti line deletion");
+
     if(
         currentFile->selectedStartLine <
         currentFile->selectedEndLine 
@@ -280,13 +294,11 @@ int _deleteSelectedLines(){
         start = currentFile->selectedStartNode;
         startLineIndex = currentFile->selectedStartLine;
         end = currentFile->selectedEndNode;
-        ld = DATA_TRAVEL_ONWARDS;
         
     }else{
         start = currentFile->selectedEndNode;
         startLineIndex = currentFile->selectedEndLine;
-        end = currentFile->selectedStartNode;
-        ld = DATA_TRAVEL_BACKWARDS;      
+        end = currentFile->selectedStartNode;   
     }
     
     // Then we delete the nodes in between
@@ -301,18 +313,18 @@ int _deleteSelectedLines(){
 
     while(
         (rec != NULL ) && 
-        (rec != end->prev) &&       
+        (rec != end->prev) &&          
         (rec != end)      
     ){
         tmp = rec->next;
         _softDeleteLine(currentFile, rec);
-
+        logger("[_deleteSelectedLines]: Deleted %d lines", i);
         rec = tmp;
     }
        
     // Then we glue the lines on each side of the
     // deleted lines gap.
-    _glueLines(start, end, startLineIndex, ld);
+    _glueLines(start, end, startLineIndex);
 
     ed_clearSelection();
     return 1;
@@ -345,6 +357,8 @@ void ed_deleteSelection(){
     return;
     
     //  Simple deletion,, in the same line
+    logger("Farts!");
+
     if(
         (
             currentFile->selectedStartNode ==
@@ -364,9 +378,8 @@ void ed_deleteSelection(){
             
     }else{
         // deletion if more lines involved ( >1)
-        if(_deleteSelectedLines()){
-            logger("[ed_deleteSelection]: WIP");
-        }
+        _deleteSelectedLines();
+        
     }
 
     f_setCurrentFileAsModified();

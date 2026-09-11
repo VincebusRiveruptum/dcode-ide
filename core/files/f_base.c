@@ -677,10 +677,10 @@ void f_triggerClose(bool end_program){
 
 void f_setCurrentFileAsModified(){
     if(
-        !currentWorkpace ||
-        !currentWorkpace->currentWindow ||
-        !currentWorkpace->currentWindow->currentFile ||
+        !currentWorkspace ||
+        !currentWorkspace->currentWindow ||
+        !currentWorkspace->currentWindow->currentFile
     )   return;
     
-    currentWorkpace->currentWindow->currentFile->isModified = true;
+    currentWorkspace->currentWindow->currentFile->isModified = true;
 }

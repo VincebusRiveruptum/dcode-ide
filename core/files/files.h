@@ -80,7 +80,6 @@ typedef struct File {
 
     // This will be used for the editor to know if the previous line to the first visible was a comment
     // So the comment formmating will still function when scrolling down
-    
     unsigned short scrollY;
     unsigned short scrollX;
 

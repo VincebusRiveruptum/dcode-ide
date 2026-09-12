@@ -108,19 +108,3 @@ void mem_arena_free(MemoryArena *arenaPtr){
 	
 	return;
 }
-
-// TODO : IMPROVE THIS FUNCTION ASAP
-// DUMMY FOR NOW
-size_t mem_getFileClosestSize(FILE *fp){
-	size_t size = 0;
-	if(!fp)
-		return 0;
-
-	fseek(fp, 0L, SEEK_END);
-	size = ftell(fp);
-	rewind(fp);
-
-	size += MEM_ARENA_8K; // for now...
-
-	return size;
-}

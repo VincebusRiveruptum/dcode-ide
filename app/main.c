@@ -21,11 +21,9 @@ int main(int argc, char *argv[]){
 	hal_inp_initKeyboard();
 	hal_vid_init();
 
-	if (argc > 1) {
-		logger("[main]: %d %s", argc, argv[1]);
-	} else {
-		logger("[main]: %d (no args)", argc);
-	}
+	// Debug only
+	if(settings.DEBUG == true){}
+		t_initTests();
 
     dw_requestRenderEvent(DW_RENDER_ALL);
 	

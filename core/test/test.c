@@ -55,7 +55,8 @@ void t_initTests(){
 
     //_scanfTest();
 
+    logger("[t_initTests]: settings.MAX_LINE_LENGTH=%d", settings.MAX_LINE_LENGTH);
 
-    
+   
 }
 

@@ -182,6 +182,45 @@ void f_newFile(char *filename){
 
 /* OPEN FILE ==============================================================================*/
 
+// TODO : IMPROVE THIS FUNCTION ASAP
+// DUMMY FOR NOW
+size_t _getFileClosestSize(FILE *fp){
+	size_t fileSize = 0, finalSize;
+    char c;
+    unsigned int lineBreaks = 0;
+
+	if(!fp)
+		return 0;
+
+	//fseek(fp, 0L, SEEK_END);
+	//fileSize = ftell(fp);
+
+    while(!feof(fp)){
+        c = fgetc(fp);
+        
+        if(c == '\n') 
+            lineBreaks++;
+
+        fileSize++;
+    }
+	rewind(fp);
+
+    finalSize = (
+        (sizeof(File) +      // File struct
+        ((sizeof(Line) + settings.MAX_LINE_LENGTH + 1) * lineBreaks))
+    );
+
+    logger(
+        "[f_openFile]: File size: %d, File Obj size in bytes: %d, file instance size : %d, line breaks: %d",
+        fileSize, 
+        sizeof(File), 
+        finalSize,
+        lineBreaks
+    );
+ 
+	return finalSize;
+}
+
 bool f_openFile(char *filename){
     char *fileParsingBuffer = NULL;
 	size_t fileSize = 0;
@@ -215,20 +254,9 @@ bool f_openFile(char *filename){
         return false;
     }
 
-	fileSize = mem_getFileClosestSize(fp);
-
-    defaultMax =
-		(settings.MAX_FILE_INSTANCE_SIZE > 0) 
-		? settings.MAX_FILE_INSTANCE_SIZE 
-		: MEM_ARENA_512K;
-
-    if (fileSize < defaultMax) {
-        fileSize = defaultMax;
-    } else {
-        fileSize += defaultMax;
-    }
-
+	fileSize = _getFileClosestSize(fp);
     arena = mem_arena_create(fs_getFileName(filename), fileSize);
+
     if(!arena){
         logger("[f_openFile]: Failed creating memory arena");
         fclose(fp);
@@ -242,6 +270,7 @@ bool f_openFile(char *filename){
         fclose(fp);
         return false;
     }
+
     memset(file, 0, sizeof(File));
     file->arena = arena;
 
@@ -618,69 +647,3 @@ void f_triggerClose(bool end_program){
         //ed_renderWindows(currentWorkspace);
         if(_isDefaultFileName() == true){
             dw_writeBuffer(textmemptr, 
-				"File name: ",
-				0,
-				VIDEO_ROWS - 1, 
-				10,
-				VIDEO_ROWS - 1, 
-				settings.STATUSBAR_COLOR_TEXT, 
-				settings.STATUSBAR_COLOR_BG
-			);
-
-            hal_vid_refresh();
-            
-            while((len <= 3 || len > 12)){
-                dw_writeBuffer(
-					textmemptr,
-					"",
-					11,
-					VIDEO_ROWS - 1,
-					VIDEO_COLS - 1,
-					VIDEO_ROWS - 1,
-					settings.STATUSBAR_COLOR_TEXT,
-					settings.STATUSBAR_COLOR_BG
-				);
-
-                filename = ed_scanf(11, VIDEO_ROWS - 1, 32);
-                
-                if(filename == NULL) return;
-
-                len = strlen(filename);
-
-                //ed_renderWindows(currentWorkspace);
-
-                if(len <= 3 || len > 12){
-                    dw_writeBuffer(
-						textmemptr,
-						"Invalid filename! Try again",
-						0,
-						VIDEO_ROWS - 1,
-						30,
-						VIDEO_ROWS - 1,
-						settings.STATUSBAR_COLOR_TEXT,
-						settings.STATUSBAR_COLOR_BG
-					);
-
-                    hal_vid_refresh();
-                }
-            }
-            if(esc == true) return;
-            strcpy(currentWindow->currentFile->name, filename);
-        }
-    }
-
-    f_saveFile();
-    f_closeCurrentFile();
-
-  	dw_requestRenderEvent(DW_RENDER_ALL);
-}
-
-void f_setCurrentFileAsModified(){
-    if(
-        !currentWorkspace ||
-        !currentWorkspace->currentWindow ||
-        !currentWorkspace->currentWindow->currentFile
-    )   return;
-    
-    currentWorkspace->currentWindow->currentFile->isModified = true;
-}

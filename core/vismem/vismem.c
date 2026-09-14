@@ -20,10 +20,14 @@ void mem_vis_mem(){
 
 	File *currentFile = NULL;
 
-	if(!currentWindow || !currentWindow->currentFile)
+	if(
+		!currentWindow || 
+		!currentWindow->textArea ||
+		!currentWindow->textArea->file
+	)
 		return;
 
-	currentFile = currentWindow->currentFile;
+	currentFile = currentWindow->textArea->file;
 
     // We clear the screen
     dw_cls(textmemptr);

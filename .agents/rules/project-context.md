@@ -72,8 +72,8 @@ To prevent memory fragmentation in vintage DOS environments, a custom arena memo
 
 - **Quick Open Dialog (`Ctrl+O`)**: Reactive filesystem viewer that dynamically updates the list of files in the current folder as the user types an absolute path.
 - **File Switcher (`Alt+Shift`)**: Non-blocking async visual overlay triggered by holding `Alt` and tapping `Shift` to cycle through tabs opened _in the current window_ using the main loop's cycle.
-- **Window Split (`Ctrl + \`)**: Splits the screen vertically. The new pane duplicates the active tab, sharing the exact same file memory space so that edits are instantly synchronized.
-- **Window Switcher (`Ctrl + W`)**: Cycles cursor focus through open split panes. Closing all tabs in a split automatically closes the split window and expands the remaining split back to full screen.
+- **EditorWindow Split (`Ctrl + \`)**: Splits the screen vertically. The new pane duplicates the active tab, sharing the exact same file memory space so that edits are instantly synchronized.
+- **EditorWindow Switcher (`Ctrl + W`)**: Cycles cursor focus through open split panes. Closing all tabs in a split automatically closes the split window and expands the remaining split back to full screen.
 - **Search Tool (`Ctrl+F`)**: Dialogue that counts matching occurrences of a string in the current file; navigates matches forward with `Enter` and backward with `Shift+Enter`.
 - **Selection Tool (`Shift + Navigation Keys`)**: Anchors a selection at the initial cursor position, allowing text block selection for editing operations.
 - **Shell Spawn (`F9`)**: Suspends the IDE, restores standard 80x25 display settings, and spawns a command interpreter shell (using `COMSPEC` on DOS or `SHELL` on Linux) to let the user compile or test their code. Typing `exit` returns the user cleanly to the IDE, restoring their video mode, cursor, and editor state.
@@ -110,7 +110,7 @@ Defines unified cross-platform interfaces for hardware control:
 - **`config/`**: Handling editor configuration options (smart closing, indentation, colors).
 - **`draw/`**: Low-level screen buffering, borders, box drawing characters, window layouts, and editor token syntax highlighting.
 - **`editor/`**: Central text manipulation (backspace, type character, newline), cursor navigation, search logic, selection logic, and shell spawning.
-- **`files/`**: File system loading, saving, creating, closing, and tracking active `Workspace` and `Window` splits and tabs.
+- **`files/`**: File system loading, saving, creating, closing, and tracking active `Workspace` and `EditorWindow` splits and tabs.
 - **`test/`**: Testing playground / debugger overlay.
 - **`vismem/`**: Graphical visualization utility for memory arenas.
 - **`std.h`**: Aggregate header of standard libraries.

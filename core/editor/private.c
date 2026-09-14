@@ -3,16 +3,17 @@
 int _get_tab_counts_until(int col){
     int i = 0;
     int tabCount = 0;
-	File *currentFile = NULL;
+	TextArea *textArea = NULL;
     if (
-		!currentWindow->currentFile ||
-		!currentWindow->currentFile->currentLine
-	) return 0;
+		!currentWindow ||
+		!currentWindow->textArea ||
+		!currentWindow->textArea->currentLine
+	) return -1;
 
-	currentFile = currentWindow->currentFile;
+	textArea = currentWindow->textArea;
 
-    while(i < col && i < (int)currentFile->currentLine->length){
-        if(currentFile->currentLine->buffer[i] == CHAR_TAB) 
+    while(i < col && i < (int)textArea->currentLine->length){
+        if(textArea->currentLine->buffer[i] == CHAR_TAB) 
 			tabCount++;
         i++; 
     }
@@ -36,10 +37,10 @@ int _get_tab_counts_someline(Line *someLine, int col){
 
 int _get_auto_close_pos(){
     Node *travelingBackwards = NULL;
-	File *currentFile = NULL;
+	TextArea *textArea = NULL;
 
-	currentFile = currentWindow->currentFile;
-    travelingBackwards = currentFile->currentLineNode;
+	textArea = currentWindow->textArea;
+    travelingBackwards = textArea->currentLineNode;
 
     if(!travelingBackwards) return 0;
     
@@ -73,12 +74,12 @@ int _calculateVisualOffset(int col){
 int _calculateTabCount(){
     unsigned int i = 0, tabCount = 0;
 	char c;
-    File *currentFile = NULL;
+    TextArea *textArea = NULL;
 	
-	currentFile = currentWindow->currentFile;
+	textArea = currentWindow->textArea;
 
     do{
-        c = currentFile->currentLine->buffer[i];
+        c = textArea->currentLine->buffer[i];
 
         if(c == CHAR_TAB) tabCount++;
 
@@ -93,16 +94,16 @@ int _calculateTabStart(){
     int tabCount = 0;
     char c = '\0';
     char cnext = '\0';
-    File *currentFile = NULL;
-	currentFile = currentWindow->currentFile;
+    TextArea *textArea = NULL;
+	textArea = currentWindow->textArea;
 
     do{
-        c = currentFile->currentLine->buffer[i];
+        c = textArea->currentLine->buffer[i];
 
         if (c == CHAR_TAB){
             tabCount++;
 
-            cnext = currentFile->currentLine->buffer[i + 1];
+            cnext = textArea->currentLine->buffer[i + 1];
 
             if(cnext == '\0' && cnext != CHAR_TAB){
                 return tabCount;
@@ -115,17 +116,17 @@ int _calculateTabStart(){
 }
 
 void _updateCurrentCursorY(){
-	File *currentFile = NULL;
+	TextArea *textArea = NULL;
 
-	currentFile = currentWindow->currentFile;
+	textArea = currentWindow->textArea;
 	
-    if (!currentFile || !currentWindow) return;
+    if (!textArea || !currentWindow) return;
 
      // If the cursor is closer to the bottom
     if(currentCursorY <= currentWindow->y) currentCursorY = currentWindow->y;
     
-    if( currentFile->cursorLine - currentFile->scrollY >= 0){
-        currentCursorY = currentFile->cursorLine - currentFile->scrollY + currentWindow->y;
+    if( textArea->cursorLine - textArea->scrollY >= 0){
+        currentCursorY = textArea->cursorLine - textArea->scrollY + currentWindow->y;
     }
 
     if(currentCursorY >= currentWindow->y + currentWindow->height) {
@@ -136,14 +137,14 @@ void _updateCurrentCursorY(){
 void _updateCurrentCursorX(){
     int visualCursor = 0;
     int visualScroll = 0;
-	File *currentFile = NULL;
+	TextArea *textArea = NULL;
     
-	currentFile = currentWindow->currentFile;
+	textArea = currentWindow->textArea;
 
-    if (!currentFile || !currentWindow) return;
+    if (!textArea || !currentWindow) return;
 
-    visualCursor = _calculateVisualOffset(currentFile->cursorCol);
-    visualScroll = _calculateVisualOffset(currentFile->scrollX);
+    visualCursor = _calculateVisualOffset(textArea->cursorCol);
+    visualScroll = _calculateVisualOffset(textArea->scrollX);
 
     currentCursorX = (visualCursor - visualScroll) + LINE_COUNTER_WIDTH + currentWindow->x;
 
@@ -156,26 +157,26 @@ void _updateCurrentCursorX(){
         currentCursorX = currentWindow->x + currentWindow->width - 1;
     }
 
-    currentFile->prevChar = 
-        currentFile->cursorCol > 0 
-        ? currentFile->currentLine->buffer[currentFile->cursorCol - 1]
+    textArea->prevChar = 
+        textArea->cursorCol > 0 
+        ? textArea->currentLine->buffer[textArea->cursorCol - 1]
         : 0;
 
-    currentFile->currentChar = 
-        currentFile->cursorCol > 0 
-        ? currentFile->currentLine->buffer[currentFile->cursorCol]
+    textArea->currentChar = 
+        textArea->cursorCol > 0 
+        ? textArea->currentLine->buffer[textArea->cursorCol]
         : 0;
 
-    currentFile->nextChar = 
-        currentFile->cursorCol < currentFile->currentLine->length
-        ? currentFile->currentLine->buffer[currentFile->cursorCol + 1]
+    textArea->nextChar = 
+        textArea->cursorCol < textArea->currentLine->length
+        ? textArea->currentLine->buffer[textArea->cursorCol + 1]
         : 0;
 }
 // This gets the pointer of the start offset of the currentWindow's
-// currentFile's  current Line relative to the screen buffer ptr (or any)
+// textArea's  current Line relative to the screen buffer ptr (or any)
 unsigned short * _getCurrentLinePtrInBuffer(
     unsigned short *ptr, 
-    Window *currentWindow
+    EditorWindow *currentWindow
 ){
     unsigned short x, y;
     unsigned short abs_line = 0;
@@ -186,15 +187,15 @@ unsigned short * _getCurrentLinePtrInBuffer(
 
     if(
         !currentWindow ||
-        !currentWindow->currentFile
+        !currentWindow->textArea
     ) return NULL;
 
     if(!ptr)
         return NULL;
 
-    cursorLine = currentWindow->currentFile->cursorLine;
+    cursorLine = currentWindow->textArea->cursorLine;
 
-    scrollY = currentWindow->currentFile->scrollY;
+    scrollY = currentWindow->textArea->scrollY;
 
     winX = currentWindow->x;
     winY = currentWindow->y;
@@ -214,32 +215,29 @@ unsigned short * _getCurrentLinePtrInBuffer(
 }
 
 void _calculateSelectedLineStartEnd(
-    Window *currentWindow, 
+    EditorWindow *currentWindow, 
     unsigned short *selectedStartX, 
     unsigned short *selectedEndX,
     int *step
 ){
     unsigned short winWidth;
     unsigned short lineWidth;
-    File *currentFile;
+    TextArea *textArea;
 
-    if (!currentWindow )
+    if (
+        !currentWindow ||
+        !currentWindow->textArea ||
+        !currentWindow->textArea->file ||
+        !currentWindow->textArea->currentLine
+    )
         return;
 
-    currentFile = currentWindow->currentFile;
-
-    if (!currentFile)
-        return;
-
+    textArea = currentWindow->textArea;
     winWidth = currentWindow->width;
-
-    if (!currentFile->currentLine)
-        return;
-
-    lineWidth = currentFile->currentLine->length;
+    lineWidth = textArea->currentLine->length;
 
     *step = 
-        (currentFile->selectedStartX < currentFile->selectedEndX)
+        (textArea->selectedStartX < textArea->selectedEndX)
         ? 1
         : -1;
 
@@ -247,14 +245,14 @@ void _calculateSelectedLineStartEnd(
         lineWidth = winWidth;
 
     *selectedStartX = 
-        currentFile->selectedStartX > lineWidth
+        textArea->selectedStartX > lineWidth
         ? lineWidth
-        : currentFile->selectedStartX;
+        : textArea->selectedStartX;
 
     *selectedEndX =
-        currentFile->selectedEndX > lineWidth
+        textArea->selectedEndX > lineWidth
         ? lineWidth
-        : currentFile->selectedEndX;
+        : textArea->selectedEndX;
         
     return;
 }

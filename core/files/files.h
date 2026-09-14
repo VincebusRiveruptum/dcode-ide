@@ -54,9 +54,6 @@ typedef struct File {
 	// File own arena
 	MemoryArena *arena;
 
-    // Meta helper, used by search functions, could be used for file opening/saving/closing too in the future.
-    int fileIndex;
-
     char *name;         // full name and path
     unsigned char ext;  // EXTENSION ID
 
@@ -66,7 +63,18 @@ typedef struct File {
     List *lines;
     List *deletedLines;
 
-    // Could be useful in the future
+    bool isModified;
+} File;
+
+typedef struct TextArea {
+    File *file;
+    
+	MemoryArena *arena;
+
+    int fileIndex;
+    // Meta helper, used by search functions, could be used for file opening/saving/closing too in the future.
+    
+    // Text-area metadata  
     Node *currentLineNode;
     
     Line *prevLine;
@@ -102,12 +110,10 @@ typedef struct File {
     Node *selectedStartNode;
     Node *selectedEndNode;
 
-	SearchMetadata *currentFileSearch;
+	SearchMetadata *searchMetadata;
 	
-    bool isModified;
     bool isActive;
-
-} File;
+} TextArea;
 
 typedef enum WndStatus {
 	WndStatus_INITIALIZED,
@@ -116,10 +122,10 @@ typedef enum WndStatus {
 	WndStatus_FLOATING,	
 }WndStatus;
 
-typedef struct Window{
-	// Window tabs
-	List *fileList;
-	File *currentFile;
+typedef struct EditorWindow{
+	// EditorWindow tabs
+	List *textAreaList;
+	TextArea *textArea;
 	WndStatus status;
 
 	unsigned int x;
@@ -131,7 +137,7 @@ typedef struct Window{
 	unsigned int currentFileIndex;
 	unsigned int index;
 	bool active;
-}Window;
+}EditorWindow;
 
 /*
 	A workspace is basically a dump that records the state/session
@@ -146,13 +152,13 @@ typedef struct Window{
 typedef struct Workspace{
 	char *fullPath;
 	List *windowList;
-	Window *currentWindow;
+	EditorWindow *currentWindow;
 } Workspace;
 
 /* Globals ==============================================================*/
 
 extern Workspace *currentWorkspace;
-extern Window *currentWindow;
+extern EditorWindow *currentWindow;
 
 extern bool f_onFileNavigation;
 extern bool endProgram;
@@ -167,9 +173,9 @@ void f_dumpBufferTofile(char *buffer, size_t bufferLength, char *filename);
 void f_newFile(char *filename);
 bool f_openFile(char *filename);
 void f_saveFile();
-void f_closeFile(File *file);
+
 void f_triggerClose(bool end_program);
-void f_closeCurrentFile();
+void f_closeCurrentTextArea();
 void f_setCurrentFileAsModified();
 
 // f_nav
@@ -189,15 +195,21 @@ void ed_findWord();
 void f_quickOpenFileDialog();
 
 // f_wnd
-Window *f_createWindow();
+EditorWindow *f_createWindow();
 Workspace *f_createWorkspace();
+
+void f_closeFile(File *file);
+void f_closeTextArea(TextArea *textArea);
+void f_closeCurrentTextArea();
+void f_deleteTextAreaFromWindow(EditorWindow *window, TextArea *textArea);
+
 void f_freeFileList(List *fileList);
 void f_freeWindowList(List *windowList);
 void f_freeWorkspace();
-File *f_addFileToWindow(Window *window, File *file);
-Window *f_addWindowToWorkspace(Workspace *workspace, Window *window);
-void f_deleteFileFromWindow(Window *window, File *file);
-void f_deleteWindowFromWorkspace(Workspace *workspace, Window *window);
+TextArea *f_addTextAreaToWindow(EditorWindow *window, TextArea *textArea);
+EditorWindow *f_addWindowToWorkspace(Workspace *workspace, EditorWindow *window);
+
+void f_deleteWindowFromWorkspace(Workspace *workspace, EditorWindow *window);
 void f_splitWindow();
 void f_cycleActiveWindow();
 void f_refreshWindows(Workspace *workspace);

@@ -1,35 +1,43 @@
 
 #include "files.h"
 
-int _checkAvailableName(void){
+int _checkAvailableName(){
 	int maxIndex = 0;
     int index = 0;
     char *fileName;
     char *match;
+
+    EditorWindow *wnd = NULL;
+    TextArea *textArea = NULL;
 	
-    Node *wNode = NULL;
-    Node *fNode = NULL;
+    Node *wndNode = NULL;
+    Node *fileNode = NULL;
 
-	Window *wnd = NULL;
-	File *file = NULL;
+    if (
+        !currentWorkspace ||
+        !currentWorkspace->windowList
+    ) 
+        return 1;
 
-    if (!currentWorkspace || !currentWorkspace->windowList) return 1;
-
-    wNode = currentWorkspace->windowList->firstNode;
+    wndNode = currentWorkspace->windowList->firstNode;
     
-	// Window travel
-	while(wNode){
-        wnd = (Window *)wNode->data;
+	// EditorWindow travel
+	while(wndNode){
+        wnd = (EditorWindow *)wndNode->data;
         
-		if(wnd && wnd->fileList){
-            fNode = wnd->fileList->firstNode;
+		if(wnd && wnd->textAreaList){
+            fileNode = wnd->textAreaList->firstNode;
             
-			// File travel
-			while(fNode){
-				file = (File *)fNode->data;
+			// textArea travel
+			while(fileNode){
+				textArea = (TextArea *)fileNode->data;
                 
-				if(file && file->name){
-                    fileName = file->name;
+				if(
+                    textArea &&
+                    textArea->file &&
+                    textArea->file->name
+                ){
+                    fileName = textArea->file->name;
                     match = strstr(fileName, "newfile");
 
 					// Check if there is a match
@@ -47,10 +55,10 @@ int _checkAvailableName(void){
                         }
                     }
                 }
-                fNode = fNode->next;
+                fileNode = fileNode->next;
             }
         }
-        wNode = wNode->next;
+        wndNode = wndNode->next;
     }
     return maxIndex + 1;
 }
@@ -190,21 +198,25 @@ int _goBackPath(char *path){
 bool _isDefaultFileName(void){
     char filename[8] = {'\0'};
     bool res = false;
-	File *currentFile = NULL;
+	TextArea *textArea = NULL;
 
-	currentFile = currentWindow->currentFile;
+	textArea = currentWindow->textArea;
 
-    if(!currentFile){
-        logger("[_isDefaultFileName]: No current file!");
+    if(!textArea){
+        logger("[_isDefaultFileName]: No current text area!");
         return true;
     }
 
-    if(!currentFile->name){
-        logger("[_isDefaultFileName]: current file has no name!");
+    if(!textArea->file){
+        logger("[_isDefaultFileName]: No current text area file");
+        return true;
+    }
+    if(!textArea->file->name){
+        logger("[_isDefaultFileName]: Current file has no name!");
         return true;
     }
 
-    strncpy(filename, currentFile->name, 7);
+    strncpy(filename, textArea->file->name, 7);
     
     res = (strcmp(filename, "newfile") == 0) ? true : false;
 

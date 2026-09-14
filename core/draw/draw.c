@@ -303,32 +303,41 @@ char _getBorderCharacter(BorderType borderType, RectangleSides side){
     }
 }
 
-bool dw_isCharSelected(struct File *file, int lineIndex, int colIndex) {
+bool dw_isCharSelected(
+    TextArea *textArea, 
+    int lineIndex, 
+    int colIndex
+) {
     int startLine, endLine, startCol, endCol;
 
-    if (!file || !file->selectedStartNode || !file->selectedEndNode) {
+    if (
+        !textArea ||
+        !textArea->file ||
+        !textArea->selectedStartNode ||
+        !textArea->selectedEndNode
+    ) {
         return false;
     }
 
-    if (file->selectedStartLine < file->selectedEndLine) {
-        startLine = (int)file->selectedStartLine;
-        startCol = (int)file->selectedStartX;
-        endLine = (int)file->selectedEndLine;
-        endCol = (int)file->selectedEndX;
-    } else if (file->selectedStartLine > file->selectedEndLine) {
-        startLine = (int)file->selectedEndLine;
-        startCol = (int)file->selectedEndX;
-        endLine = (int)file->selectedStartLine;
-        endCol = (int)file->selectedStartX;
+    if (textArea->selectedStartLine < textArea->selectedEndLine) {
+        startLine = (int)textArea->selectedStartLine;
+        startCol = (int)textArea->selectedStartX;
+        endLine = (int)textArea->selectedEndLine;
+        endCol = (int)textArea->selectedEndX;
+    } else if (textArea->selectedStartLine > textArea->selectedEndLine) {
+        startLine = (int)textArea->selectedEndLine;
+        startCol = (int)textArea->selectedEndX;
+        endLine = (int)textArea->selectedStartLine;
+        endCol = (int)textArea->selectedStartX;
     } else {
-        startLine = (int)file->selectedStartLine;
-        endLine = (int)file->selectedEndLine;
-        if (file->selectedStartX < file->selectedEndX) {
-            startCol = (int)file->selectedStartX;
-            endCol = (int)file->selectedEndX;
+        startLine = (int)textArea->selectedStartLine;
+        endLine = (int)textArea->selectedEndLine;
+        if (textArea->selectedStartX < textArea->selectedEndX) {
+            startCol = (int)textArea->selectedStartX;
+            endCol = (int)textArea->selectedEndX;
         } else {
-            startCol = (int)file->selectedEndX;
-            endCol = (int)file->selectedStartX;
+            startCol = (int)textArea->selectedEndX;
+            endCol = (int)textArea->selectedStartX;
         }
     }
 
@@ -347,13 +356,16 @@ bool dw_isCharSelected(struct File *file, int lineIndex, int colIndex) {
 
     return false;
 }
-bool dw_isCharFound(struct File *file, int lineIndex, int colIndex) {
+bool dw_isCharFound(struct TextArea *textArea, int lineIndex, int colIndex) {
     SearchMetadata *fileSearch = NULL;
 
-    if (!file)
+    if (
+        !textArea ||
+        !textArea->file
+    )
         return false;
     
-    fileSearch = file->currentFileSearch;
+    fileSearch = textArea->searchMetadata;
 
     if(
         !fileSearch ||
@@ -452,7 +464,11 @@ void dw_rectangle(
     i = (y1 * VIDEO_COLS) + x1;
 
     //If i is the first on the index draw top left corner
-    buffer[i] = _getBorderCharacter(borderType, DW_SIDE_TOP_LEFT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
+    buffer[i] = 
+        _getBorderCharacter(
+            borderType, 
+            DW_SIDE_TOP_LEFT
+        ) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
     
     i++;
 
@@ -511,7 +527,17 @@ void dw_rectangle(
     buffer[i] = _getBorderCharacter(borderType, DW_SIDE_BOTTOM_RIGHT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
 }
 
-void dw_writeBuffer(unsigned short *buffer, const char *format, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, ...){
+void dw_writeBuffer(
+    unsigned short *buffer, 
+    const char *format, 
+    int x1, 
+    int y1, 
+    int x2, 
+    int y2, 
+    int foregroundColor, 
+    int backgroundColor, 
+    ...
+){
     unsigned short buffpos = 0;
     unsigned short screenPos = 0;
     unsigned char x = 0;
@@ -544,7 +570,13 @@ void dw_writeBuffer(unsigned short *buffer, const char *format, int x1, int y1, 
     }
 }
 
-void dw_charXY_color(unsigned short *buffer, char c, unsigned char x, unsigned char y, unsigned short color){
+void dw_charXY_color(
+    unsigned short *buffer, 
+    char c, 
+    unsigned char x, 
+    unsigned char y, 
+    unsigned short color
+){
     unsigned short screenPos;
     unsigned short bgColor = (buffer[(y * VIDEO_COLS) + x] >> 12) & 0x0F;
 
@@ -552,7 +584,12 @@ void dw_charXY_color(unsigned short *buffer, char c, unsigned char x, unsigned c
     buffer[screenPos] = c | ((bgColor << 4) | (color << 8));
 }
 
-void dw_charXY(unsigned short *buffer, char c, unsigned char x, unsigned char y){
+void dw_charXY(
+    unsigned short *buffer, 
+    char c, 
+    unsigned char x, 
+    unsigned char y
+){
     unsigned short screenPos;
     
     screenPos = (y * VIDEO_COLS) + x;
@@ -598,7 +635,13 @@ char dw_readBackgroundColor(unsigned short *buffer, int x, int y){
     return c;
 }
 
-void dw_writeColor(unsigned short *buffer, int x, int y, unsigned short foregroundColor, unsigned short backgroundColor){
+void dw_writeColor(
+    unsigned short *buffer, 
+    int x, 
+    int y, 
+    unsigned short foregroundColor, 
+    unsigned short backgroundColor
+){
     unsigned short screenPos;
     unsigned short bgColor = (buffer[(y * VIDEO_COLS) + x] >> 12) & 0x0F;
     unsigned short fgColor = (buffer[(y * VIDEO_COLS) + x] >> 8) & 0x0F;
@@ -610,8 +653,16 @@ void dw_writeColor(unsigned short *buffer, int x, int y, unsigned short foregrou
     buffer[screenPos] = (buffer[screenPos] & 0x00FF) | (bgColor << 12) | (fgColor << 8);
 }
 
-
-void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, File *file){
+void dw_c_formatter(
+    unsigned short *destBuffer, 
+    int x1, 
+    int y1, 
+    int x2, 
+    int y2, 
+    int foregroundColor, 
+    int backgroundColor, 
+    TextArea *textArea
+){
     int x = 0;
     int y = 0;
     int linePos = 0;
@@ -641,16 +692,25 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
     Node *currentNode = NULL;
     Line *line = NULL;
 
+    if(
+        !textArea ||
+        !textArea->file
+    )
+        return;
+        
     memset(lineCounterBufferTemp, '\0', 16);
     memset(detectedWord, '\0', 32);
     memset(previousWord, '\0', 32);
 
     /* Boundary check */
-    if(x1 > x2 || y1 > y2) return;
-
+    if(x1 > x2 || y1 > y2) 
+        return;
 
     /**/
-    if(!file->lines || file->lines->length == 0) {
+    if(
+        !textArea->file->lines || 
+        textArea->file->lines->length == 0
+    ) {
         /* Clear area if no lines */
         for(y = y1; y < y2 + 1; y++){
             for(x = x1; x < x2 + 1; x++){
@@ -666,9 +726,10 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
     Pre-scan multiline comments and find current node
     
     */
-    currentNode = file->lines->firstNode;
+    currentNode = textArea->file->lines->firstNode;
     lineCount = 0;
-    while(lineCount < file->scrollY && currentNode) {
+
+    while(lineCount < textArea->scrollY && currentNode) {
         line = (Line *)currentNode->data;
         for(j = 0; j < (int)line->length; j++) {
             if(!isMultilineComment && line->buffer[j] == '/' && line->buffer[j+1] == '*') {
@@ -732,8 +793,8 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
                 // ============ LINE CONTENT ========================================================
                 //
                     /* After line counter column, we draw the rest of the line content */
-                    if(linePos + (int)file->scrollX < (int)line->length){
-                        c = &line->buffer[linePos + file->scrollX];
+                    if(linePos + (int)textArea->scrollX < (int)line->length){
+                        c = &line->buffer[linePos + textArea->scrollX];
 
                         // =========== SPECIAL KEYWORD COLORING=======================================
                         if(c > csWordEnd){
@@ -751,7 +812,7 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
                                 if(*csWordStart == '/' && *(csWordStart + 1) == '*') isMultilineComment = true;
                             }
 
-                            if(line->buffer[linePos + file->scrollX ] == '*' && line->buffer[linePos + file->scrollX + 1] == '/'){
+                            if(line->buffer[linePos + textArea->scrollX ] == '*' && line->buffer[linePos + textArea->scrollX + 1] == '/'){
                                 isMultilineComment = false;
                             }
                             
@@ -838,8 +899,8 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
                             /// UGLYT TEST
                             for(t=0; t < 4 && screenX < x2 + 1; t++){
                                 if (
-                                    dw_isCharSelected(file, lineCount, linePos + file->scrollX) ||
-                                    dw_isCharFound(file, lineCount, linePos + file->scrollX)
+                                    dw_isCharSelected(textArea, lineCount, linePos + textArea->scrollX) ||
+                                    dw_isCharFound(textArea, lineCount, linePos + textArea->scrollX)
                                 ){
                                     tabAttrib = ((COLOR_LIGHT_GRAY << 4) | (COLOR_BLACK << 8));
                                 } else {
@@ -858,8 +919,8 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
                             continue;
                         } else {
                             if (
-                                dw_isCharSelected(file, lineCount, linePos + file->scrollX) ||
-                                dw_isCharFound(file, lineCount, linePos + file->scrollX)
+                                dw_isCharSelected(textArea, lineCount, linePos + textArea->scrollX) ||
+                                dw_isCharFound(textArea, lineCount, linePos + textArea->scrollX)
                             ){
                                 charAttrib = ((COLOR_LIGHT_GRAY << 4) | (COLOR_BLACK << 8));
                             } else {
@@ -889,7 +950,16 @@ void dw_c_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, 
 
 
 // SIMPLER
-void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, File *file){
+void dw_txt_formatter(
+    unsigned short *destBuffer, 
+    int x1, 
+    int y1, 
+    int x2, 
+    int y2, 
+    int foregroundColor, 
+    int backgroundColor, 
+    TextArea *textArea
+){
     int x = 0;
     int y = 0;
     int linePos = 0;
@@ -907,6 +977,12 @@ void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2
     Node *currentNode = NULL;
     Line *line = NULL;
 
+    if(
+        !textArea ||
+        !textArea->file
+    )
+        return;
+
     memset(lineCounterBufferTemp, '\0', 16);
 
     /* Boundary check */
@@ -914,7 +990,10 @@ void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2
 
 
     /**/
-    if(!file->lines || file->lines->length == 0) {
+    if(
+        !textArea->file->lines || 
+        textArea->file->lines->length == 0
+    ) {
         /* Clear area if no lines */
         for(y = y1; y < y2 + 1; y++){
             for(x = x1; x < x2 + 1; x++){
@@ -929,9 +1008,10 @@ void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2
     Pre-scan multiline comments and find current node
     
     */
-    currentNode = file->lines->firstNode;
+    currentNode = textArea->file->lines->firstNode;
     lineCount = 0;
-    while(lineCount < file->scrollY && currentNode) {
+
+    while(lineCount < textArea->scrollY && currentNode) {
         currentNode = currentNode->next;
         lineCount++;
     }
@@ -976,15 +1056,15 @@ void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2
                 // ============ LINE CONTENT ========================================================
                 //
                     /* After line counter column, we draw the rest of the line content */
-                    if(linePos + (int)file->scrollX < (int)line->length){
-                        c = &line->buffer[linePos + file->scrollX];                
+                    if(linePos + (int)textArea->scrollX < (int)line->length){
+                        c = &line->buffer[linePos + textArea->scrollX];                
                         
                         if(*c == '\t'){
                             /// UGLYT TEST
                             for(t=0; t < 4 && screenX < x2 + 1; t++){
                                 if (
-                                    dw_isCharSelected(file, lineCount, linePos + file->scrollX) ||
-                                    dw_isCharFound(file, lineCount, linePos + file->scrollX)
+                                    dw_isCharSelected(textArea, lineCount, linePos + textArea->scrollX) ||
+                                    dw_isCharFound(textArea, lineCount, linePos + textArea->scrollX)
                                 ){
                                     tabAttrib = ((COLOR_LIGHT_GRAY << 4) | (COLOR_BLACK << 8));
                                 } else {
@@ -1003,8 +1083,8 @@ void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2
                             continue;
                         } else {
                             if (
-                                dw_isCharSelected(file, lineCount, linePos + file->scrollX) ||
-                                dw_isCharFound(file, lineCount, linePos + file->scrollX)
+                                dw_isCharSelected(textArea, lineCount, linePos + textArea->scrollX) ||
+                                dw_isCharFound(textArea, lineCount, linePos + textArea->scrollX)
                             ){
                                 charAttrib = ((COLOR_LIGHT_GRAY << 4) | (COLOR_BLACK << 8));
                             } else {
@@ -1032,17 +1112,31 @@ void dw_txt_formatter(unsigned short *destBuffer, int x1, int y1, int x2, int y2
     }
 }
 /* This also will take care of reserved word coloring */
-void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, File *file){
-    if (!file) return;
-    switch(file->ext){
+void dw_writeBufferEditorFormatted(
+    unsigned short *destBuffer, 
+    int x1, 
+    int y1, 
+    int x2, 
+    int y2, 
+    int foregroundColor, 
+    int backgroundColor, 
+    TextArea *textArea
+){
+    if (
+        !textArea ||
+        !textArea->file
+    )
+        return;
+
+    switch(textArea->file->ext){
         case FILE_EXTENSION_C:
-            dw_c_formatter(destBuffer, x1,y1,x2,y2,foregroundColor,backgroundColor,file);
+            dw_c_formatter(destBuffer, x1,y1,x2,y2,foregroundColor,backgroundColor,textArea);
             break;
         case FILE_EXTENSION_PYTHON:
         case FILE_EXTENSION_JS:
         case FILE_EXTENSION_TXT:
         default:
-            dw_txt_formatter(destBuffer, x1,y1,x2,y2,foregroundColor,backgroundColor,file);
+            dw_txt_formatter(destBuffer, x1,y1,x2,y2,foregroundColor,backgroundColor,textArea);
     }
 
     return;
@@ -1157,9 +1251,14 @@ void dw_copyFormatted(
 	int y,  
 	size_t destWidth,
 	char *srcBuffer,
-	File *file
+	TextArea *textArea
 ){
-	switch(file->ext){
+    if(
+        !textArea ||
+        !textArea->file
+    ) return;
+
+	switch(textArea->file->ext){
         case FILE_EXTENSION_C:
             dw_c_lineFormatter(
 				destBuffer, 

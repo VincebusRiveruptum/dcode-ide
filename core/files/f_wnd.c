@@ -1,25 +1,126 @@
 #include "files.h"
 
 Workspace *currentWorkspace = NULL;
-Window *currentWindow = NULL;
+EditorWindow *currentWindow = NULL;
+
 
 //========================================================================
-// Window managing
+// TextAera managing
+//========================================================================
+
+/* CLOSE FILE ==================================================================*/
+void f_closeFile(File *file){
+    char arenaName[64];
+    sprintf(arenaName, "%s", file->arena->name);
+
+    mem_arena_free(file->arena);
+    logger("[f_closeFile]: File %s closed successfully", arenaName);    
+}
+
+void f_closeTextArea(TextArea *textArea){
+	logger(
+		"[f_closeFile]: Checking %s refs in usage.", 
+		textArea->file->name
+	);    
+	
+	if(!f_checkFileRefs(textArea->file)){
+		logger("[f_closeTextArea]: No refs, closing file.");
+		f_closeFile(textArea->file);
+	}
+
+    mem_arena_free(textArea->arena);
+
+    logger("[f_closeFile]: TextArea arena closed successfully");    
+}
+
+void f_closeCurrentTextArea(){
+    char oldFileName[255];
+	TextArea *nextTextArea = NULL;
+	EditorWindow *toDelete = NULL, *wnd = NULL, *neighbor = NULL;
+	Node *rec = NULL;
+
+    memset(oldFileName, '\0', 255);
+
+    if(
+        !currentWindow || 
+        !currentWindow->textArea
+    ) 
+		return;
+
+    strcpy(oldFileName, currentWindow->textArea->file->name);
+
+    f_deleteTextAreaFromWindow(
+		currentWindow, 
+		currentWindow->textArea
+	);
+	
+	// Updates current textArea with the first 
+	// textArea avalable on the list
+	if (currentWindow->textAreaList->length > 0) {
+		nextTextArea = 
+            (TextArea *)(currentWindow->textAreaList->firstNode->data);
+		currentWindow->textArea = nextTextArea;
+	} else {
+		// If no text areas, we close the entire window.
+		currentWindow->textArea = NULL;
+		
+		if (currentWorkspace->windowList->length > 1) {
+			toDelete = currentWindow;
+			rec = currentWorkspace->windowList->firstNode;
+			neighbor = NULL;
+			
+			while (rec != NULL) {
+				wnd = (EditorWindow *)rec->data;
+				if (wnd != toDelete) {
+					neighbor = wnd;
+					if (wnd->x + wnd->width + 1 == toDelete->x) {
+						break;
+					}
+				}
+				rec = rec->next;
+			}
+			
+			if (neighbor != NULL) {
+				if (toDelete->x > neighbor->x) {
+					neighbor->width += toDelete->width + 1;
+				} else {
+					neighbor->x = toDelete->x;
+					neighbor->width += toDelete->width + 1;
+				}
+			}
+			
+			f_cycleActiveWindow();
+			f_deleteWindowFromWorkspace(currentWorkspace, toDelete);
+			free(toDelete);
+		}
+	}
+    
+    ed_statusBarMessage("%s closed successfully.", oldFileName);
+    logger("[f_closdeCurrentFile]: %s closed successfully.", oldFileName);
+
+    ed_updateCursor();
+	
+	dw_requestRenderEvent(DW_RENDER_ALL);
+    return;
+}
+
+//========================================================================
+// EditorWindow managing
 // TODO : This should be its own module.
 //========================================================================
 
-Window *f_createWindow(){
-	Window *newWindow = NULL;
+EditorWindow *f_createWindow(){
+	EditorWindow *newWindow = NULL;
 
-	newWindow = (Window*)malloc(sizeof(Window));
+	newWindow = (EditorWindow*)malloc(sizeof(EditorWindow));
 
 	if(!newWindow){
 		logger("[f_createWindow]: Could not alloc for a window!.");
 		return NULL;
 	}
 
-	newWindow->fileList = createList(NULL);
-	newWindow->currentFile = NULL;
+	newWindow->textAreaList = createList(NULL);
+	newWindow->textArea = NULL;
 
 	// By default will be minimized for now
 	newWindow->status = WndStatus_MINIMIZED;
@@ -82,37 +183,43 @@ Workspace *f_createWorkspace(){
 }
 
 //========================================================================
-//	Workspace - Window - File DECONSTRUCTOR
+//	Workspace - EditorWindow - File DECONSTRUCTOR
 //========================================================================
 
-// Free an entire fileList
-void f_freeFileList(List *fileList){
+// Free an entire textArea list
+void f_freeTextAreaList(List *textAreaList){
 	Node *rec=NULL;
 	Node *tmp=NULL;
-	File *file=NULL;
+	TextArea *textArea=NULL;
 
-	if(!fileList)
+	if(!textAreaList)
 		return;
 
-	rec = fileList->firstNode;
+	rec = textAreaList->firstNode;
 
 	while(rec){
 		tmp = rec->next;
-		file = (File*)rec->data;
-		if(file) {
-			mem_arena_free(file->arena);
+		textArea = (TextArea*)rec->data;
+		if(textArea) {
+			// TODO: Check if thre are no
+			// shared file instances anywhere
+			// if so, free it entirely
+			if(!f_checkFileRefs(textArea->file))
+				mem_arena_free(textArea->file->arena);
+			
+			mem_arena_free(textArea->arena);
 		}
 		free(rec);
 		rec = tmp;
 	}
 
-	free(fileList);
+	free(textAreaList);
 }
 
 // Free window list, fileList on each window and each file arena.
 void f_freeWindowList(List *windowList){
 	Node *rec=NULL, *tmp;
-	Window *wnd = NULL;
+	EditorWindow *wnd = NULL;
 	if(!windowList) {
 		logger("[f_freeWorkspace]: workspace already free");
 		return;
@@ -123,9 +230,9 @@ void f_freeWindowList(List *windowList){
 
 	while(rec){
 		tmp = rec->next;
-		wnd = (Window *)rec->data;
+		wnd = (EditorWindow *)rec->data;
 		if(wnd) {
-			f_freeFileList(wnd->fileList);
+			f_freeTextAreaList(wnd->textAreaList);
 			free(wnd);
 		}
 		free(rec);
@@ -153,18 +260,18 @@ void f_freeWorkspace(){
 
 // =======================================================================
 
-File *f_addFileToWindow(Window *window, File *file){
-	if (!file || !window->fileList || !window){
-		logger("[f_addFileToWindow]: invalid data.");
+TextArea *f_addTextAreaToWindow(EditorWindow *window, TextArea *textArea){
+	if (!textArea || !window->textAreaList || !window){
+		logger("[f_addTextAreaToWindow]: invalid data.");
 		return NULL;
 	}
 
-	addGenericNode(&(window->fileList), (void*)file, NULL);
+	addGenericNode(&(window->textAreaList), (void*)textArea, NULL);
 
-	return file;
+	return textArea;
 }
 
-Window *f_addWindowToWorkspace(Workspace *workspace, Window *window){
+EditorWindow *f_addWindowToWorkspace(Workspace *workspace, EditorWindow *window){
 	if (!workspace || !workspace->windowList || !window ){
 		logger("[f_addWindowToWorkspace]: invalid data.");
 		return NULL;
@@ -175,20 +282,30 @@ Window *f_addWindowToWorkspace(Workspace *workspace, Window *window){
 	return window;
 }
 
-void f_deleteFileFromWindow(Window *window, File *file){
-	if(!window || !window->fileList || !file){
-		logger("[f_deleteFileFromWindow]: invalid data.");
+// ======
+
+void f_deleteTextAreaFromWindow(
+	EditorWindow *window, 
+	TextArea *textArea
+){
+	if(
+		!window || 
+		!window->textAreaList ||
+		!textArea
+	){
+		logger("[f_deleteTextAreaFromWindow]: invalid data.");
 		return;
 	}
 
-	deleteNodeByPtr(&(window->fileList), (void*)file);
+	deleteNodeByPtr(&(window->textAreaList), (void*)textArea);
 
-	f_closeFile(file);    
+	f_closeTextArea(textArea);
+	//f_closeFile(file);    
 	
 	return;
 }
 
-void f_deleteWindowFromWorkspace(Workspace *workspace, Window *window){
+void f_deleteWindowFromWorkspace(Workspace *workspace, EditorWindow *window){
 	Node *rec = NULL;
 	File *file = NULL;
 
@@ -200,7 +317,7 @@ void f_deleteWindowFromWorkspace(Workspace *workspace, Window *window){
 	deleteNodeByPtr(&(workspace->windowList), (void*)window);
 
 	// Close all files
-	rec = window->fileList->firstNode;
+	rec = window->textAreaList->firstNode;
 
 	if(rec){
 		while(rec){
@@ -218,7 +335,7 @@ void f_deleteWindowFromWorkspace(Workspace *workspace, Window *window){
 
 void f_deleteWorkspace(Workspace *workspace){
 	Node *rec = NULL;
-	Window *window = NULL;
+	EditorWindow *window = NULL;
 
 	if(!workspace ){
 		logger("[f_deleteWorkspace]: Invalid data");
@@ -229,7 +346,7 @@ void f_deleteWorkspace(Workspace *workspace){
 		rec = workspace->windowList->firstNode;
 
 		while(rec){
-			window = (Window*)rec->data;
+			window = (EditorWindow*)rec->data;
 
 			if(window)
 				f_deleteWindowFromWorkspace(workspace, window);
@@ -241,17 +358,24 @@ void f_deleteWorkspace(Workspace *workspace){
 	free(workspace);
 }
 
+// ===============================
+
 void f_splitWindow(){
-	Window *newWnd = NULL;
+	EditorWindow *newWnd = NULL;
 	unsigned int half = 0;
 
-	if(!currentWorkspace || !currentWindow || !currentWindow->currentFile) return;
+	if(
+		!currentWorkspace ||
+		!currentWindow || 
+		!currentWindow->textArea ||
+		!currentWindow->textArea->file
+	) return;
 
 	newWnd = f_createWindow();
 	if(!newWnd) return;
 
-	newWnd->currentFile = currentWindow->currentFile;
-	f_addFileToWindow(newWnd, currentWindow->currentFile);
+	newWnd->textArea = currentWindow->textArea;
+	f_addTextAreaToWindow(newWnd, currentWindow->textArea);
 
 	half = currentWindow->width / 2;
 	newWnd->x = currentWindow->x + half + 1;
@@ -285,15 +409,15 @@ void f_cycleActiveWindow(){
 	}
 
 	if (currNode != NULL) {
-		((Window *)currNode->data)->active = false;
+		((EditorWindow *)currNode->data)->active = false;
 
 		nextNode = currNode->next;
 		if (nextNode == NULL) {
 			nextNode = currentWorkspace->windowList->firstNode;
 		}
 
-		((Window *)nextNode->data)->active = true;
-		currentWorkspace->currentWindow = (Window *)nextNode->data;
+		((EditorWindow *)nextNode->data)->active = true;
+		currentWorkspace->currentWindow = (EditorWindow *)nextNode->data;
 		currentWindow = currentWorkspace->currentWindow;
 
 	  	dw_requestRenderEvent(DW_RENDER_ALL);

@@ -93,7 +93,7 @@ int main(int argc, char *argv[]){
 			f_newFile(NULL);
 			logger(
 				"[main]: User created %s ,a new file.", 
-				currentWindow->currentFile->name);
+				currentWindow->textArea->file->name);
 		}
 		
 		// OPEN FILE 
@@ -155,7 +155,11 @@ int main(int argc, char *argv[]){
 			}
 		}
 
-		if(currentWindow && currentWindow->currentFile){
+		if(
+			currentWindow &&
+			currentWindow->textArea &&
+			currentWindow->textArea->file
+		){
 			ed_handleSelection();
 		}
 

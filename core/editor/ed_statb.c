@@ -37,12 +37,16 @@ bool ed_checkStatusBarMessage(){
 
 // Statusbar drawing function
 void ed_statusBar(){
-	static File *currentFile = NULL;
+	static TextArea *textArea = NULL;
 
-	if(!currentWindow || !currentWindow->currentFile)
+	if(
+		!currentWindow || 
+		!currentWindow->textArea ||
+		!currentWindow->textArea->file
+	)
 		return;
 
-	currentFile = currentWindow->currentFile;
+	textArea = currentWindow->textArea;
 
 	if(ed_checkStatusBarMessage() == true){
 		dw_writeBuffer(
@@ -56,7 +60,7 @@ void ed_statusBar(){
 			settings.STATUSBAR_COLOR_BG, 
 			statusBarMessage
 		);            
-	}else if (currentFile) {
+	}else if (textArea) {
 		dw_writeBuffer(
 			textmemptr, 
 			"Line %d, Col %d %c", 
@@ -66,10 +70,10 @@ void ed_statusBar(){
 			VIDEO_ROWS - 1, 
 			settings.STATUSBAR_COLOR_TEXT,
 			settings.STATUSBAR_COLOR_BG, 
-			currentFile->cursorLine + 1, 
-			currentFile->cursorCol + 1, 
+			textArea->cursorLine + 1, 
+			textArea->cursorCol + 1, 
 			179, 
-			currentFile->currentLine->length
+			textArea->currentLine->length
 		);
 
 		dw_writeBuffer(
@@ -81,7 +85,7 @@ void ed_statusBar(){
 			VIDEO_ROWS - 1, 
 			settings.STATUSBAR_COLOR_TEXT,
 			settings.STATUSBAR_COLOR_BG, 
-			currentFile->name
+			textArea->file->name
 		);
 	}else{
 		dw_writeBuffer(

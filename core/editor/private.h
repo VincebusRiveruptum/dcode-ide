@@ -5,6 +5,10 @@ struct Line;
 struct File;
 struct Node;
 
+struct TextArea;
+struct EditorWindow;
+struct Workspace;
+
 int _get_tab_counts_until(int col);
 int _get_tab_counts_someline(struct Line *someLine, int col);
 int _get_auto_close_pos();
@@ -14,15 +18,16 @@ struct Line *_createNewEmptyLine(struct File *file);
 
 unsigned short * _getCurrentLinePtrInBuffer(
     unsigned short *ptr, 
-    struct Window *currentWindow
+    struct EditorWindow *currentWindow
 );
 
 void _calculateSelectedLineStartEnd(
-    struct Window *currentWindow, 
+    struct EditorWindow *currentWindow, 
     unsigned short *selectedStartX, 
     unsigned short *selectedEndX,
     int *step
 );
+
 struct Line *_createLine(struct File *file);
 struct Node *_createLineNode(struct File *file);
 struct Node *_resolveNewLine(struct File *file);

@@ -140,8 +140,7 @@ extern Clipboard ed_clipboard;
 
 #include "private.h"
 
-struct Window;
-struct Workspace;
+struct Node *ed_softDeleteLine(struct TextArea *textArea, struct Node *node);
 
 // ed_cfg
 void ed_initConfig(int argc, char *argv[]);
@@ -162,7 +161,7 @@ char *ed_getDefaultExtension();
 char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars);
 char *ed_async_scanf(unsigned char x, unsigned char y, unsigned char maxChars, char *buffer, size_t bufflen, int *stepIndex);
 
-void ed_updateCurrentLine(struct Window *window);
+void ed_updateCurrentLine(struct EditorWindow *window);
 void ed_putCursorEnd();
 void ed_putCursorStart();
 

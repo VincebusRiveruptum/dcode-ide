@@ -9,11 +9,11 @@
 
 // * The search metadata stores all matches in a pointer array. So,
 
-// * Every time the file changes the searchMetadata of the currentFile
+// * Every time the file changes the searchMetadata of the textArea
 // MUST be flush, so there are no dangling pointers nor references to a word
 // address that changed.
 
-// * The fileListSearchMetadata INDEX is parallel to fileList currentFile
+// * The fileListSearchMetadata INDEX is parallel to fileList textArea
 // this makes sure there are no collisions when flushing or filling the 
 // metadata of an already opened file.
 
@@ -169,50 +169,51 @@ void ed_findWord(){
     char searchArenaName[32];
     WordMetadata *matchBuffer = NULL;
     Node *lineNode = NULL;
-	File *currentFile = NULL;
-	SearchMetadata *currentFileSearch = NULL;
+	TextArea *textArea = NULL;
+	SearchMetadata *searchMetadata = NULL;
 
     if(
         !currentWindow ||
-        !currentWindow->currentFile ||
-        !currentWindow->currentFile->lines ||
-        !currentWindow->currentFile->lines->firstNode
+        !currentWindow->textArea ||
+        !currentWindow->textArea->file ||
+        !currentWindow->textArea->file->lines ||
+        !currentWindow->textArea->file->lines->firstNode
     ){
 
         logger("[ed_findWord]: currentWindow first line node is NULL");
         return;
     }
 
-	currentFile = currentWindow->currentFile;
-	currentFileSearch = currentFile->currentFileSearch;
+	textArea = currentWindow->textArea;
+	searchMetadata = textArea->searchMetadata;
 
-    lineNode = currentFile->lines->firstNode;
+    lineNode = textArea->file->lines->firstNode;
 	
     if(!lineNode){
         logger("[ed_findWord]: lineNode is NULL");
         return;
     }
     
-    if(!currentFileSearch){
-        logger("[ed_findWord]: currentFileSearch is NULL");
+    if(!searchMetadata){
+        logger("[ed_findWord]: searchMetadata is NULL");
         return;
     }
 
-    if(!currentFileSearch->arena || !currentFileSearch->arena->base){
+    if(!searchMetadata->arena || !searchMetadata->arena->base){
         sprintf(searchArenaName, "SRCH");
-        currentFileSearch->arena = (MemoryArena *)mem_arena_create(searchArenaName, MEM_ARENA_2K);
+        searchMetadata->arena = (MemoryArena *)mem_arena_create(searchArenaName, MEM_ARENA_2K);
     } else {
-        mem_arena_reset(currentFileSearch->arena);
+        mem_arena_reset(searchMetadata->arena);
     }
 
-    wordLen = strlen(currentFileSearch->dialogInputBuffer);
+    wordLen = strlen(searchMetadata->dialogInputBuffer);
 
     if (wordLen == 0) return;
 
 
-    currentFileSearch->wordCount = 0;
-    currentFileSearch->words = NULL;
-    currentFileSearch->currentWordNode = NULL;
+    searchMetadata->wordCount = 0;
+    searchMetadata->words = NULL;
+    searchMetadata->currentWordNode = NULL;
 
     // If searchMetadata atributes are NULl this means that there is no previous search done
     // So we will begin the process.
@@ -223,7 +224,7 @@ void ed_findWord(){
     // the line index.
     logger(
 		"[ed_findWord]: Current word! : %s",
-		currentFileSearch->dialogInputBuffer
+		searchMetadata->dialogInputBuffer
 	);
 
     while(lineNode != NULL){
@@ -249,14 +250,14 @@ void ed_findWord(){
         detectedWordOffset = 
 			strstr(
 				wordIndexPtr, 
-				currentFileSearch->dialogInputBuffer
+				searchMetadata->dialogInputBuffer
 			);
         
         while(detectedWordOffset){        
             matchBuffer = 
 				(WordMetadata *) 
 				mem_arena_alloc(
-					currentFileSearch->arena, 
+					searchMetadata->arena, 
 					sizeof(WordMetadata)
 				);
      
@@ -266,7 +267,7 @@ void ed_findWord(){
             }
 
             matchBuffer->lineNode = lineNode;
-            matchBuffer->wordIndex = currentFileSearch->wordCount;
+            matchBuffer->wordIndex = searchMetadata->wordCount;
     
             matchBuffer->cursorLine = lineIndex;
             logger("[ed_findWord]: matchBuffer->cursorLine = %d", lineIndex);
@@ -276,17 +277,17 @@ void ed_findWord(){
             matchBuffer->wordPtr = detectedWordOffset;
             
             addGenericNode(
-				&currentFileSearch->words, 
+				&searchMetadata->words, 
 				matchBuffer, 
-				currentFileSearch->arena
+				searchMetadata->arena
 			);
             
-            currentFileSearch->wordCount++;
+            searchMetadata->wordCount++;
   
             detectedWordOffset = 
 				strstr(
 					detectedWordOffset + wordLen,
-					currentFileSearch->dialogInputBuffer
+					searchMetadata->dialogInputBuffer
 				);
         }
                 
@@ -295,21 +296,21 @@ void ed_findWord(){
     }
 
     // We set the first found word as current word
-    currentFileSearch->currentWordNode =
-        currentFileSearch->words &&
-        currentFileSearch->words->firstNode
-        ? currentFileSearch->words->firstNode 
+    searchMetadata->currentWordNode =
+        searchMetadata->words &&
+        searchMetadata->words->firstNode
+        ? searchMetadata->words->firstNode 
         : NULL ;
 
 }
 
 void ed_drawSearchTool(){
-    File *currentFile = currentWindow ? currentWindow->currentFile : NULL;
-    SearchMetadata *currentFileSearch = currentFile ? currentFile->currentFileSearch : NULL;
+    TextArea *textArea = currentWindow ? currentWindow->textArea : NULL;
+    SearchMetadata *searchMetadata = textArea ? textArea->searchMetadata : NULL;
     int vis_offset = 0;
     int dialogStartY = 0;
     
-    if (!currentFileSearch) {
+    if (!searchMetadata) {
 		ed_statusBarMessage("No search object instance!.");
 		return;
 	}
@@ -342,11 +343,11 @@ void ed_drawSearchTool(){
         dialogStartY + 2, 
         COLOR_WHITE, 
         COLOR_BLUE, 
-        currentFileSearch->wordCount,
+        searchMetadata->wordCount,
         (
-            currentFileSearch->currentWordNode && 
-            ((WordMetadata *)currentFileSearch->currentWordNode->data) 
-                ? ((WordMetadata *)currentFileSearch->currentWordNode->data)->wordIndex
+            searchMetadata->currentWordNode && 
+            ((WordMetadata *)searchMetadata->currentWordNode->data) 
+                ? ((WordMetadata *)searchMetadata->currentWordNode->data)->wordIndex
                 : 0
         )
     );
@@ -355,23 +356,23 @@ void ed_drawSearchTool(){
 		vis_offset + 1, 
 		3, 
 		(2 * vis_offset) - 1, 
-		currentFileSearch->dialogInputBuffer, 
-		strlen(currentFileSearch->dialogInputBuffer), 
-		&(currentFileSearch->dialogInputIndex)
+		searchMetadata->dialogInputBuffer, 
+		strlen(searchMetadata->dialogInputBuffer), 
+		&(searchMetadata->dialogInputIndex)
 	);
             
 }
 
 void ed_searchMoveCursor(){
-    File *currentFile = currentWindow ? currentWindow->currentFile : NULL;
-    SearchMetadata *currentFileSearch = currentFile ? currentFile->currentFileSearch : NULL;
+    TextArea *textArea = currentWindow ? currentWindow->textArea : NULL;
+    SearchMetadata *searchMetadata = textArea ? textArea->searchMetadata : NULL;
 
     if(
-        !currentFile ||
-        !currentFileSearch ||
-        !currentFileSearch->words ||
-        !currentFileSearch->currentWordNode ||
-        !currentFileSearch->currentWordNode->data
+        !textArea ||
+        !searchMetadata ||
+        !searchMetadata->words ||
+        !searchMetadata->currentWordNode ||
+        !searchMetadata->currentWordNode->data
     ) return;
     
     if(
@@ -379,44 +380,44 @@ void ed_searchMoveCursor(){
 		!hal_inp_isKeyDown(HAL_KEY_LSHIFT)
 	){
         // We go forward
-        currentFileSearch->currentWordNode = 
-            currentFileSearch->currentWordNode &&
-            currentFileSearch->currentWordNode->next
-            ? currentFileSearch->currentWordNode->next
-            : currentFileSearch->currentWordNode ;        
+        searchMetadata->currentWordNode = 
+            searchMetadata->currentWordNode &&
+            searchMetadata->currentWordNode->next
+            ? searchMetadata->currentWordNode->next
+            : searchMetadata->currentWordNode ;        
 
     }else if (
 		hal_inp_isKeyDown(HAL_KEY_ENTER) && 
 		hal_inp_isKeyDown(HAL_KEY_LSHIFT)
 	){
         // We go back         
-        currentFileSearch->currentWordNode = 
-            currentFileSearch->currentWordNode &&
-            currentFileSearch->currentWordNode->prev
-            ? currentFileSearch->currentWordNode->prev
-            : currentFileSearch->currentWordNode ;        
+        searchMetadata->currentWordNode = 
+            searchMetadata->currentWordNode &&
+            searchMetadata->currentWordNode->prev
+            ? searchMetadata->currentWordNode->prev
+            : searchMetadata->currentWordNode ;        
     }
 
     // We update the cursor
-    currentFile->currentLineNode = 
-        currentFileSearch->currentWordNode &&
-        currentFileSearch->currentWordNode->data &&
-        ((WordMetadata*) currentFileSearch->currentWordNode->data)->lineNode
-        ? ((WordMetadata *)currentFileSearch->currentWordNode->data)->lineNode
+    textArea->currentLineNode = 
+        searchMetadata->currentWordNode &&
+        searchMetadata->currentWordNode->data &&
+        ((WordMetadata*) searchMetadata->currentWordNode->data)->lineNode
+        ? ((WordMetadata *)searchMetadata->currentWordNode->data)->lineNode
         : NULL;
 
-    currentFile->cursorCol = 
-        currentFileSearch->currentWordNode &&
-        currentFileSearch->currentWordNode->data &&
-        ((WordMetadata*) currentFileSearch->currentWordNode->data)->cursorCol
-        ? ((WordMetadata *)currentFileSearch->currentWordNode->data)->cursorCol
+    textArea->cursorCol = 
+        searchMetadata->currentWordNode &&
+        searchMetadata->currentWordNode->data &&
+        ((WordMetadata*) searchMetadata->currentWordNode->data)->cursorCol
+        ? ((WordMetadata *)searchMetadata->currentWordNode->data)->cursorCol
         : 0;
 
-    currentFile->cursorLine =
-        currentFileSearch->currentWordNode &&
-        currentFileSearch->currentWordNode->data &&
-        ((WordMetadata*) currentFileSearch->currentWordNode->data)->cursorLine
-        ? ((WordMetadata *)currentFileSearch->currentWordNode->data)->cursorLine
+    textArea->cursorLine =
+        searchMetadata->currentWordNode &&
+        searchMetadata->currentWordNode->data &&
+        ((WordMetadata*) searchMetadata->currentWordNode->data)->cursorLine
+        ? ((WordMetadata *)searchMetadata->currentWordNode->data)->cursorLine
         : 0;
 
     ed_updateScrollY();

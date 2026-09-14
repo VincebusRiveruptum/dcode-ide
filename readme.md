@@ -8,7 +8,7 @@ DCODE IDE is a text editor and development environment designed for 32-bit DOS (
 
 - **Modern Editor Logic**: Support for standard shortcuts like `Home`/`End`, `PgUp`/`PgDn`, `Ctrl+N` (New), and `Ctrl+S` (Save).
 - **Split Windows (`Ctrl + \`)**: Split the editor vertically. Spawning a split duplicates the active tab, sharing the exact same in-memory file space so that edits are instantly synchronized across panes.
-- **Window Switching (`Ctrl + W`)**: Easily switch cursor focus between active split panes. Closing a split (closing all its tabs) dynamically reclaims screen space, expanding adjacent splits back to full width.
+- **EditorWindow Switching (`Ctrl + W`)**: Easily switch cursor focus between active split panes. Closing a split (closing all its tabs) dynamically reclaims screen space, expanding adjacent splits back to full width.
 - **Non-blocking Switcher (`Alt+Shift`)**: Hold `Alt` and press `Shift` (or `Alt+s` / `Alt+Tab` fallback) to open a list of open tabs in the focused split. Cycles asynchronously using the main loop.
 - **Flexible Display Modes**: Cycle display modes with `F11` (supports standard 80x25, as well as high-density 80x43, 80x50, 132x50, and 132x60 modes on DOS).
 - **Real-time Syntax Highlighting**: Integrated C syntax highlighting with configurable color schemes for better readability.
@@ -38,6 +38,7 @@ DCODE IDE is a text editor and development environment designed for 32-bit DOS (
 ## Configuration
 
 The IDE can be configured via `bin/default.cfg`. Available settings include:
+
 - `DEBUG`: Toggle debug logging.
 - `AUTOIDENTING`: Enable/Disable automatic indentation.
 - `AUTOCLOSING` / `AUTOBRACES`: Smart character closing.
@@ -48,15 +49,19 @@ The IDE can be configured via `bin/default.cfg`. Available settings include:
 ## Building from Source
 
 ### DOS (Watcom / OpenWatcom)
+
 1. Open your DOS environment (or DOSBox-X).
 2. Navigate to the project root.
 3. Run `wmake build`. This compiles all object files into `bin/dos/` and links `dcode.exe`.
 
 ### Linux (GCC)
+
 1. Open your Linux terminal.
 2. Navigate to the project root.
 3. Run `make -f makefile.linux`. This compiles and links the Linux binary `dcode` inside `bin/linux/`.
+
 ### Linux OpenWatcom v2.0 (32 Bit DOS Target)
+
 1. Open your Linux terminal.
 2. Navigate to the project root.
 3. Run `wmake build -f makefile.watcom-linux`. This compiles and links the Linux binary `dcode` inside `bin/dos/`.
@@ -66,7 +71,3 @@ The IDE can be configured via `bin/default.cfg`. Available settings include:
 DCode IDE is an ongoing project created for educational and entertainment purposes. It follows a strict 90's C89 coding style and modular architecture.
 
 **Author**: Vincebus Riveruptum (2026)
-
-
-
-

@@ -259,7 +259,8 @@ void f_quickOpenFileDialog(){
 
     if (
 		currentWindow &&
-		currentWindow->currentFile
+		currentWindow->textArea &&
+		currentWindow->textArea->file
 	){
         ed_updateCursor();
     }

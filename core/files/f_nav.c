@@ -17,10 +17,10 @@ void f_prepareFileNavDialog(){
 		}
 
 		if (hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LALT, HAL_KEY_LSHIFT)) {
-			Node *currNode = currentWindow->fileList->firstNode;
+			Node *currNode = currentWindow->textAreaList->firstNode;
 			Node *selectedNode = NULL;
 			while (currNode != NULL) {
-				if (currNode->data == currentWindow->currentFile) {
+				if (currNode->data == currentWindow->textArea) {
 					selectedNode = currNode;
 					break;
 				}
@@ -28,9 +28,9 @@ void f_prepareFileNavDialog(){
 			}
 			if (selectedNode != NULL) {
 				if (selectedNode->next != NULL) {
-					currentWindow->currentFile = (File *)selectedNode->next->data;
+					currentWindow->textArea = (TextArea *)selectedNode->next->data;
 				} else {
-					currentWindow->currentFile = (File *)currentWindow->fileList->firstNode->data;
+					currentWindow->textArea = (TextArea *)currentWindow->textAreaList->firstNode->data;
 				}
 				dw_requestRenderEvent(DW_RENDER_ALL);
 			}
@@ -40,11 +40,15 @@ void f_prepareFileNavDialog(){
 
 void f_drawFileNavDialog(){
     bool selected = false;
-    File *fileptr;
-	Node *currFileNode = NULL;
+    TextArea *textArea;
+    File *file;
+	Node *textAreaNode = NULL;
 	int i = 0;
 
-    if (!currentWindow || !currentWindow->fileList) {
+    if (
+		!currentWindow ||
+		!currentWindow->textAreaList
+	) {
 		logger("[f_drawFileNavDialog]: No window opened or no files opened in current window");
         return;
     }
@@ -56,24 +60,26 @@ void f_drawFileNavDialog(){
 		false, DRAW_BORDER_SIMPLE, NULL
 	);
 
-	currFileNode = currentWindow->fileList->firstNode;
-	while(currFileNode != NULL){
-		fileptr = (File*)currFileNode->data;
+	textAreaNode = currentWindow->textAreaList->firstNode;
+
+	while(textAreaNode != NULL){
+		//file = (File*)textAreaNode->data;
+		textArea = (TextArea*)textAreaNode->data;
 		
-		if (fileptr != NULL) {
-			selected = (currentWindow->currentFile == fileptr);
+		if (file != NULL) {
+			selected = (currentWindow->textArea->file == file);
 
 			dw_writeBuffer(
 				textmemptr, 
 				"%s %s",
 				5, 5 + i, 33, 5 + i, 
 				COLOR_WHITE, COLOR_RED,
-				(selected ? "*" : " "),
-				fileptr->name
+				(selected ? ">" : " "),
+				file->name
 			);
 			i++;
 		}
 
-		currFileNode = currFileNode->next;
+		textAreaNode = textAreaNode->next;
 	}
 }

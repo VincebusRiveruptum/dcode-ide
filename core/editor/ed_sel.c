@@ -1,49 +1,56 @@
 #include "editor.h"
 
 void ed_prepareSelectionTool(){
-    static File *currentFile = NULL;
+    static TextArea *textArea = NULL;
 
-    if(!currentWindow || !currentWindow->currentFile)
-		return;
+    if(
+        !currentWindow ||
+        !currentWindow->textArea ||
+        !currentWindow->textArea->file
+    ) return;
 	
-	currentFile = currentWindow->currentFile;
+	textArea = currentWindow->textArea;
 
-	currentFile->oldLineNode = 
-		(struct Node *)currentFile->currentLineNode;
+	textArea->oldLineNode = 
+		(struct Node *)textArea->currentLineNode;
 
-	currentFile->oldLine = currentFile->cursorLine;
-	currentFile->oldCol = currentFile->cursorCol;
+	textArea->oldLine = textArea->cursorLine;
+	textArea->oldCol = textArea->cursorCol;
 }
 
 void ed_clearSelection(){
-	static File *currentFile = NULL;
+	static TextArea *textArea = NULL;
 
-    if(!currentWindow || !currentWindow->currentFile) 
+    if(!currentWindow || !currentWindow->textArea) 
 		return;
 
-	currentFile = currentWindow->currentFile;
+	textArea = currentWindow->textArea;
 
-    currentFile->selectedStartNode = NULL;
-    currentFile->selectedEndNode = NULL;
-    currentFile->selectedStartX = 0;
-    currentFile->selectedEndX = 0;
-    currentFile->selectedStartLine = 0;
-    currentFile->selectedEndLine = 0;
+    textArea->selectedStartNode = NULL;
+    textArea->selectedEndNode = NULL;
+    textArea->selectedStartX = 0;
+    textArea->selectedEndX = 0;
+    textArea->selectedStartLine = 0;
+    textArea->selectedEndLine = 0;
     on_selection_tool = false;
 }
 
 void ed_handleSelection() {
-    File *currentFile;
+    static TextArea *textArea;
     bool isNav;
 
-    if(!currentWindow || !currentWindow->currentFile) return;
+    if(
+        !currentWindow ||
+        !currentWindow->textArea ||
+        !currentWindow->textArea->file
+    ) return;
     
-    currentFile = currentWindow->currentFile;
+    textArea = currentWindow->textArea;
 
     // Check if cursor actually moved
     if (
-		currentFile->currentLineNode == currentFile->oldLineNode && 
-		currentFile->cursorCol == currentFile->oldCol
+		textArea->currentLineNode == textArea->oldLineNode && 
+		textArea->cursorCol == textArea->oldCol
 	) return;
     
     isNav = 
@@ -62,15 +69,15 @@ void ed_handleSelection() {
 			hal_inp_isKeyDown(HAL_KEY_RSHIFT)) 
 		{
             // If selection is not active, anchor it at the old position
-            if (currentFile->selectedStartNode == NULL) {
-                currentFile->selectedStartNode = currentFile->oldLineNode;
-                currentFile->selectedStartX = currentFile->oldCol;
-                currentFile->selectedStartLine = currentFile->oldLine;
+            if (textArea->selectedStartNode == NULL) {
+                textArea->selectedStartNode = textArea->oldLineNode;
+                textArea->selectedStartX = textArea->oldCol;
+                textArea->selectedStartLine = textArea->oldLine;
             }
             // Always update selection end to the new position
-            currentFile->selectedEndNode = currentFile->currentLineNode;
-            currentFile->selectedEndX = currentFile->cursorCol;
-            currentFile->selectedEndLine = currentFile->cursorLine;
+            textArea->selectedEndNode = textArea->currentLineNode;
+            textArea->selectedEndX = textArea->cursorCol;
+            textArea->selectedEndLine = textArea->cursorLine;
             on_selection_tool = true;
             dw_requestRenderEvent(DW_RENDER_SELECTION);
         } else {
@@ -97,7 +104,7 @@ void ed_handleSelection() {
 void ed_renderLineSelection(){
     // Copy crrent line video memory area
     unsigned short *lineBuffer = NULL;
-    File *currentFile = NULL;
+    static TextArea *textArea = NULL;
     // Selectection metadata
     unsigned short selectedStartX = 0;
     unsigned short selectedEndX = 0;
@@ -108,10 +115,10 @@ void ed_renderLineSelection(){
     if(
         !currentWorkspace || 
         !currentWorkspace->currentWindow ||
-        !currentWorkspace->currentWindow->currentFile
+        !currentWorkspace->currentWindow->textArea
     )   return ;
 
-    currentFile = currentWorkspace->currentWindow->currentFile;
+    textArea = currentWorkspace->currentWindow->textArea;
 
     lineBuffer = 
         _getCurrentLinePtrInBuffer(
@@ -145,22 +152,21 @@ void ed_renderLineSelection(){
 // Returns number of deleted chars in a selected
 // block in a line.
 int _deleteInSingleLine(){
-    File *currentFile =
-        currentWorkspace->currentWindow->currentFile;
-    Line *line = currentFile->currentLine;
+    TextArea *textArea = currentWorkspace->currentWindow->textArea;
+    Line *line = textArea->currentLine;
     unsigned short start, end, lenBetween;
 
     // Start must be a minor index 
     // than the end index.
     if(
-        currentFile->selectedStartX <
-        currentFile->selectedEndX
+        textArea->selectedStartX <
+        textArea->selectedEndX
      ){
-        start =  currentFile->selectedStartX;
-        end =  currentFile->selectedEndX;
+        start =  textArea->selectedStartX;
+        end =  textArea->selectedEndX;
     }else{
-        start = currentFile->selectedEndX;
-        end = currentFile->selectedStartX;
+        start = textArea->selectedEndX;
+        end = textArea->selectedStartX;
     }
 
     lenBetween = line->length - end;
@@ -174,38 +180,14 @@ int _deleteInSingleLine(){
     line->buffer[start + lenBetween + 1] = '\0';
     line->length = start + lenBetween;
 
-    currentFile->cursorCol = start;
+    textArea->cursorCol = start;
     
     return (end - start);
 }
 
-Node *_softDeleteLine(File *currentFile, Node *node){
-    // Join adjacent nodes
-    if(!node)
-        return NULL;
-    
-    if(node->prev && node->next){
-        node->prev->next = node->next;
-        node->next->prev = node->prev;
-    }
-    // isolate current node
-    node->next = NULL;
-    node->prev = NULL;
-    node->isDeleted = true;
-
-    addGenericNode(
-        &currentFile->deletedLines, 
-        node, 
-        currentFile->arena
-    );    
-
-    return node;
-}
-
 void _glueLines(Node *start, Node *end, unsigned short startLineIndex){
     Line *startLine, *endLine;
-    File *currentFile = 
-        currentWorkspace->currentWindow->currentFile;
+    TextArea *textArea = currentWorkspace->currentWindow->textArea;
     unsigned short startX, endX, lenOnwards;
     // Validation
     if(
@@ -224,14 +206,14 @@ void _glueLines(Node *start, Node *end, unsigned short startLineIndex){
     // Start must be a minor index 
     // than the end index.
     if(
-        currentFile->selectedStartX <
-        currentFile->selectedEndX
+        textArea->selectedStartX <
+        textArea->selectedEndX
      ){
-        startX =  currentFile->selectedStartX;
-        endX =  currentFile->selectedEndX;
+        startX =  textArea->selectedStartX;
+        endX =  textArea->selectedEndX;
     }else{
-        startX = currentFile->selectedEndX;
-        endX = currentFile->selectedStartX;
+        startX = textArea->selectedEndX;
+        endX = textArea->selectedStartX;
     }
 
     lenOnwards = 
@@ -266,21 +248,20 @@ void _glueLines(Node *start, Node *end, unsigned short startLineIndex){
     }
 
     // Recycle end node
-    _softDeleteLine(currentFile, end);
+    ed_softDeleteLine(textArea, end);
 
     // Update editor metadata
-    currentFile->currentLineNode = start;
-    currentFile->currentLine = startLine;
-    currentFile->prevLine = start->prev ? (Line*)start->prev->data : NULL;
-    currentFile->nextLine = start->next ? (Line*)start->next->data : NULL;
+    textArea->currentLineNode = start;
+    textArea->currentLine = startLine;
+    textArea->prevLine = start->prev ? (Line*)start->prev->data : NULL;
+    textArea->nextLine = start->next ? (Line*)start->next->data : NULL;
 
-    currentFile->cursorCol = startX;
-    currentFile->cursorLine = startLineIndex;
+    textArea->cursorCol = startX;
+    textArea->cursorLine = startLineIndex;
 }
 
 int _deleteSelectedLines(){
-    File *currentFile = 
-        currentWorkspace->currentWindow->currentFile;
+    TextArea *textArea = currentWorkspace->currentWindow->textArea;
     Node *start = NULL;
     Node *startNext = NULL;
     Node *end = NULL;
@@ -291,17 +272,17 @@ int _deleteSelectedLines(){
     // previous to the end
 
     if(
-        currentFile->selectedStartLine <
-        currentFile->selectedEndLine 
+        textArea->selectedStartLine <
+        textArea->selectedEndLine 
     ){
-        start = currentFile->selectedStartNode;
-        startLineIndex = currentFile->selectedStartLine;
-        end = currentFile->selectedEndNode;
+        start = textArea->selectedStartNode;
+        startLineIndex = textArea->selectedStartLine;
+        end = textArea->selectedEndNode;
         
     }else{
-        start = currentFile->selectedEndNode;
-        startLineIndex = currentFile->selectedEndLine;
-        end = currentFile->selectedStartNode;   
+        start = textArea->selectedEndNode;
+        startLineIndex = textArea->selectedEndLine;
+        end = textArea->selectedStartNode;   
     }
     
     // Then we delete the nodes in between
@@ -320,7 +301,7 @@ int _deleteSelectedLines(){
         (rec != end)      
     ){
         tmp = rec->next;
-        _softDeleteLine(currentFile, rec);
+        ed_softDeleteLine(textArea, rec);
         rec = tmp;
     }
        
@@ -333,41 +314,35 @@ int _deleteSelectedLines(){
 }
 
 void ed_deleteSelection(){
-    // 
-    Window *currentWindow = NULL;
-    File *currentFile = NULL;
+    EditorWindow *currentWindow = NULL;
+    TextArea *textArea = NULL;
     Line *deletedLine = NULL;
     
-    if(!currentWorkspace)
-        return;
+    if( 
+        !currentWorkspace ||
+        !currentWindow ||
+        !currentWindow->textArea ||
+        !currentWindow->textArea->file
+    ) return;
 
     currentWindow = currentWorkspace->currentWindow;
-
-    if(!currentWindow)
-        return;
-
-    currentFile = currentWindow->currentFile;
-
-    if(!currentFile)
-        return;
-
+    textArea = currentWindow->textArea;
     // Check selected line nodes
     if(
-        !currentFile->selectedStartNode ||
-        !currentFile->selectedEndNode
+        !textArea->selectedStartNode ||
+        !textArea->selectedEndNode
     )
     return;
     
     //  Simple deletion,, in the same line
-
     if(
         (
-            currentFile->selectedStartNode ==
-            currentFile->selectedEndNode
+            textArea->selectedStartNode ==
+            textArea->selectedEndNode
         ) &&
         (
-            currentFile->selectedStartLine ==
-            currentFile->selectedEndLine
+            textArea->selectedStartLine ==
+            textArea->selectedEndLine
         )
     ){
         if(_deleteInSingleLine() < 0){

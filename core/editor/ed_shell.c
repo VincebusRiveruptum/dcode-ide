@@ -5,7 +5,7 @@ void ed_shellSpawn(){
     char cmd[255];
     char currPath[255];
     char *comspec = NULL;
-    File *currentFile = NULL;
+    TextArea *textArea = NULL;
 
     memset(cmd, '\0', 255);
     memset(currPath, '\0', 255);
@@ -16,9 +16,9 @@ void ed_shellSpawn(){
     comspec = getenv("SHELL");
 #endif
 
-    currentFile = currentWindow ? currentWindow->currentFile : NULL;
+    textArea = currentWindow ? currentWindow->textArea : NULL;
 
-    if(!currentFile) return;
+    if(!textArea) return;
     
     hal_inp_closeKeyboard();
 
@@ -35,8 +35,8 @@ void ed_shellSpawn(){
 
     strncpy(
 		currPath, 
-		currentFile->name, 
-		hal_fs_getFilePath(currentFile->name)
+		textArea->file->name, 
+		hal_fs_getFilePath(textArea->file->name)
 	);
 
 #if defined(__MSDOS__) || defined(__WATCOMC__)

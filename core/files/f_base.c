@@ -22,13 +22,21 @@ void f_dumpToFile(char *filename){
     fclose(fp);   
 }
 
-void f_dumpBufferTofile(char *buffer, size_t bufferLength, char *filename){
+void f_dumpBufferTofile(
+    char *buffer, 
+    size_t bufferLength, 
+    char *filename
+){
     size_t i = 0;
     FILE *fp = NULL;
 
     fp = fopen(filename, "w");
     if(fp == NULL){
-        logger("\n[f_dumpBufferTofile]: Error: Could not open file %s", filename);
+        logger(
+            "[f_dumpBufferTofile]: Error: Could not open file %s", 
+            filename
+        );
+
         return;
     }
     
@@ -56,131 +64,6 @@ unsigned char f_getExtensionId(char *filename){
     return FILE_EXTENSION_TXT;
 }
 
-/* NEW FILE ==============================================================================*/
-
-void f_newFile(char *filename){
-    static char tempName[MAX_FILE_NAME] = {'\0'};
-    int newFileCounter;
-    
-	Line *firstLine;
-    MemoryArena *arena;
-    File *newFile;	
-    size_t arenaSize = 0;
-
-    if (!currentWorkspace) {
-        currentWorkspace = f_createWorkspace();
-        if (!currentWorkspace) {
-            logger("[f_newFile]: Failed initializing workspace");
-            return;
-        }
-    }
-    if (!currentWindow) {
-        currentWindow = f_createWindow();
-        f_addWindowToWorkspace(currentWorkspace, currentWindow);
-        currentWorkspace->currentWindow = currentWindow;
-        
-        currentWindow->x = 0;
-        currentWindow->y = 0;
-        currentWindow->width = VIDEO_COLS - 1;
-        currentWindow->height = VIDEO_ROWS - 2;
-        currentWindow->active = true;
-    }
-
-    if(filename == NULL){
-        newFileCounter = _checkAvailableName();
-        if(settings.DEFAULT_EXTENSION[0] == '\0'){
-            logger("[f_newFile]: Editor has no default file extension configuration yet!.");
-            return;
-        }
-        sprintf(tempName, "newfile%d%s", newFileCounter, settings.DEFAULT_EXTENSION);
-    }else{
-        sprintf(tempName, "%s", filename);
-    }
-
-    arenaSize = 
-		settings.MAX_FILE_INSTANCE_SIZE > 0 
-		? settings.MAX_FILE_INSTANCE_SIZE 
-		: MEM_ARENA_256K;
-    
-	arena = (MemoryArena *)mem_arena_create(tempName, arenaSize);
-	
-    if(!arena){
-        logger("[f_newFile]: Failed creating memory arena");
-        return;
-    }
-
-    newFile = (File *)mem_arena_alloc(arena, sizeof(File));
-    if(!newFile){
-        logger("[f_newFile]: Could not create new file!.");
-        return;
-    }
-
-    newFile->arena = arena;
-    newFile->name = (char*)mem_arena_alloc(arena, sizeof(tempName) * sizeof(char));
-    if(!newFile->name){
-        logger("[f_newFile]: Could not assign temporary name to new file!");
-        return;
-    }
-    
-    strcpy(newFile->name, tempName);
-
-	newFile->ext = f_getExtensionId(newFile->name);
-    newFile->bufferLength = 0;
-    
-    newFile->lines = (List*)mem_arena_alloc(arena, sizeof(List));
-    newFile->deletedLines = (List*)mem_arena_alloc(arena, sizeof(List));
-
-	firstLine = (Line*)mem_arena_alloc(arena, sizeof(Line));
-    if(!firstLine){
-        logger("[f_newFile]: Could not create initial line to new file!");
-        return;
-    }
-    
-    firstLine->buffer = (char*)mem_arena_alloc(arena, sizeof(char) * (MAX_FILE_LINE_LENGTH + 1));
-    if(!firstLine->buffer){
-        logger("[f_newFile]: Could not create initial line BUFFER to new file!");
-        return;
-    }
-    
-    firstLine->length = 0;
-
-    addGenericNode(&newFile->lines, (void*)firstLine, arena);
-        
-    newFile->scrollY = 0;
-    newFile->scrollX = 0;
-    newFile->cursorLine = 0;
-    newFile->cursorCol = 0; 
-
-    newFile->currentLineNode = newFile->lines->firstNode;
-    newFile->prevLine = NULL;
-    newFile->currentLine = firstLine;
-    newFile->nextLine = NULL;
-    
-    newFile->prevChar = 0;
-    newFile->currentChar = 0;
-    newFile->nextChar = 0;
-
-    newFile->selectedStartX = 0;
-    newFile->selectedEndX = 0;
-    newFile->selectedStartLine = 0;
-    newFile->selectedEndLine = 0;
-    newFile->selectedStartNode = NULL;
-    newFile->selectedEndNode = NULL;
-
-    newFile->isModified = false;
-    newFile->isActive = false;
-	newFile->currentFileSearch = f_createSearchMetadata(newFile->name);
-
-    f_addFileToWindow(currentWindow, newFile);
-    currentWindow->currentFile = newFile;
-
-    ed_statusBarMessage("Created a new file.");
-    ed_updateCursor();
-
-  	dw_requestRenderEvent(DW_RENDER_ALL);
-}
-
-/* OPEN FILE ==============================================================================*/
 
 // TODO : IMPROVE THIS FUNCTION ASAP
 // DUMMY FOR NOW
@@ -221,19 +104,81 @@ size_t _getFileClosestSize(FILE *fp){
 	return finalSize;
 }
 
-bool f_openFile(char *filename){
-    char *fileParsingBuffer = NULL;
-	size_t fileSize = 0;
-    FILE *fp = NULL;
+// TODO
+// This checks if a file is already bein refered in
+// a TextArea instance in all windows and workspaces.
+bool f_checkFileRefs(File *file){
+    return true;
+}
+
+// TODO:
+// This update OLD file pointer references in textAreaList
+// window and workspace  with the NEW right reference.
+File *f_updateFileRefs(File *oldFile, File *newFile){
+    // WIP
+    return NULL;
+}
+
+// Creates a blank textArea
+TextArea *f_createTextArea(MemoryArena *arena){
+    TextArea *textArea = NULL;
+
+    textArea = (TextArea*)mem_arena_alloc(arena, sizeof(TextArea));
+
+    if(!textArea){
+        logger("[f_createTextArea]: Error creating new blank textArea.");
+        return NULL;
+    }
+
+    textArea->file = NULL;
+
+    textArea->scrollY = 0;
+    textArea->scrollX = 0;
+    textArea->cursorLine = 0;
+    textArea->cursorCol = 0; 
+
+    textArea->currentLineNode = NULL;
+    textArea->prevLine = NULL;
+    textArea->currentLine = NULL;
+    textArea->nextLine = NULL;
+    
+    textArea->prevChar = 0;
+    textArea->currentChar = 0;
+    textArea->nextChar = 0;
+
+    textArea->selectedStartX = 0;
+    textArea->selectedEndX = 0;
+    textArea->selectedStartLine = 0;
+    textArea->selectedEndLine = 0;
+    textArea->selectedStartNode = NULL;
+    textArea->selectedEndNode = NULL;
+
+    textArea->isActive = false;
+
+    textArea->searchMetadata = NULL;
+
+    return textArea;
+}
+
+/* NEW FILE ==============================================================================*/
+
+void f_newFile(char *filename){
+    static char tempName[MAX_FILE_NAME] = {'\0'};
+    int newFileCounter;
+    size_t arenaSize = 0;
+    
+	Line *firstLine;
+    MemoryArena *fileArena = NULL;
+    MemoryArena *textAreaArena = NULL;
     File *file = NULL;
-    MemoryArena *arena = NULL;
-    size_t defaultMax = 0;
+    
+    TextArea *textArea = NULL;
 
     if (!currentWorkspace) {
         currentWorkspace = f_createWorkspace();
         if (!currentWorkspace) {
-            logger("[f_openFile]: Failed initializing workspace");
-            return false;
+            logger("[f_newFile]: Failed initializing workspace");
+            return;
         }
     }
     if (!currentWindow) {
@@ -248,22 +193,145 @@ bool f_openFile(char *filename){
         currentWindow->active = true;
     }
 
+    if(filename == NULL){
+        newFileCounter = _checkAvailableName();
+        if(settings.DEFAULT_EXTENSION[0] == '\0'){
+            logger("[f_newFile]: Editor has no default file extension configuration yet!.");
+            return;
+        }
+        sprintf(tempName, "newfile%d%s", newFileCounter, settings.DEFAULT_EXTENSION);
+    }else{
+        sprintf(tempName, "%s", filename);
+    }
+
+    // TODO: IMPLEMENT MEMORY RESIZE ON DEMAND
+    // WHEN THE FILE SIZE INCREASES WEN
+    // EDITING.
+    arenaSize = 
+		settings.MAX_FILE_INSTANCE_SIZE > 0 
+		? settings.MAX_FILE_INSTANCE_SIZE 
+		: MEM_ARENA_256K;
+    
+	fileArena = (MemoryArena *)mem_arena_create(tempName, arenaSize);
+	
+    if(!fileArena){
+        logger("[f_newFile]: Failed creating memory fileArena");
+        return;
+    }
+
+    file = (File *)mem_arena_alloc(fileArena, sizeof(File));
+    if(!file){
+        logger("[f_newFile]: Could not create new file!.");
+        return;
+    }
+
+    file->arena = fileArena;
+
+    file->name = (char*)mem_arena_alloc(fileArena, sizeof(tempName) * sizeof(char));
+    if(!file->name){
+        logger("[f_newFile]: Could not assign temporary name to new file!");
+        return;
+    }
+    
+    strcpy(file->name, tempName);
+
+	file->ext = f_getExtensionId(file->name);
+    file->bufferLength = 0;
+    
+    file->lines = (List*)mem_arena_alloc(fileArena, sizeof(List));
+    file->deletedLines = (List*)mem_arena_alloc(fileArena, sizeof(List));
+
+	firstLine = (Line*)mem_arena_alloc(fileArena, sizeof(Line));
+    if(!firstLine){
+        logger("[f_newFile]: Could not create initial line to new file!");
+        return;
+    }
+    
+    firstLine->buffer = 
+        (char*)mem_arena_alloc(fileArena, sizeof(char) * (MAX_FILE_LINE_LENGTH + 1));
+    if(!firstLine->buffer){
+        logger("[f_newFile]: Could not create initial line BUFFER to new file!");
+        return;
+    }
+    
+    firstLine->length = 0;
+
+    addGenericNode(&file->lines, (void*)firstLine, fileArena);
+        
+    // We create the textArea file wrapper
+    textArea = f_createTextArea(textAreaArena);
+    textArea->file = file;
+    textArea->currentLineNode = file->lines->firstNode;
+    textArea->currentLine = firstLine;
+    textArea->searchMetadata = f_createSearchMetadata(textArea->file->name);
+    
+    f_addTextAreaToWindow(currentWindow, textArea);
+    currentWindow->textArea = textArea;
+
+    ed_statusBarMessage("Created a new file.");
+    ed_updateCursor();
+
+  	dw_requestRenderEvent(DW_RENDER_ALL);
+}
+
+/* OPEN FILE ==============================================================================*/
+
+bool f_openFile(char *filename){
+    char *fileParsingBuffer = NULL;
+    char *searchMetadataName = NULL;
+	size_t fileSize = 0, defaultMax = 0;
+    FILE *fp = NULL;
+    File *file = NULL;
+    TextArea *textArea = NULL;
+    MemoryArena *fileArena = NULL, *textAreaArena = NULL;
+
+    if (!currentWorkspace) {
+        currentWorkspace = f_createWorkspace();
+        if (!currentWorkspace) {
+            logger("[f_openFile]: Failed initializing workspace");
+            return false;
+        }
+    }
+
+    if (!currentWindow) {
+        currentWindow = f_createWindow();
+        f_addWindowToWorkspace(currentWorkspace, currentWindow);
+        currentWorkspace->currentWindow = currentWindow;
+        
+        currentWindow->x = 0;
+        currentWindow->y = 0;
+        currentWindow->width = VIDEO_COLS - 1;
+        currentWindow->height = VIDEO_ROWS - 2;
+        currentWindow->active = true;
+    }
+
     fp = fopen(filename, "r");
+
     if(fp == NULL){
         logger("\n[f_openFile]: Error: Could not open file %s", filename);
         return false;
     }
 
 	fileSize = _getFileClosestSize(fp);
-    arena = mem_arena_create(fs_getFileName(filename), fileSize);
+    fileArena = mem_arena_create(fs_getFileName(filename), fileSize);
 
-    if(!arena){
+    sprintf(searchMetadataName, "%s-TextArea", filename);
+
+    textAreaArena = mem_arena_create(searchMetadataName, sizeof(TextArea));
+
+    if(!fileArena){
         logger("[f_openFile]: Failed creating memory arena");
         fclose(fp);
         return false;
     }
 
-    file = (File *)mem_arena_alloc(arena, sizeof(File));
+    if(!textAreaArena){
+        logger("[f_openFile]: Failed creating text area memory arena");
+        fclose(fp);
+        return false;
+    }
+
+    file = (File *)mem_arena_alloc(fileArena, sizeof(File));
 	
     if(!file){
         logger("[f_openFile]: Failed allocating File struct");
@@ -272,90 +340,93 @@ bool f_openFile(char *filename){
     }
 
     memset(file, 0, sizeof(File));
-    file->arena = arena;
+    file->arena = fileArena;
+    file->name = (char*)mem_arena_alloc(fileArena, sizeof(char) * (strlen(filename) + 1));
 
-    file->name = (char*)mem_arena_alloc(arena, sizeof(char) * (strlen(filename) + 1));
     if(!file->name){
         logger("[f_openFile]: Error: Could not allocate memory for file details");
         fclose(fp);
         return false;
     }
+
     sprintf(file->name, "%s", filename);
     file->ext = f_getExtensionId(file->name);
 
     file->lines = NULL;
     file->deletedLines = NULL;
-    file->scrollY = 0;
-    file->scrollX = 0;
-    file->cursorLine = 0;
-    file->cursorCol = 0;
-    file->prevChar = '\0';
-    file->currentChar = '\0';
-    file->nextChar = '\0';
 
-    file->selectedStartX = 0;
-    file->selectedEndX = 0;
-    file->selectedStartLine = 0;
-    file->selectedEndLine = 0;
-    file->selectedStartNode = NULL;
-    file->selectedEndNode = NULL;
-	
-	file->currentFileSearch = f_createSearchMetadata(file->name);
     fseek(fp, 0, SEEK_END);
 
     file->bufferLength = ftell(fp);
     rewind(fp);
     
-    fileParsingBuffer = (char *)malloc(file->bufferLength + 1);
+    fileParsingBuffer = (char *)malloc(file->bufferLength + 1)
+    ;
     if(!fileParsingBuffer){
         logger("[f_openFile]: Error: Could not allocate memory for fileParsingBuffer");
         fclose(fp);
         return false;
     }
+
 	memset(fileParsingBuffer, '\0', file->bufferLength + 1);
 	
     file->bufferLength = fread(fileParsingBuffer, sizeof(char), file->bufferLength, fp);
 
-    f_addFileToWindow(currentWindow, file);
-    currentWindow->currentFile = file;
+    textArea = f_createTextArea(textAreaArena);
+
+    if(!textArea){
+        logger("[f_openFile]: Error: Could not allocate memory for textArea");
+        fclose(fp);
+        return false;   
+    }
+    
+    textArea->file = file;
+	textArea->searchMetadata = f_createSearchMetadata(file->name);
+    currentWindow->textArea = textArea;
+    
+    f_addTextAreaToWindow(currentWindow, textArea);
 
     _splitIntoLines(fileParsingBuffer, file->bufferLength, file);
 
-    currentWindow->currentFile->currentLineNode = currentWindow->currentFile->lines->firstNode;
-    currentWindow->currentFile->prevLine = NULL;
-    currentWindow->currentFile->currentLine = 
-        currentWindow->currentFile->lines->firstNode &&
-        currentWindow->currentFile->lines->firstNode->data 
-        ? currentWindow->currentFile->lines->firstNode->data 
+    currentWindow->textArea->currentLineNode = 
+        currentWindow->textArea->file->lines->firstNode;
+    currentWindow->textArea->prevLine = NULL;
+    currentWindow->textArea->currentLine = 
+        currentWindow->textArea->file->lines->firstNode &&
+        currentWindow->textArea->file->lines->firstNode->data 
+        ? currentWindow->textArea->file->lines->firstNode->data 
         : NULL;
 
-    currentWindow->currentFile->nextLine = 
-        currentWindow->currentFile->lines->firstNode &&
-        currentWindow->currentFile->lines->firstNode->next &&
-        currentWindow->currentFile->lines->firstNode->next->data 
-        ? currentWindow->currentFile->lines->firstNode->next->data 
+    currentWindow->textArea->nextLine = 
+        currentWindow->textArea->file->lines->firstNode &&
+        currentWindow->textArea->file->lines->firstNode->next &&
+        currentWindow->textArea->file->lines->firstNode->next->data 
+        ? currentWindow->textArea->file->lines->firstNode->next->data 
         : NULL;
 
-    currentWindow->currentFile->prevChar = '\0';
-    if (currentWindow->currentFile->currentLine != NULL) {
-        currentWindow->currentFile->currentChar = 
-            currentWindow->currentFile->currentLine->buffer[0] 
-            ? currentWindow->currentFile->currentLine->buffer[0]
+    currentWindow->textArea->prevChar = '\0';
+    if (currentWindow->textArea->currentLine != NULL) {
+        currentWindow->textArea->currentChar = 
+            currentWindow->textArea->currentLine->buffer[0] 
+            ? currentWindow->textArea->currentLine->buffer[0]
             : 0;
              
-        currentWindow->currentFile->nextChar = 
-            currentWindow->currentFile->currentLine->buffer[1] 
-            ? currentWindow->currentFile->currentLine->buffer[1]
+        currentWindow->textArea->nextChar = 
+            currentWindow->textArea->currentLine->buffer[1] 
+            ? currentWindow->textArea->currentLine->buffer[1]
             : 0;
     } else {
-        currentWindow->currentFile->currentChar = 0;
-        currentWindow->currentFile->nextChar = 0;
+        currentWindow->textArea->currentChar = 0;
+        currentWindow->textArea->nextChar = 0;
     }
 
     fclose(fp);
     free(fileParsingBuffer);
 
-    ed_statusBarMessage("Opened %s successfully.", currentWindow->currentFile->name);
+    ed_statusBarMessage(
+        "Opened %s successfully.", 
+        currentWindow->textArea->file->name
+    );
 
   	dw_requestRenderEvent(DW_RENDER_ALL);
 
@@ -372,12 +443,21 @@ void f_saveFile(){
     char *fileParsingBuffer = NULL;
     
     Line *line = NULL;
-    MemoryArena *newArena = NULL;
     Node *currentNode = NULL;
+    MemoryArena *newArena = NULL;
     File *oldFile = NULL, *newFile = NULL;
     Node *currNode = NULL;
+
+    TextArea *textArea = NULL;
     
-	oldFile = currentWindow->currentFile;
+    textArea = currentWindow->textArea;
+
+    if(!textArea){
+        logger("[f_saveFile]: Error: Invalid textArea");
+        return;
+    }
+
+	oldFile = textArea->file;
 
     if(!oldFile || !oldFile->arena){
         logger("[f_saveFile]: Error: No file selected");
@@ -390,12 +470,14 @@ void f_saveFile(){
     }
     
     newArena = mem_arena_create(newArenaName, oldFile->arena->size);
+
     if(!newArena){
         logger("[f_saveFile]: Could not create swapping arena!");
         return;
     }
     
     newFile = (File *)mem_arena_alloc(newArena, sizeof(File));
+    
     if(!newFile){
         logger("[f_saveFile]: Could not create swapping FILE!");
         return;
@@ -411,50 +493,38 @@ void f_saveFile(){
     }
     
     sprintf(newFile->name, "%s", oldFile->name);
+
     newFile->ext = f_getExtensionId(newFile->name);
 
-    newFile->scrollY = oldFile->scrollY;
-    newFile->scrollX = oldFile->scrollX;
-    newFile->cursorLine = oldFile->cursorLine;
-    newFile->cursorCol = oldFile->cursorCol;
-    
-    newFile->prevChar = oldFile->prevChar;
-    newFile->currentChar = oldFile->currentChar;
-    newFile->nextChar = oldFile->nextChar;
-
-    newFile->isActive = oldFile->isActive;
-    
-    newFile->selectedStartX = 0;
-    newFile->selectedEndX = 0;
-    newFile->selectedStartLine = 0;
-    newFile->selectedEndLine = 0;
-    newFile->selectedStartNode = NULL;
-    newFile->selectedEndNode = NULL;
-    
     currentNode = oldFile->lines->firstNode;
     lengthSum = _copyLines(oldFile, newFile);
 
-    newFile->currentLineNode = getNodeByIndex(&(newFile->lines), newFile->cursorLine);
-    if (newFile->currentLineNode) {
-        newFile->prevLine = 
-            newFile->currentLineNode->prev &&
-            newFile->currentLineNode->prev->data
-            ? newFile->currentLineNode->prev->data
+    textArea->currentLineNode = 
+        getNodeByIndex(&(newFile->lines), textArea->cursorLine);
+    
+    if (textArea->currentLineNode) {
+        textArea->prevLine = 
+            textArea->currentLineNode->prev &&
+            textArea->currentLineNode->prev->data
+            ? textArea->currentLineNode->prev->data
             : NULL ;
 
-        newFile->currentLine = newFile->currentLineNode->data;
-        newFile->nextLine = 
-            newFile->currentLineNode->next &&
-            newFile->currentLineNode->next->data
-            ? newFile->currentLineNode->next->data
+        textArea->currentLine = textArea->currentLineNode->data;
+        textArea->nextLine = 
+            textArea->currentLineNode->next &&
+            textArea->currentLineNode->next->data
+            ? textArea->currentLineNode->next->data
             : NULL;
     } else {
-        newFile->prevLine = NULL;
-        newFile->currentLine = NULL;
-        newFile->nextLine = NULL;
+        textArea->prevLine = NULL;
+        textArea->currentLine = NULL;
+        textArea->nextLine = NULL;
     }
+
+    textArea->file = newFile;
     
     fileParsingBuffer = (char*)malloc(sizeof(char) * (lengthSum + 1));
+    
     if(!fileParsingBuffer){
         logger("[f_saveFile]: Could not allocate file buffer!");
         return;
@@ -476,14 +546,23 @@ void f_saveFile(){
         currentNode = currentNode->next;
     }
 
-    newFile->bufferLength = offset;
-    f_dumpBufferTofile(fileParsingBuffer, newFile->bufferLength, newFile->name);
+    textArea->file->bufferLength = offset;
+
+    f_dumpBufferTofile(
+        fileParsingBuffer, 
+        textArea->file->bufferLength, 
+        textArea->file->name
+    );
 
     /* Replace oldFile with newFile in active window's fileList in-place */
-    currNode = currentWindow->fileList->firstNode;
+    // Update all textArea FIle old pointer no the new pointer.
+    f_updateFileRefs(textArea->file, oldFile);
+
+    currNode = currentWindow->textAreaList->firstNode;
+
     while (currNode != NULL) {
         if (currNode->data == oldFile) {
-            currNode->data = newFile;
+            currNode->data = textArea->file;
             break;
         }
         currNode = currNode->next;
@@ -491,95 +570,14 @@ void f_saveFile(){
 
     f_closeFile(oldFile);
 
-    newFile->isModified = false;
-	newFile->currentFileSearch = f_createSearchMetadata(newFile->name);
-
-    currentWindow->currentFile = newFile;
+    textArea->file->isModified = false;
 
     free(fileParsingBuffer);
 
-    ed_statusBarMessage("File %s saved successfully.", newFile->name);
-    logger("[f_saveFile]: File %s saved successfully", newFile->name);
+    ed_statusBarMessage("File %s saved successfully.", textArea->file->name);
+    logger("[f_saveFile]: File %s saved successfully", textArea->file->name);
 
   	dw_requestRenderEvent(DW_RENDER_ALL);
-}
-
-/* CLOSE FILE ==================================================================*/
-
-void f_closeFile(File *file){
-    char arenaName[64];
-    sprintf(arenaName, "%s", file->arena->name);
-
-	f_freeSearchMetadata(file->currentFileSearch);
-    mem_arena_free(file->arena);
-    logger("[f_closeFile]: File %s closed successfully", arenaName);    
-}
-
-void f_closeCurrentFile(){
-    char oldFileName[255];
-	File *nextFile = NULL;
-	
-	Window *toDelete = NULL, *wnd = NULL;
-	Node *rec = NULL;
-	Window *neighbor = NULL;
-
-    memset(oldFileName, '\0', 255);
-
-    if(!currentWindow || !currentWindow->currentFile) 
-		return;
-
-    strcpy(oldFileName, currentWindow->currentFile->name);
-
-    f_deleteFileFromWindow(
-		currentWindow, 
-		currentWindow->currentFile
-	);
-	
-	if (currentWindow->fileList->length > 0) {
-		nextFile = (File *)(currentWindow->fileList->firstNode->data);
-		currentWindow->currentFile = nextFile;
-	} else {
-
-		currentWindow->currentFile = NULL;
-		
-		if (currentWorkspace->windowList->length > 1) {
-			toDelete = currentWindow;
-			rec = currentWorkspace->windowList->firstNode;
-			neighbor = NULL;
-			
-			while (rec != NULL) {
-				wnd = (Window *)rec->data;
-				if (wnd != toDelete) {
-					neighbor = wnd;
-					if (wnd->x + wnd->width + 1 == toDelete->x) {
-						break;
-					}
-				}
-				rec = rec->next;
-			}
-			
-			if (neighbor != NULL) {
-				if (toDelete->x > neighbor->x) {
-					neighbor->width += toDelete->width + 1;
-				} else {
-					neighbor->x = toDelete->x;
-					neighbor->width += toDelete->width + 1;
-				}
-			}
-			
-			f_cycleActiveWindow();
-			f_deleteWindowFromWorkspace(currentWorkspace, toDelete);
-			free(toDelete);
-		}
-	}
-    
-    ed_statusBarMessage("%s closed successfully.", oldFileName);
-    logger("[f_closdeCurrentFile]: %s closed successfully.", oldFileName);
-
-    ed_updateCursor();
-	
-	dw_requestRenderEvent(DW_RENDER_ALL);
-    return;
 }
 
 void f_triggerClose(bool end_program){
@@ -601,7 +599,11 @@ void f_triggerClose(bool end_program){
         return;
     }
 
-    if(!currentWindow || !currentWindow->currentFile){
+    if(
+        !currentWindow ||
+        !currentWindow->textArea ||
+        !currentWindow->textArea->file
+    ){
         logger("[f_triggerClose]: No active file, proceed to close app directly.");
         if (end_program) {
             endProgram = true;
@@ -609,7 +611,7 @@ void f_triggerClose(bool end_program){
         return;
     }
 
-    if(currentWindow->currentFile->isModified == true){
+    if(currentWindow->textArea->file->isModified == true){
         dw_writeBuffer(
 			textmemptr, 
 			"File modified, save? Y/N ",
@@ -640,10 +642,78 @@ void f_triggerClose(bool end_program){
         };
 
         if(input == 'n' || input == 'N'){            
-            f_closeCurrentFile();
+            f_closeCurrentTextArea();
             return;
         } 
         
         //ed_renderWindows(currentWorkspace);
         if(_isDefaultFileName() == true){
-            dw_writeBuffer(textmemptr, 
+            dw_writeBuffer(
+                textmemptr, 
+                "File name: ",
+				0,
+				VIDEO_ROWS - 1, 
+				10,
+				VIDEO_ROWS - 1, 
+				settings.STATUSBAR_COLOR_TEXT, 
+				settings.STATUSBAR_COLOR_BG
+			);
+
+            hal_vid_refresh();
+            
+            while((len <= 3 || len > 12)){
+                dw_writeBuffer(
+					textmemptr,
+					"",
+					11,
+					VIDEO_ROWS - 1,
+					VIDEO_COLS - 1,
+					VIDEO_ROWS - 1,
+					settings.STATUSBAR_COLOR_TEXT,
+					settings.STATUSBAR_COLOR_BG
+				);
+
+                filename = ed_scanf(11, VIDEO_ROWS - 1, 32);
+                
+                if(filename == NULL) return;
+
+                len = strlen(filename);
+
+                //ed_renderWindows(currentWorkspace);
+
+                if(len <= 3 || len > 12){
+                    dw_writeBuffer(
+						textmemptr,
+						"Invalid filename! Try again",
+						0,
+						VIDEO_ROWS - 1,
+						30,
+						VIDEO_ROWS - 1,
+						settings.STATUSBAR_COLOR_TEXT,
+						settings.STATUSBAR_COLOR_BG
+					);
+
+                    hal_vid_refresh();
+                }
+            }
+            if(esc == true) return;
+            strcpy(currentWindow->textArea->file->name, filename);
+        }
+    }
+
+    f_saveFile();
+    f_closeCurrentTextArea();
+
+  	dw_requestRenderEvent(DW_RENDER_ALL);
+}
+
+void f_setCurrentFileAsModified(){
+    if(
+        !currentWorkspace ||
+        !currentWorkspace->currentWindow ||
+        !currentWorkspace->currentWindow->textArea ||
+        !currentWorkspace->currentWindow->textArea->file
+    )   return;
+    
+    currentWorkspace->currentWindow->textArea->file->isModified = true;
+}

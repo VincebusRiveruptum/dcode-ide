@@ -263,7 +263,7 @@ void f_freeWorkspace(){
 TextArea *f_addTextAreaToWindow(EditorWindow *window, TextArea *textArea){
 	if (!textArea || !window->textAreaList || !window){
 		logger("[f_addTextAreaToWindow]: invalid data.");
-		return NULL;
+		exit(1);
 	}
 
 	addGenericNode(&(window->textAreaList), (void*)textArea, NULL);
@@ -274,7 +274,7 @@ TextArea *f_addTextAreaToWindow(EditorWindow *window, TextArea *textArea){
 EditorWindow *f_addWindowToWorkspace(Workspace *workspace, EditorWindow *window){
 	if (!workspace || !workspace->windowList || !window ){
 		logger("[f_addWindowToWorkspace]: invalid data.");
-		return NULL;
+		exit(1);
 	}
 
 	addGenericNode(&(workspace->windowList), (void*)window, NULL);
@@ -339,7 +339,7 @@ void f_deleteWorkspace(Workspace *workspace){
 
 	if(!workspace ){
 		logger("[f_deleteWorkspace]: Invalid data");
-		return;
+		exit(1);
 	}
 
 	if(workspace->windowList){
@@ -369,7 +369,7 @@ void f_splitWindow(){
 		!currentWindow || 
 		!currentWindow->textArea ||
 		!currentWindow->textArea->file
-	) return;
+	) exit(1);;
 
 	newWnd = f_createWindow();
 	if(!newWnd) return;

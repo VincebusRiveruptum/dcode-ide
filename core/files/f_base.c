@@ -120,14 +120,32 @@ File *f_updateFileRefs(File *oldFile, File *newFile){
 }
 
 // Creates a blank textArea
-TextArea *f_createTextArea(MemoryArena *arena){
+TextArea *f_createTextArea(char *filename){
     TextArea *textArea = NULL;
+    MemoryArena *arena = NULL;
+    char *filenameTmp = NULL;
+    
+    if(!filename){
+        logger("[f_createTextArea]: Filename must be not NULL.");
+        exit(1);
+    }
+    
+    filenameTmp = sprintf(filenameTmp, "%s-textarea", filename);
+    
+    logger("[f_createTextArea]: Creating %s textArea arena", filenameTmp);
+    
+    arena = (MemoryArena*)mem_arena_create(filenameTmp,sizeof(TextArea) + MEM_ARENA_1K);
+    
+    if(!arena){
+        logger("[f_createTextArea]: Could not alloc for arena.");
+        exit(1);
+    }
 
     textArea = (TextArea*)mem_arena_alloc(arena, sizeof(TextArea));
 
     if(!textArea){
         logger("[f_createTextArea]: Error creating new blank textArea.");
-        return NULL;
+        exit(1);
     }
 
     textArea->file = NULL;
@@ -153,6 +171,9 @@ TextArea *f_createTextArea(MemoryArena *arena){
     textArea->selectedStartNode = NULL;
     textArea->selectedEndNode = NULL;
 
+
+
+    
     textArea->isActive = false;
 
     textArea->searchMetadata = NULL;
@@ -169,7 +190,6 @@ void f_newFile(char *filename){
     
 	Line *firstLine;
     MemoryArena *fileArena = NULL;
-    MemoryArena *textAreaArena = NULL;
     File *file = NULL;
     
     TextArea *textArea = NULL;
@@ -178,7 +198,7 @@ void f_newFile(char *filename){
         currentWorkspace = f_createWorkspace();
         if (!currentWorkspace) {
             logger("[f_newFile]: Failed initializing workspace");
-            return;
+            exit(1);
         }
     }
     if (!currentWindow) {
@@ -197,7 +217,7 @@ void f_newFile(char *filename){
         newFileCounter = _checkAvailableName();
         if(settings.DEFAULT_EXTENSION[0] == '\0'){
             logger("[f_newFile]: Editor has no default file extension configuration yet!.");
-            return;
+            exit(1);
         }
         sprintf(tempName, "newfile%d%s", newFileCounter, settings.DEFAULT_EXTENSION);
     }else{
@@ -216,13 +236,13 @@ void f_newFile(char *filename){
 	
     if(!fileArena){
         logger("[f_newFile]: Failed creating memory fileArena");
-        return;
+        exit(1);
     }
 
     file = (File *)mem_arena_alloc(fileArena, sizeof(File));
     if(!file){
         logger("[f_newFile]: Could not create new file!.");
-        return;
+        exit(1);
     }
 
     file->arena = fileArena;
@@ -230,7 +250,7 @@ void f_newFile(char *filename){
     file->name = (char*)mem_arena_alloc(fileArena, sizeof(tempName) * sizeof(char));
     if(!file->name){
         logger("[f_newFile]: Could not assign temporary name to new file!");
-        return;
+        exit(1);
     }
     
     strcpy(file->name, tempName);
@@ -244,14 +264,14 @@ void f_newFile(char *filename){
 	firstLine = (Line*)mem_arena_alloc(fileArena, sizeof(Line));
     if(!firstLine){
         logger("[f_newFile]: Could not create initial line to new file!");
-        return;
+        exit(1);
     }
     
     firstLine->buffer = 
         (char*)mem_arena_alloc(fileArena, sizeof(char) * (MAX_FILE_LINE_LENGTH + 1));
     if(!firstLine->buffer){
         logger("[f_newFile]: Could not create initial line BUFFER to new file!");
-        return;
+        exit(1);
     }
     
     firstLine->length = 0;
@@ -259,7 +279,7 @@ void f_newFile(char *filename){
     addGenericNode(&file->lines, (void*)firstLine, fileArena);
         
     // We create the textArea file wrapper
-    textArea = f_createTextArea(textAreaArena);
+    textArea = f_createTextArea(file->name);
     textArea->file = file;
     textArea->currentLineNode = file->lines->firstNode;
     textArea->currentLine = firstLine;
@@ -278,12 +298,11 @@ void f_newFile(char *filename){
 
 bool f_openFile(char *filename){
     char *fileParsingBuffer = NULL;
-    char *searchMetadataName = NULL;
 	size_t fileSize = 0, defaultMax = 0;
     FILE *fp = NULL;
     File *file = NULL;
     TextArea *textArea = NULL;
-    MemoryArena *fileArena = NULL, *textAreaArena = NULL;
+    MemoryArena *fileArena = NULL;
 
     if (!currentWorkspace) {
         currentWorkspace = f_createWorkspace();
@@ -315,18 +334,8 @@ bool f_openFile(char *filename){
 	fileSize = _getFileClosestSize(fp);
     fileArena = mem_arena_create(fs_getFileName(filename), fileSize);
 
-    sprintf(searchMetadataName, "%s-TextArea", filename);
-
-    textAreaArena = mem_arena_create(searchMetadataName, sizeof(TextArea));
-
     if(!fileArena){
         logger("[f_openFile]: Failed creating memory arena");
-        fclose(fp);
-        return false;
-    }
-
-    if(!textAreaArena){
-        logger("[f_openFile]: Failed creating text area memory arena");
         fclose(fp);
         return false;
     }
@@ -365,6 +374,7 @@ bool f_openFile(char *filename){
     if(!fileParsingBuffer){
         logger("[f_openFile]: Error: Could not allocate memory for fileParsingBuffer");
         fclose(fp);
+        exit(1);
         return false;
     }
 
@@ -372,11 +382,12 @@ bool f_openFile(char *filename){
 	
     file->bufferLength = fread(fileParsingBuffer, sizeof(char), file->bufferLength, fp);
 
-    textArea = f_createTextArea(textAreaArena);
+    textArea = f_createTextArea(file->name);
 
     if(!textArea){
         logger("[f_openFile]: Error: Could not allocate memory for textArea");
         fclose(fp);
+        exit(1);
         return false;   
     }
     
@@ -454,6 +465,7 @@ void f_saveFile(){
 
     if(!textArea){
         logger("[f_saveFile]: Error: Invalid textArea");
+        exit(1);
         return;
     }
 
@@ -461,11 +473,13 @@ void f_saveFile(){
 
     if(!oldFile || !oldFile->arena){
         logger("[f_saveFile]: Error: No file selected");
+        exit(1);
         return;
     }
 
     if(!oldFile->name || oldFile->name[0] == '\0'){
         logger("[f_saveFile]: Error: No filename provided");
+        exit(1);
         return;
     }
     
@@ -473,6 +487,7 @@ void f_saveFile(){
 
     if(!newArena){
         logger("[f_saveFile]: Could not create swapping arena!");
+        exit(1);
         return;
     }
     
@@ -480,6 +495,7 @@ void f_saveFile(){
     
     if(!newFile){
         logger("[f_saveFile]: Could not create swapping FILE!");
+        exit(1);
         return;
     }
 
@@ -487,8 +503,10 @@ void f_saveFile(){
     newFile->arena = newArena;
     
     newFile->name = (char*)mem_arena_alloc(newArena, sizeof(char) * (strlen(oldFile->name) + 1));
+    
     if(!newFile->name){
         logger("[f_saveFile]: Could not allocate file name!");
+        exit(1);
         return;
     }
     
@@ -527,6 +545,7 @@ void f_saveFile(){
     
     if(!fileParsingBuffer){
         logger("[f_saveFile]: Could not allocate file buffer!");
+        exit(1);
         return;
     }
     memset(fileParsingBuffer, '\0', sizeof(char) * (lengthSum + 1));
@@ -534,6 +553,7 @@ void f_saveFile(){
     if(currentNode == NULL){
         logger("\n[f_saveFile]: Error: No lines found");
         free(fileParsingBuffer);
+        exit(1);
         return;
     }
     

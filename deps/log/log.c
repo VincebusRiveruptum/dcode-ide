@@ -74,10 +74,14 @@ void logger(const char *format, ...){ // Modified signature for variadic argumen
     }
 
     if(logType){
-        if(strcmp(logType, "file") == 0 || strcmp(logType, "fileConsole") == 0){
+        if(strcmp(logType, "both") == 0){
+            logToFile(logString);
+            logToConsole(logString);
+        }
+        if(strcmp(logType, "file") == 0){
             logToFile(logString);
         }
-        if(strcmp(logType, "console") == 0 || strcmp(logType, "fileConsole") == 0){
+        if(strcmp(logType, "console")== 0){
             logToConsole(logString);
         }       
     }else{

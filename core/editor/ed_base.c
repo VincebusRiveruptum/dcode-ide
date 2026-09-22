@@ -170,7 +170,7 @@ void ed_renderCurrentLine(){
 		!currentWindow->textArea->currentLine
 	){
 		logger("[ed_renderCurrentLine]: invalid data...");
-		return;
+		exit(1);
 	} 
 	
 	strcpy(
@@ -213,7 +213,10 @@ void ed_updateWindow(Workspace *workspace){
 		!workspace || 
 		!workspace->windowList ||
 		!workspace->currentWindow
-	) return;
+	){
+        logger("[ed_updateWindow]: Invalid window/textArea/file instance");
+        exit(1);
+    };
 
     //hal_vid_clearBuffer(editormemptr);
 
@@ -329,7 +332,10 @@ void ed_moveCursor(short x, short y){
 
 	textArea = currentWindow->textArea;
 
-    if (!textArea) return;
+    if (!textArea){
+        logger("[ed_moveCursor]: Invalid window/textArea/file instance");
+        exit(1);
+    };
 
     // If the number of lines is less than the screen heightc
     // and the current Y cursor position is less than the nmber of lines
@@ -528,7 +534,10 @@ void ed_backspace(){
     if (
         !textArea ||
         !textArea->file 
-    ) return;
+    ){
+        logger("[ed_backspace]: Invalid window/textArea/file instance");
+        exit(1);
+    };
 	
     x = textArea->cursorCol;
     y = textArea->cursorLine;
@@ -540,7 +549,7 @@ void ed_backspace(){
 
     if(!node){
         logger("[ed_backspace] node is null", 0);
-        return;
+        exit(1);
     }
 
     if(on_selection_tool == true){
@@ -653,8 +662,10 @@ void ed_supr(){
     if (
         !textArea ||
         !textArea->file
-    ) 
-        return;
+    ){
+        logger("[ed_supr]: Invalid window/textArea/file instance");
+        exit(1);
+    };
 
     x = textArea->cursorCol;
     
@@ -697,7 +708,10 @@ void ed_newLine(){
     if (
         !textArea ||
         !textArea->file
-    ) return;
+    ) {
+        logger("[ed_newLine]: Invalid window/textArea/file instance");
+        exit(1);
+    };
 
     arena = textArea->file->arena;
 
@@ -1040,8 +1054,8 @@ void ed_updateCurrentLine(EditorWindow *window){
         !window->textArea || 
         !window->textArea->file
     ){
-        logger("[ed_updateCurrentLine]: Invalid window/currentLine data.");
-        return;
+        logger("[ed_updateCurrentLine]: Invalid window/textArea/file instance");
+        exit(1);
     }
 
     currNode = getNodeByIndex(
@@ -1082,8 +1096,10 @@ void ed_putCursorEnd(){
         !currentWindow ||
         !currentWindow->textArea ||
         !currentWindow->textArea->file
-    )
-		return;
+    ){
+        logger("[ed_putCursorEnd]: Invalid window/textArea/file instance");
+        exit(1);
+    }
 
 	textArea = currentWindow->textArea;
 
@@ -1104,9 +1120,11 @@ void ed_putCursorStart(){
         !currentWindow || 
         !currentWindow->textArea ||
         !currentWindow->textArea->file
-    )
-		return;
-
+    ){
+        logger("[ed_putCursorStart]: Invalid window/textArea/file instance");
+        exit(1);
+    };
+    
 	textArea = currentWindow->textArea;
     textArea->cursorCol = 0;
 
@@ -1125,8 +1143,10 @@ void ed_putCursorFistLine(){
         !currentWindow ||
         !currentWindow->textArea ||
         !currentWindow->textArea->file
-    )
-		return;
+    ){
+        logger("[ed_putCursorFistLine]: Invalid window/textArea/file instance");
+        exit(1);
+    }
 
     screenHeightJump = currentWindow->height;
     textArea = currentWindow->textArea;
@@ -1172,8 +1192,10 @@ void ed_putCursorLastLine(){
         !currentWindow ||
         !currentWindow->textArea ||
         !currentWindow->textArea->file
-    )
-		return;
+    ){
+        logger("[ed_putCursorLastLine]: Invalid window/textArea/file instance");
+        exit(1);
+    }
 
     screenHeightJump = currentWindow->height;
     textArea = currentWindow->textArea;
@@ -1228,8 +1250,10 @@ void ed_wordJump(short wordJump){
 		!currentWindow ||
 		!currentWindow->textArea ||
 		!currentWindow->textArea->file
-	)
-		return;
+	){
+        logger("[ed_wordJump]: Invalid window/textArea/file instance");
+        exit(1);
+    }
 
 	textArea = currentWindow->textArea;
     currentCharPos = textArea->cursorCol;
@@ -1284,8 +1308,10 @@ void ed_swapLine(short lineJump){
         !currentWindow || 
         !currentWindow->textArea ||
         !currentWindow->textArea->file
-    )
-		return;
+    ){
+        logger("[ed_swapLine]: Invalid window/textArea/file instance");
+        exit(1);
+    }
 
 	textArea = currentWindow->textArea;
 	currentLineNode = textArea->currentLineNode;

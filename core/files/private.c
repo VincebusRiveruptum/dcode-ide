@@ -210,6 +210,7 @@ bool _isDefaultFileName(void){
     if(!textArea->file){
         logger("[_isDefaultFileName]: No current text area file");
         return true;
+
     }
     if(!textArea->file->name){
         logger("[_isDefaultFileName]: Current file has no name!");

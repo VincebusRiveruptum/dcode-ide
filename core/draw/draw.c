@@ -1325,6 +1325,15 @@ void dw_renderEventDispatcher(){
 				break;
             case DW_RENDER_SELECTION:
 			case DW_RENDER_WINDOW:
+                // Check if current file instance
+                // in window has references
+                if(
+                    f_checkCurrFileRefs(currentWindow->textArea->file)
+                ){
+                    dw_requestRenderEvent(DW_RENDER_ALL);
+                    return;
+                }
+                
 				ed_updateWindow(currentWorkspace);
 				break;
 			case DW_RENDER_UI:

@@ -17,9 +17,123 @@ void f_closeFile(File *file){
     logger("[f_closeFile]: File %s closed successfully", arenaName);    
 }
 
+// Creates a blank textArea
+TextArea *f_createTextArea(char *filename){
+    TextArea *textArea = NULL;
+    MemoryArena *arena = NULL;
+    char *filenameTmp = NULL;
+    
+    if(!filename){
+        logger("[f_createTextArea]: Filename must be not NULL.");
+        exit(1);
+    }
+    
+    filenameTmp = sprintf(filenameTmp, "%s-textarea", filename);
+    
+    logger("[f_createTextArea]: Creating %s textArea arena", filenameTmp);
+    
+    arena = (MemoryArena*)mem_arena_create(filenameTmp,sizeof(TextArea) + MEM_ARENA_1K);
+    
+    if(!arena){
+        logger("[f_createTextArea]: Could not alloc for arena.");
+        exit(1);
+    }
+
+    textArea = (TextArea*)mem_arena_alloc(arena, sizeof(TextArea));
+
+    if(!textArea){
+        logger("[f_createTextArea]: Error creating new blank textArea.");
+        exit(1);
+    }
+
+    textArea->file = NULL;
+
+    textArea->scrollY = 0;
+    textArea->scrollX = 0;
+    textArea->cursorLine = 0;
+    textArea->cursorCol = 0; 
+
+    textArea->currentLineNode = NULL;
+    textArea->prevLine = NULL;
+    textArea->currentLine = NULL;
+    textArea->nextLine = NULL;
+    
+    textArea->prevChar = 0;
+    textArea->currentChar = 0;
+    textArea->nextChar = 0;
+
+    textArea->selectedStartX = 0;
+    textArea->selectedEndX = 0;
+    textArea->selectedStartLine = 0;
+    textArea->selectedEndLine = 0;
+    textArea->selectedStartNode = NULL;
+    textArea->selectedEndNode = NULL;
+
+    textArea->isActive = false;
+
+    textArea->searchMetadata = NULL;
+
+    return textArea;
+}
+
+TextArea *f_copyTextArea(TextArea *src, bool duplicate){
+	TextArea *textArea = NULL;
+
+	if(!src){
+		logger("[f_copyTextArea] Error: src TextArea is NULL");
+		exit(1);
+	}
+	textArea = f_createTextArea(src->file->name);
+
+	if(!textArea){
+		logger("[f_copyTextArea] Error: Could not copy textArea");
+		exit(1);
+	}
+
+
+	textArea->file =
+		duplicate == false 
+		? f_copyFileObject(src->file)
+		: src->file;
+
+	textArea->currentLineNode =
+		getNodeByIndex(&(textArea->file->lines), src->cursorLine);
+
+    if (textArea->currentLineNode) {
+        textArea->prevLine = 
+            textArea->currentLineNode->prev &&
+            textArea->currentLineNode->prev->data
+            ? textArea->currentLineNode->prev->data
+            : NULL ;
+
+        textArea->currentLine = textArea->currentLineNode->data;
+        textArea->nextLine = 
+            textArea->currentLineNode->next &&
+            textArea->currentLineNode->next->data
+            ? textArea->currentLineNode->next->data
+            : NULL;
+    } else {
+        textArea->prevLine = NULL;
+        textArea->currentLine = NULL;
+        textArea->nextLine = NULL;
+    }
+
+	textArea->prevChar = src->prevChar;		
+	textArea->currentChar = src->currentChar;		
+	textArea->nextChar = src->nextChar;		
+
+	textArea->scrollY = src->scrollY;		
+	textArea->scrollX = src->scrollX;		
+	textArea->cursorLine = src->cursorLine;		
+	textArea->cursorCol = src->cursorCol;		
+
+	return textArea;
+
+}
+
 void f_closeTextArea(TextArea *textArea){
 	logger(
-		"[f_closeFile]: Checking %s refs in usage.", 
+		"[f_closeTextArea]: Checking %s refs in usage.", 
 		textArea->file->name
 	);    
 	
@@ -32,6 +146,7 @@ void f_closeTextArea(TextArea *textArea){
 
     logger("[f_closeFile]: TextArea arena closed successfully");    
 }
+
 
 void f_closeCurrentTextArea(){
     char oldFileName[255];
@@ -116,7 +231,7 @@ EditorWindow *f_createWindow(){
 
 	if(!newWindow){
 		logger("[f_createWindow]: Could not alloc for a window!.");
-		return NULL;
+		exit(1);
 	}
 
 	newWindow->textAreaList = createList(NULL);
@@ -157,7 +272,7 @@ Workspace *f_createWorkspace(){
 
 	if (!fullPath) {
 		logger("[f_createWorkspace]: malloc failed for fullPath.");
-		return NULL;
+		exit(1);
 	}
 	strcpy(fullPath, pathBuf);
 
@@ -167,7 +282,7 @@ Workspace *f_createWorkspace(){
 	
 	if(!newWorkspace){
 		logger("[f_initWorkspac]: could not allow memory for workspace.");
-		return NULL;
+		exit(1);
 	}
 
 	newWorkspace->fullPath = fullPath;
@@ -176,7 +291,7 @@ Workspace *f_createWorkspace(){
 
 	if(!newWorkspace->windowList){
 		logger("[f_initWorkspac]: could not allow memory for workspace window list.");
-		return NULL;
+		exit(1);
 	}
 
 	return newWorkspace;
@@ -192,8 +307,11 @@ void f_freeTextAreaList(List *textAreaList){
 	Node *tmp=NULL;
 	TextArea *textArea=NULL;
 
-	if(!textAreaList)
-		return;
+	if(!textAreaList){
+		logger("[f_freeTextAreaList] Error: NO textArea list!.");
+		exit(1);
+	}
+		
 
 	rec = textAreaList->firstNode;
 
@@ -222,7 +340,7 @@ void f_freeWindowList(List *windowList){
 	EditorWindow *wnd = NULL;
 	if(!windowList) {
 		logger("[f_freeWorkspace]: workspace already free");
-		return;
+		exit(1);
 	}
 
 	// Freeing windowList
@@ -294,37 +412,37 @@ void f_deleteTextAreaFromWindow(
 		!textArea
 	){
 		logger("[f_deleteTextAreaFromWindow]: invalid data.");
-		return;
+		exit(1);
 	}
 
 	deleteNodeByPtr(&(window->textAreaList), (void*)textArea);
 
 	f_closeTextArea(textArea);
 	//f_closeFile(file);    
-	
+
 	return;
 }
 
 void f_deleteWindowFromWorkspace(Workspace *workspace, EditorWindow *window){
 	Node *rec = NULL;
-	File *file = NULL;
+	TextArea *textArea = NULL;
 
 	if(!workspace || !workspace->windowList || !window){
 		logger("[f_deleteWindowFromWorkspace]: invalid data.");
-		return;
+		exit(1);
 	}
 
 	deleteNodeByPtr(&(workspace->windowList), (void*)window);
 
-	// Close all files
+	// Close all textAreas
 	rec = window->textAreaList->firstNode;
 
 	if(rec){
 		while(rec){
-			file = (File*)rec->data;
+			textArea = (TextArea*)rec->data;
 
-			if(file)
-				f_closeFile(file);
+			if(textArea)
+				f_closeTextArea(textArea);
 			
 			rec = rec->next;
 		}
@@ -372,9 +490,14 @@ void f_splitWindow(){
 	) exit(1);;
 
 	newWnd = f_createWindow();
-	if(!newWnd) return;
 
-	newWnd->textArea = currentWindow->textArea;
+	if(!newWnd){
+		logger("[f_splitWindow] Error: could not create newWnd EditorWindow object.");
+		exit(1);
+	}
+
+	newWnd->textArea = f_copyTextArea(currentWindow->textArea, true);
+
 	f_addTextAreaToWindow(newWnd, currentWindow->textArea);
 
 	half = currentWindow->width / 2;

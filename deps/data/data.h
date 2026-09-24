@@ -10,7 +10,7 @@
 
 #include "types.h"
 
-void _addToList(List **list, Node *newNode, MemoryArena *arena);
+void addNode(List **list, Node *newNode, MemoryArena *arena);
 Node *createNode(void *data, char *arenaName);
 Node *getNodeByIndex(List **list, int index);
 void deleteNodeByIndex(List **list, int index);

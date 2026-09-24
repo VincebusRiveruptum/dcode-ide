@@ -317,10 +317,13 @@ Node *_resolveNewLine(File *file){
 	// Get last deleted line
 	newLineNode = pop(&file->deletedLines);
     
-    if(!newLineNode)
-		newLineNode = _createLineNode(file);
+    if(!newLineNode){
+        logger("[_newLine]: Creating new line");
+        newLineNode = _createLineNode(file);
+    }else{
+        logger("[_newLine]: reusing deleted line");
+    }
 
-	logger("[_newLine]: reusing deleted line");
 	newLine = (Line*)newLineNode->data;
 
 	if(!newLine){
@@ -331,6 +334,8 @@ Node *_resolveNewLine(File *file){
 			logger("[_newLine]: Attempt failed. Save and restart dcode.");
 			exit(1);
 		}
+
+        newLine = (Line *)newLineNode->data;
 	}
     
 	memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH + 1);

@@ -152,7 +152,7 @@ Node *pop(List **list){
         !(*list) ||
         !(*list)->firstNode ||
         !(*list)->lastNode ||
-        (!(*list)->length) > 0
+        (*list)->length <= 0
     )
 		return NULL;
 	
@@ -245,7 +245,8 @@ bool includes(float val, float *arr, size_t n) {
     return false;
 }
 
-void _addToList(List **list, Node *newNode, MemoryArena *arena){
+// Adds node diretly to List
+void addNode(List **list, Node *newNode, MemoryArena *arena){
     Node *rec = NULL;
     if((*list) == NULL){
         if(arena == NULL){
@@ -276,6 +277,8 @@ void _addToList(List **list, Node *newNode, MemoryArena *arena){
     (*list)->length++;
 }
 
+// Adds data to a list in a generi way
+// The data is auto-wrapped to a NOde.
 void addGenericNode(List **list, void *data, MemoryArena *arena){
 	Node *newNode = NULL;
 
@@ -292,7 +295,7 @@ void addGenericNode(List **list, void *data, MemoryArena *arena){
 	newNode->prev = NULL;
     newNode->isDeleted = false;
 
-	_addToList(list, newNode, arena);
+	addNode(list, newNode, arena);
 }
 
 Node *insertGenericNode(List **list, void *data, MemoryArena *arena, unsigned int index){

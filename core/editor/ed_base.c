@@ -31,8 +31,10 @@ Node *ed_softDeleteLine(TextArea *textArea, Node *node){
         !textArea ||
         !textArea->file ||
         !node
-    )   
-        return NULL;
+    ){
+        logger("[ed_softDeleteLine] Error: Invalid file universe.");
+        exit(1);
+    }   
 
     if(node->prev && node->next){
         node->prev->next = node->next;
@@ -48,7 +50,7 @@ Node *ed_softDeleteLine(TextArea *textArea, Node *node){
     node->prev = NULL;
     node->isDeleted = true;
 
-    addGenericNode(
+    addNode(
         &textArea->file->deletedLines, 
         node, 
         textArea->arena

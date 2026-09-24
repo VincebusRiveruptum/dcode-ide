@@ -3,7 +3,7 @@ void ed_initConfig(int argc, char *argv[]){
     //f_defaultExtension
 
     // We will hardcode the default extension until i implement .ENV/CFG LOADING
-    if(!cfg_loadConfig()){
+    if(!cfg_loadSettings()){
         //logger("[ed_initConfig]: Could not load config file!");
         // App exits
         printf("\nCould not load config file!.");

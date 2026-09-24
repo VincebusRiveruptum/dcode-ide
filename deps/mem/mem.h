@@ -40,7 +40,11 @@ typedef struct MemoryArena{
     size_t offset;
 } MemoryArena;
 
+
 /* PROTOTYPES ===========================================================================*/
+
+// Align macro for sizeof functions
+#define ALIGN16(sz) (((sz) + 15) & ~15)
 
 void mem_arena_init(MemoryArena *arenaPtr, char *name,size_t size);
 void *mem_arena_create(char *name, size_t size);

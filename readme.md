@@ -30,7 +30,7 @@ DCODE IDE is a text editor and development environment designed for 32-bit DOS (
 - **`app/`**: Application entry point and main event loop (`main.c` / `main.h`).
 - **`hal/`**: Hardware Abstraction Layer mapping fs, input, and video interfaces.
 - **`platform/`**: Platform-specific implementations (`dos/` and `linux/`).
-- **`core/`**: Core engine modules including editor buffers (`editor/`), formatters/drawers (`draw/`), workspace settings (`config/`), and file tab structures (`files/`).
+- **`core/`**: Core engine modules including editor buffers (`editor/`), formatters/drawers (`draw/`), workspace settings (`settings/`), and file tab structures (`files/`).
 - **`deps/`**: Personal generic/portable framework dependencies (List collections, Memory Arenas, Logger).
 - **`bin/`**: Output directory for compiled object files and binaries (`bin/dos/dcode.exe`, `bin/linux/dcode`).
 - **`books/`**: Project documentation and architecture specs.

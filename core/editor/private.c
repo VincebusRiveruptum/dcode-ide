@@ -263,14 +263,14 @@ Line *_createLine(File *file){
 
 	if(!file || !file->arena){
 		logger("[_createLine]: Invalid file/arena");
-		return NULL;
+        exit(1);
 	}
 
 	newLine = (Line*)mem_arena_alloc(file->arena, sizeof(Line));
 
 	if (!newLine){
 		logger("[_createLine]: Could not make new line");
-		return NULL;
+		exit(1);
 	}
 
 	newLine->length = 0;
@@ -282,7 +282,7 @@ Line *_createLine(File *file){
 
 	if (!newLine->buffer){
 		logger("[_createLine]: Could not alloc new line buffer");
-		return NULL;
+        exit(1);
 	}
 
 	memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH + 1);
@@ -294,14 +294,14 @@ Node *_createLineNode(File *file){
 
 	if(!file || !file->arena){
 		logger("[_createLine]: Invalid file/arena");
-		return NULL;
+        exit(1);
 	}
 
 	newLineNode = (Node *)mem_arena_alloc(file->arena, sizeof(Node));
 	
 	if (!newLineNode){
 		logger("[_createLineNode]: Could not alloc new line NODE");
-		return NULL;
+        exit(1);
 	}
 	
 	newLineNode->data = (Line*) _createLine(file);
@@ -329,17 +329,17 @@ Node *_resolveNewLine(File *file){
 		
 		if(!newLineNode->data){
 			logger("[_newLine]: Attempt failed. Save and restart dcode.");
-			return NULL;
+			exit(1);
 		}
 	}
-
+    
 	memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH + 1);
 	newLine->length = 0;
 	newLineNode->isDeleted = false; 
-
+    
 	if(!newLineNode){
-		logger("[_newLine]: Error creating/reusing line.");
-		return NULL;
+        logger("[_newLine]: Error creating/reusing line.");
+	    exit(1);
 	}
 
 	return newLineNode;

@@ -1,10 +1,10 @@
-// ENV/CONFIG LAYER
-#include "config.h"
+// ENV/settings LAYER
+#include "settings.h"
 #include <stdlib.h>
 
 Settings settings;
 
-bool cfg_loadConfig(){
+bool cfg_loadSettings(){
     log_enable = false;
 
     loadEnv();
@@ -19,6 +19,11 @@ bool cfg_loadConfig(){
         = (unsigned int)atoi(getEnv("MAX_FILE_INSTANCES_OPENED", "%d", 32));
     settings.MAX_LINE_LENGTH                
         = (unsigned int)atoi(getEnv("MAX_LINE_LENGTH", "%d", MAX_FILE_LINE_LENGTH));
+    settings.FILE_HEADROOM                
+        = (unsigned int)atoi(getEnv("FILE_HEADROOM", "%d", F_FILE_HEADROOM / 1024));
+    
+    settings.FILE_HEADROOM *= 1024;               
+    
     settings.AUTOIDENTING                   
         = (unsigned char)atoi(getEnv("AUTOIDENTING", "1"));
     settings.AUTOCLOSING                    
@@ -84,7 +89,7 @@ bool cfg_loadConfig(){
     
     log_enable = settings.DEBUG ;
     
-    logger("[cfg_loadConfig]: default.cfg loaded successfully");
+    logger("[cfg_loadSettings]: default.cfg loaded successfully");
 
     return true;
 }

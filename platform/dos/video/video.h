@@ -2,7 +2,7 @@
 #define PLATFORM_DOS_VIDEO_H
 
 #include "../../../hal/hal_vid.h"
-#include "../../../core/config/config.h"
+#include "../../../core/settings/settings.h"
 
 /* ASM Prototypes and pragmas */
 #pragma aux _set80x25_asm = \

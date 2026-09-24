@@ -28,7 +28,7 @@ SRCS = platform/linux/input/input.c \
 	core/editor/ed_shell.c \
 	core/editor/ed_statb.c \
 	core/editor/private.c \
-	core/config/config.c \
+	core/settings/settings.c \
 	core/draw/draw.c \
 	app/main.c
 

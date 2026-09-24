@@ -4,7 +4,7 @@
 #include "../std.h"
 
 #include "../../app/main.h"
-#include "../config/config.h"
+#include "../settings/settings.h"
 #include "../editor/editor.h"
 
 struct File;

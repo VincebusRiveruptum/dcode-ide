@@ -64,33 +64,90 @@ unsigned char f_getExtensionId(char *filename){
     return FILE_EXTENSION_TXT;
 }
 
+// This calculates a LIne full size
+// This could be a macro
+size_t f_getLineSize(){
+    size_t lineSize = 0;
 
-// TODO : IMPROVE THIS FUNCTION ASAP
-// DUMMY FOR NOW
-size_t _getFileClosestSize(FILE *fp){
-	size_t fileSize = 0, finalSize;
-    char c;
-    unsigned int lineBreaks = 0;
+    lineSize = (
+        ALIGN16(sizeof(Node)) +
+        ALIGN16(sizeof(Line)) +
+        ALIGN16(settings.MAX_LINE_LENGTH + 1)
+    );
+
+    logger("[f_getLineSize] Actual Line Object size : %d", lineSize);
+
+    return lineSize;
+}
+
+// This checks if adding a new line could overflow the 
+// textArea file memory arena.
+// Returns boolean value.
+// FUll = false
+// space available = True
+bool f_checkNewLineMemory(TextArea *textArea){
+
+    if(
+        !textArea ||
+        !textArea->file ||
+        !textArea->file->arena
+    ){
+        logger("[f_checNewLineMemory] Error. Invalid file universe.");
+        exit(1);
+    }
+    
+    if(
+        (f_getLineSize() + textArea->file->arena->offset) >= 
+        textArea->file->arena->size 
+        &&
+        (textArea->file->deletedLines->length == 0)
+    ){
+        
+        logger("[f_checNewLineMemory] Error. OUT OF MEMORY FOR NEW LINE!.");
+        return false;
+    }
+
+    
+    return true;
+}
+
+// This function calculates the complete File object
+// size from the content of the file to be opened.
+size_t f_getFileClosestSize(FILE *fp, char *filename){
+	size_t fileSize = 0, lineMem, fileMem, finalSize;
+    int c;
+    unsigned int lineCount = 0;
 
 	if(!fp)
 		return 0;
 
-	//fseek(fp, 0L, SEEK_END);
-	//fileSize = ftell(fp);
-
-    while(!feof(fp)){
-        c = fgetc(fp);
-        
+    while((c = fgetc(fp)) != EOF){
         if(c == '\n') 
-            lineBreaks++;
+            lineCount++;
 
         fileSize++;
     }
 	rewind(fp);
 
+    // if there is just one line with no line jump in
+    // the file
+    lineCount += (c != '\n');
+     
+    lineMem = (
+        ALIGN16(sizeof(Node)) +
+        ALIGN16(sizeof(Line)) +
+        ALIGN16(settings.MAX_LINE_LENGTH + 1)
+    );
+
+    fileMem = (
+        ALIGN16(sizeof(File)) +      // File struct
+        ALIGN16(sizeof(List)) +      // Lines
+        ALIGN16(sizeof(List)) +      // Deleted Lines
+        ALIGN16(strlen(filename) + 1)
+    );
+
     finalSize = (
-        (sizeof(File) +      // File struct
-        ((sizeof(Line) + settings.MAX_LINE_LENGTH + 1) * lineBreaks))
+        fileMem + (lineMem * lineCount) + settings.FILE_HEADROOM
     );
 
     logger(
@@ -98,13 +155,39 @@ size_t _getFileClosestSize(FILE *fp){
         fileSize, 
         sizeof(File), 
         finalSize,
-        lineBreaks
+        lineCount
     );
  
 	return finalSize;
 }
 
-// TODO
+// This basically adds more headroom to a file when memory arena gets
+// full after editing the file.
+void f_resizeTextArea(TextArea *textArea){
+    File *newFile = NULL;
+    MemoryArena *oldArena = NULL;
+
+    if(
+        !textArea ||
+        !textArea->file ||
+        !textArea->file->arena
+    ){
+        logger("[f_resizeTextArea] Error : Invalid textArea, file or arena.");
+        exit(1);
+    }
+    
+    // We clone the file into the new Arena
+    oldArena = textArea->file->arena;
+    newFile = f_copyFileObject(textArea->file, true);
+    
+    // Freeing up old arena
+    mem_arena_free(oldArena);
+
+    textArea->file = newFile;
+
+    return;
+}
+
 // This checks if a file is already bein refered in
 // a TextArea instance in all windows and workspaces.
 bool f_checkFileRefs(File *file){
@@ -191,15 +274,112 @@ bool *f_checkCurrFileRefs(File *file){
     return false;
 }
 
-// TODO:
 // This update OLD file pointer references in textAreaList
 // window and workspace  with the NEW right reference.
-File *f_updateFileRefs(File *oldFile, File *newFile){
-    // WIP
-    return NULL;
+// Returns count of file refs updated.
+int *f_updateFileRefs(File *oldFile, File *newFile){
+    Node *wndNode, *taNode;
+    List *taList = NULL;
+    TextArea *textArea = NULL;
+    int refCount = 0;
+
+    if(!currentWorkspace){
+        logger("[f_updateFileRefs]: Error: No currentWorskapce.");
+        exit(1);
+    } 
+
+    if(!currentWorkspace->windowList){
+        logger("[f_updateFileRefs]: Error: No window list.");
+        exit(1);
+    } 
+
+    wndNode = currentWorkspace->windowList->firstNode;
+
+    while(wndNode){
+
+        taList = ((EditorWindow*)(wndNode->data))->textAreaList;
+
+        if(!taList){
+            logger("[f_updateFileRefs]: Error: No textArea list.");
+            exit(1);
+        }
+        
+        taNode = taList->firstNode;
+
+        while(taNode){
+            textArea = (TextArea*)taNode->data;
+
+            if(
+                !textArea ||
+                !textArea->file
+            ){
+                logger("[f_updateFileRefs]: Error: Invalid textArea or data.");
+                exit(1);
+            }
+            
+            if(
+                strcmp(oldFile->name, textArea->file->name) == 0 &&
+                (oldFile == textArea->file)
+            ){
+                textArea->file = newFile;
+                refCount ++;
+            };
+
+            taNode = taNode->next;
+        }
+
+        wndNode = wndNode->next;
+    }
+
+    // Free old file arena
+    mem_arena_free(oldFile->arena);
+
+    return refCount;
 }
 
+// This creates a FIle object replica.
+File *f_copyFileObject(File *oldFile, bool headroom){
+    size_t lengthSum = 0;
+	char *newArenaName = "NEW";
+    File *newFile = NULL;
+    MemoryArena *newArena = NULL;
 
+    newArena = (MemoryArena*)mem_arena_create(
+        newArenaName, 
+        oldFile->arena->size + (headroom ? settings.FILE_HEADROOM : 0)
+    );
+
+    if(!newArena){
+        logger("[f_saveFile]: Could not create swapping arena!");
+        exit(1);
+    }
+    
+    newFile = (File *)mem_arena_alloc(newArena, sizeof(File));
+    
+    if(!newFile){
+        logger("[f_saveFile]: Could not create swapping FILE!");
+        exit(1);
+    }
+    
+    memset(newFile, 0, sizeof(File));
+    
+    newFile->arena = newArena;
+    
+    newFile->name = (char*)mem_arena_alloc(newArena, sizeof(char) * (strlen(oldFile->name) + 1));
+    
+    if(!newFile->name){
+        logger("[f_saveFile]: Could not allocate file name!");
+        exit(1);
+    }
+    
+    sprintf(newFile->name, "%s", oldFile->name);
+
+    newFile->ext = f_getExtensionId(newFile->name);
+
+    _copyLines(oldFile, newFile);
+
+    return newFile;
+}
 
 /* NEW FILE ==============================================================================*/
 
@@ -247,10 +427,7 @@ void f_newFile(char *filename){
     // TODO: IMPLEMENT MEMORY RESIZE ON DEMAND
     // WHEN THE FILE SIZE INCREASES WEN
     // EDITING.
-    arenaSize = 
-		settings.MAX_FILE_INSTANCE_SIZE > 0 
-		? settings.MAX_FILE_INSTANCE_SIZE 
-		: MEM_ARENA_256K;
+    arenaSize = settings.FILE_HEADROOM;
     
 	fileArena = (MemoryArena *)mem_arena_create(tempName, arenaSize);
 	
@@ -351,7 +528,7 @@ bool f_openFile(char *filename){
         return false;
     }
 
-	fileSize = _getFileClosestSize(fp);
+	fileSize = f_getFileClosestSize(fp, filename);
     fileArena = mem_arena_create(fs_getFileName(filename), fileSize);
 
     if(!fileArena){
@@ -463,46 +640,6 @@ bool f_openFile(char *filename){
 }
 
 /* SAVE FILE ==============================================================================*/
-
-File *f_copyFileObject(File *oldFile){
-    size_t lengthSum = 0;
-	char *newArenaName = "NEW";
-    File *newFile = NULL;
-    MemoryArena *newArena = NULL;
-
-    newArena = mem_arena_create(newArenaName, oldFile->arena->size);
-
-    if(!newArena){
-        logger("[f_saveFile]: Could not create swapping arena!");
-        exit(1);
-    }
-    
-    newFile = (File *)mem_arena_alloc(newArena, sizeof(File));
-    
-    if(!newFile){
-        logger("[f_saveFile]: Could not create swapping FILE!");
-        exit(1);
-    }
-
-    memset(newFile, 0, sizeof(File));
-
-    newFile->arena = newArena;
-    
-    newFile->name = (char*)mem_arena_alloc(newArena, sizeof(char) * (strlen(oldFile->name) + 1));
-    
-    if(!newFile->name){
-        logger("[f_saveFile]: Could not allocate file name!");
-        exit(1);
-    }
-    
-    sprintf(newFile->name, "%s", oldFile->name);
-
-    newFile->ext = f_getExtensionId(newFile->name);
-
-    _copyLines(oldFile, newFile);
-
-    return newFile;
-}
 void f_saveFile(){
 	size_t offset = 0;
     char *fileParsingBuffer = NULL;
@@ -539,6 +676,7 @@ void f_saveFile(){
 
     /* Replace oldFile with newFile in active window's fileList in-place */
     // Update all textArea FIle old pointer no the new pointer.
+    // and free up old file arena.
     f_updateFileRefs(textArea->file, oldFile);
 
     currNode = currentWindow->textAreaList->firstNode;
@@ -716,12 +854,17 @@ void f_triggerClose(bool end_program){
                     hal_vid_refresh();
                 }
             }
-            if(esc == true) return;
+
+            if(esc == true) 
+                return;
+
             strcpy(currentWindow->textArea->file->name, filename);
+            
         }
+        
+        f_saveFile();
     }
 
-    f_saveFile();
     f_closeCurrentTextArea();
 
   	dw_requestRenderEvent(DW_RENDER_ALL);

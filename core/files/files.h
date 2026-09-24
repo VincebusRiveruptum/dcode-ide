@@ -8,6 +8,7 @@
 
 /* Const. ================================================================*/
 
+#define F_FILE_HEADROOM 4096
 #define MAX_FILE_LINE_LENGTH 384
 #define MAX_FILE_NAME 256
 
@@ -25,6 +26,7 @@ typedef struct WordMetadata{
     unsigned int cursorCol;
     char *wordPtr;
 }WordMetadata;
+
 
 typedef struct SearchMetadata{
 	// File search arena.
@@ -170,6 +172,16 @@ extern bool endProgram;
 // f_base
 void f_dumpToFile(char *filename);
 void f_dumpBufferTofile(char *buffer, size_t bufferLength, char *filename);
+
+size_t f_getLineSize();
+bool f_checkNewLineMemory(TextArea *textArea);
+size_t f_getFileClosestSize(FILE *fp, char *filename);
+void f_resizeTextArea(TextArea *textArea);
+bool f_checkFileRefs(File *file);
+bool *f_checkCurrFileRefs(File *file);
+int *f_updateFileRefs(File *oldFile, File *newFile);
+File *f_copyFileObject(File *oldFile, bool headroom);
+
 void f_newFile(char *filename);
 bool f_openFile(char *filename);
 void f_saveFile();

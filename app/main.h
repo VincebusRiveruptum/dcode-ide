@@ -24,7 +24,7 @@
 
 // CORE ENGINE
 #include "../core/std.h"
-#include "../core/config/config.h"
+#include "../core/settings/settings.h"
 #include "../core/draw/draw.h"
 #include "../core/editor/editor.h"
 #include "../core/files/files.h"

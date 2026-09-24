@@ -701,7 +701,7 @@ void ed_newLine(){
     Node *newLineNode = NULL;
     Line *newLine = NULL;
     MemoryArena *arena = NULL;
-	static TextArea *textArea = NULL;
+	TextArea *textArea = NULL;
 
 	textArea = currentWindow->textArea;
 
@@ -711,6 +711,12 @@ void ed_newLine(){
     ) {
         logger("[ed_newLine]: Invalid window/textArea/file instance");
         exit(1);
+    };
+    
+    // Check if adding a new line fulls file arena
+    if(f_checkNewLineMemory(textArea) == false){
+        ed_statusBarMessage("[ed_newLine]: Memory is full, could not create a new line");
+        return;
     };
 
     arena = textArea->file->arena;

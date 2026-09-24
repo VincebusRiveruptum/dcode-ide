@@ -1,5 +1,5 @@
 #include "../../../hal/hal_vid.h"
-#include "../../../core/config/config.h"
+#include "../../../core/settings.h"
 #include "../../../core/editor/editor.h"
 #include "../../../core/draw/draw.h"
 #include <sys/ioctl.h>

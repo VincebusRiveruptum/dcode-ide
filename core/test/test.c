@@ -44,6 +44,8 @@ void t_drawDebugger(){
     dw_writeBuffer(textmemptr, "currentWindow->height: %d", VIDEO_COLS - 30, 18, VIDEO_COLS - 1, 18, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentWindow->height);
     dw_writeBuffer(textmemptr, "currentWindow->width: %d", VIDEO_COLS - 30, 19, VIDEO_COLS - 1, 19, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentWindow->width);
     dw_writeBuffer(textmemptr, "currentWindow files: %d", VIDEO_COLS - 25, 20, VIDEO_COLS - 1, 20, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentWindow->textAreaList->length);
+    dw_writeBuffer(textmemptr, "currentFile mem. size: %d", VIDEO_COLS - 30 ,21, VIDEO_COLS - 1, 21, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentWindow->textArea->file->arena->size);
+    dw_writeBuffer(textmemptr, "currentFile mem. usage: %d", VIDEO_COLS - 30, 22, VIDEO_COLS - 1, 22, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentWindow->textArea->file->arena->offset);
 }
 
 /* ===================================================================*/

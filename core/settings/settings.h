@@ -1,5 +1,5 @@
-#ifndef ENG_CONFIG_H
-#define ENG_CONFIG_H
+#ifndef ENG_SETTINGS_H
+#define ENG_SETTINGS_H
 
 #include "../../app/main.h"
 
@@ -9,6 +9,7 @@ typedef struct Settings{
     unsigned long MAX_FILE_INSTANCE_SIZE;
     unsigned long MAX_FILE_INSTANCES_OPENED;
 
+    unsigned int FILE_HEADROOM;
     unsigned int MAX_LINE_LENGTH;
 
     unsigned char AUTOIDENTING;
@@ -31,6 +32,6 @@ typedef struct Settings{
 
 extern Settings settings;
 
-bool cfg_loadConfig();
+bool cfg_loadSettings();
 
 #endif

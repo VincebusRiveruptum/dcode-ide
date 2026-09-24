@@ -90,10 +90,9 @@ TextArea *f_copyTextArea(TextArea *src, bool duplicate){
 		exit(1);
 	}
 
-
 	textArea->file =
 		duplicate == false 
-		? f_copyFileObject(src->file)
+		? f_copyFileObject(src->file, true)
 		: src->file;
 
 	textArea->currentLineNode =
@@ -144,7 +143,7 @@ void f_closeTextArea(TextArea *textArea){
 
     mem_arena_free(textArea->arena);
 
-    logger("[f_closeFile]: TextArea arena closed successfully");    
+    logger("[f_closeTextArea]: TextArea arena closed successfully");    
 }
 
 
@@ -312,7 +311,6 @@ void f_freeTextAreaList(List *textAreaList){
 		exit(1);
 	}
 		
-
 	rec = textAreaList->firstNode;
 
 	while(rec){

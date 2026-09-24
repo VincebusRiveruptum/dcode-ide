@@ -107,7 +107,7 @@ Defines unified cross-platform interfaces for hardware control:
 
 ### `core/` (Core Engine Modules)
 
-- **`config/`**: Handling editor configuration options (smart closing, indentation, colors).
+- **`settings/`**: Handling editor configuration options (smart closing, indentation, colors).
 - **`draw/`**: Low-level screen buffering, borders, box drawing characters, window layouts, and editor token syntax highlighting.
 - **`editor/`**: Central text manipulation (backspace, type character, newline), cursor navigation, search logic, selection logic, and shell spawning.
 - **`files/`**: File system loading, saving, creating, closing, and tracking active `Workspace` and `EditorWindow` splits and tabs.

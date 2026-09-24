@@ -9,6 +9,7 @@
 /* Const. ================================================================*/
 
 #define F_FILE_HEADROOM 4096
+#define F_FILE_RESIZE 1
 #define MAX_FILE_LINE_LENGTH 384
 #define MAX_FILE_NAME 256
 
@@ -211,7 +212,10 @@ EditorWindow *f_createWindow();
 Workspace *f_createWorkspace();
 
 void f_closeFile(File *file);
+void f_refreshTextArea(TextArea *textArea);
+TextArea *f_copyTextArea(TextArea *src, bool duplicate);
 void f_closeTextArea(TextArea *textArea);
+
 void f_closeCurrentTextArea();
 void f_deleteTextAreaFromWindow(EditorWindow *window, TextArea *textArea);
 

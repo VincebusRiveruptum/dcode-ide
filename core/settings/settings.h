@@ -9,6 +9,7 @@ typedef struct Settings{
     unsigned long MAX_FILE_INSTANCE_SIZE;
     unsigned long MAX_FILE_INSTANCES_OPENED;
 
+    unsigned int FILE_RESIZE;
     unsigned int FILE_HEADROOM;
     unsigned int MAX_LINE_LENGTH;
 

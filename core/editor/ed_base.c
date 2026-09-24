@@ -717,8 +717,13 @@ void ed_newLine(){
     
     // Check if adding a new line fulls file arena
     if(f_checkNewLineMemory(textArea) == false){
-        ed_statusBarMessage("[ed_newLine]: Memory is full, could not create a new line");
-        return;
+        if(settings.FILE_RESIZE == true){
+            f_resizeTextArea(textArea);
+        }else{
+            logger("[ed_newLine]: Memory is full, could not create a new line");
+            ed_statusBarMessage("[ed_newLine]: Memory is full, could not create a new line");
+            return;
+        }
     };
 
     arena = textArea->file->arena;

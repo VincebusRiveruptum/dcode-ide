@@ -76,27 +76,18 @@ TextArea *f_createTextArea(char *filename){
     return textArea;
 }
 
-TextArea *f_copyTextArea(TextArea *src, bool duplicate){
-	TextArea *textArea = NULL;
-
-	if(!src){
-		logger("[f_copyTextArea] Error: src TextArea is NULL");
+void f_refreshTextArea(TextArea *textArea){
+	if(
+		!textArea ||
+		!textArea->file ||
+		!textArea->file->lines
+	){
+		logger("[f_refreshTextArea] Error: Invalid file universe.");
 		exit(1);
 	}
-	textArea = f_createTextArea(src->file->name);
-
-	if(!textArea){
-		logger("[f_copyTextArea] Error: Could not copy textArea");
-		exit(1);
-	}
-
-	textArea->file =
-		duplicate == false 
-		? f_copyFileObject(src->file, true)
-		: src->file;
 
 	textArea->currentLineNode =
-		getNodeByIndex(&(textArea->file->lines), src->cursorLine);
+		getNodeByIndex(&(textArea->file->lines), textArea->cursorLine);
 
     if (textArea->currentLineNode) {
         textArea->prevLine = 
@@ -117,6 +108,29 @@ TextArea *f_copyTextArea(TextArea *src, bool duplicate){
         textArea->nextLine = NULL;
     }
 
+	return;
+
+}
+TextArea *f_copyTextArea(TextArea *src, bool duplicate){
+	TextArea *textArea = NULL;
+
+	if(!src){
+		logger("[f_copyTextArea] Error: src TextArea is NULL");
+		exit(1);
+	}
+	textArea = f_createTextArea(src->file->name);
+
+	if(!textArea){
+		logger("[f_copyTextArea] Error: Could not copy textArea");
+		exit(1);
+	}
+
+	textArea->file =
+		duplicate == false 
+		? f_copyFileObject(src->file, true)
+		: src->file;
+
+
 	textArea->prevChar = src->prevChar;		
 	textArea->currentChar = src->currentChar;		
 	textArea->nextChar = src->nextChar;		
@@ -124,8 +138,10 @@ TextArea *f_copyTextArea(TextArea *src, bool duplicate){
 	textArea->scrollY = src->scrollY;		
 	textArea->scrollX = src->scrollX;		
 	textArea->cursorLine = src->cursorLine;		
-	textArea->cursorCol = src->cursorCol;		
+	textArea->cursorCol = src->cursorCol;	
 
+	f_refreshTextArea(textArea);
+	
 	return textArea;
 
 }

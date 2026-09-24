@@ -428,10 +428,22 @@ char *strnslice(char *str, size_t from, size_t step, size_t strlen ){
         return newstr;
 }
 
-//      
-//      Join
+// TODO: 
+// strssearch (char *input, char **wordlist)
+// This compares the input word and find the similar 
+// ones from a string list, ordered from the most to the least
+// similar. COuld be ordered asc to desc.
 
-// Splice
+// Criteria must be, by prority:
+// - Char position and diference of 10% chars 
+// - Char length
+// - used chars
+// - lower-ppercase
+
+// Idea based of command line app option mismatch suggestions. 
+// git puh -> did you mean git push?
+// char **strsearch(char *str, char **words){}
+
 #ifdef STANDALONE
 
 int main(){

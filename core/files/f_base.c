@@ -166,7 +166,7 @@ size_t f_getFileClosestSize(FILE *fp, char *filename){
 void f_resizeTextArea(TextArea *textArea){
     File *newFile = NULL;
     MemoryArena *oldArena = NULL;
-
+    
     if(
         !textArea ||
         !textArea->file ||
@@ -176,15 +176,18 @@ void f_resizeTextArea(TextArea *textArea){
         exit(1);
     }
     
+    logger("[f_resizeTextArea]: Resizing textArea file %s", textArea->file->name);
     // We clone the file into the new Arena
     oldArena = textArea->file->arena;
     newFile = f_copyFileObject(textArea->file, true);
     
+    textArea->file = newFile;
+    // Update textArea metadata
+    f_refreshTextArea(textArea);
+    
     // Freeing up old arena
     mem_arena_free(oldArena);
-
-    textArea->file = newFile;
-
+    
     return;
 }
 
@@ -375,8 +378,10 @@ File *f_copyFileObject(File *oldFile, bool headroom){
     sprintf(newFile->name, "%s", oldFile->name);
 
     newFile->ext = f_getExtensionId(newFile->name);
-
+    
     _copyLines(oldFile, newFile);
+    
+    newFile->deletedLines = createList(newFile->arena);
 
     return newFile;
 }

@@ -24,6 +24,9 @@ bool cfg_loadSettings(){
     
     settings.FILE_HEADROOM *= 1024;               
     
+    settings.FILE_RESIZE                
+        = (unsigned int)atoi(getEnv("FILE_RESIZE", "%d", F_FILE_RESIZE));
+
     settings.AUTOIDENTING                   
         = (unsigned char)atoi(getEnv("AUTOIDENTING", "1"));
     settings.AUTOCLOSING                    

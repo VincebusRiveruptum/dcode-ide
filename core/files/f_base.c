@@ -247,8 +247,8 @@ bool f_checkFileRefs(File *file){
 
 // This will check if the currentWindow textArea
 // file is refenced in other windows
-bool *f_checkCurrFileRefs(File *file){
-    Node *wndNode, *taNode;
+bool f_checkCurrFileRefs(File *file){
+    Node *wndNode;
     TextArea *textArea = NULL;
     if(!currentWorkspace){
         logger("[f_checkFileRefs]: Error: No currentWorskapce.");
@@ -280,7 +280,7 @@ bool *f_checkCurrFileRefs(File *file){
 // This update OLD file pointer references in textAreaList
 // window and workspace  with the NEW right reference.
 // Returns count of file refs updated.
-int *f_updateFileRefs(File *oldFile, File *newFile){
+int f_updateFileRefs(File *oldFile, File *newFile){
     Node *wndNode, *taNode;
     List *taList = NULL;
     TextArea *textArea = NULL;
@@ -322,10 +322,14 @@ int *f_updateFileRefs(File *oldFile, File *newFile){
             
             if(
                 strcmp(oldFile->name, textArea->file->name) == 0 &&
-                (oldFile == textArea->file)
+                (oldFile == (textArea->file))
             ){
+                logger("[f_updateFileRefs]: Found ref %d.", refCount);
                 textArea->file = newFile;
-                refCount ++;
+
+                f_refreshTextArea(textArea);
+                
+                refCount ++; 
             };
 
             taNode = taNode->next;
@@ -334,15 +338,11 @@ int *f_updateFileRefs(File *oldFile, File *newFile){
         wndNode = wndNode->next;
     }
 
-    // Free old file arena
-    mem_arena_free(oldFile->arena);
-
     return refCount;
 }
 
 // This creates a FIle object replica.
 File *f_copyFileObject(File *oldFile, bool headroom){
-    size_t lengthSum = 0;
 	char *newArenaName = "NEW";
     File *newFile = NULL;
     MemoryArena *newArena = NULL;
@@ -384,6 +384,42 @@ File *f_copyFileObject(File *oldFile, bool headroom){
     newFile->deletedLines = createList(newFile->arena);
 
     return newFile;
+}
+
+// This calculates the total number of characrers of the file 
+// instance in the textArea 
+unsigned long f_getFileFullLength(TextArea *textArea){
+    Node *rec = NULL;
+    Line *line = NULL;
+    unsigned long count = 0;
+    
+    if(
+        !textArea ||
+        !textArea->file ||
+        !textArea->file->lines ||
+        !textArea->file->lines->firstNode ||
+        !textArea->file->lines->lastNode
+    ){
+        logger("[f_getFileFullLength] Error: Invalid file universe.");
+        exit(1);
+    }
+
+    rec = textArea->file->lines->firstNode;
+
+    while(rec){
+        line = (Line *)rec->data;
+
+        if(!line){
+            logger("[f_getFileFullLength] Error: Line is NULL.");
+            exit(1);
+        }
+
+        count += line->length;
+
+        rec = rec->next;
+    }
+    
+    return count;
 }
 
 /* NEW FILE ==============================================================================*/
@@ -500,7 +536,7 @@ void f_newFile(char *filename){
 
 bool f_openFile(char *filename){
     char *fileParsingBuffer = NULL;
-	size_t fileSize = 0, defaultMax = 0;
+	size_t fileSize = 0;
     FILE *fp = NULL;
     File *file = NULL;
     TextArea *textArea = NULL;
@@ -649,11 +685,13 @@ void f_saveFile(){
 	size_t offset = 0;
     char *fileParsingBuffer = NULL;
     Line *line = NULL;
-    MemoryArena *newArena = NULL;
-    File *oldFile = NULL, *newFile = NULL;
+    File *oldFile = NULL;
     Node *currNode = NULL;
     Node *currentNode = NULL;
     TextArea *textArea = NULL;
+    unsigned long fulllen = 0;
+    
+    Node *currentTextAreaNode = NULL;
 
     textArea = currentWindow->textArea;
 
@@ -677,29 +715,29 @@ void f_saveFile(){
         return;
     }
     
+    currentTextAreaNode = 
+        getNodeByDataPtr(
+            &currentWindow->textAreaList,
+            (void*)textArea
+        );
+
     textArea = f_copyTextArea(textArea, false);
+
+    if(currentTextAreaNode)
+        currentTextAreaNode->data = (TextArea*)textArea;
+    
 
     /* Replace oldFile with newFile in active window's fileList in-place */
     // Update all textArea FIle old pointer no the new pointer.
     // and free up old file arena.
-    f_updateFileRefs(textArea->file, oldFile);
-
-    currNode = currentWindow->textAreaList->firstNode;
-
-    while (currNode != NULL) {
-        if (currNode->data == oldFile) {
-            currNode->data = textArea->file;
-            break;
-        }
-        currNode = currNode->next;
-    }
-
-    f_closeFile(oldFile);
+    f_updateFileRefs(oldFile, textArea->file);
 
     textArea->file->isModified = false;
 
+    fulllen = f_getFileFullLength(textArea);
+
     // Dump content to file
-	fileParsingBuffer = (char*)malloc(sizeof(char) * settings.MAX_LINE_LENGTH);
+	fileParsingBuffer = (char*)malloc(sizeof(char) + fulllen);
     
     if(!fileParsingBuffer){
         logger("[f_copyTextArea]: Could not allocate file buffer!");
@@ -707,7 +745,7 @@ void f_saveFile(){
         return;
     }
 
-    memset(fileParsingBuffer, '\0', sizeof(char) * settings.MAX_LINE_LENGTH);
+    memset(fileParsingBuffer, '\0', sizeof(char) * fulllen);
 
 	currentNode = textArea->file->lines->firstNode;
 
@@ -736,6 +774,8 @@ void f_saveFile(){
     );
     
     free(fileParsingBuffer);
+
+    currentWindow->textArea = textArea;
 
     ed_statusBarMessage("File %s saved successfully.", textArea->file->name);
     logger("[f_saveFile]: File %s saved successfully", textArea->file->name);

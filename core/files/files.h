@@ -179,9 +179,11 @@ bool f_checkNewLineMemory(TextArea *textArea);
 size_t f_getFileClosestSize(FILE *fp, char *filename);
 void f_resizeTextArea(TextArea *textArea);
 bool f_checkFileRefs(File *file);
-bool *f_checkCurrFileRefs(File *file);
-int *f_updateFileRefs(File *oldFile, File *newFile);
+bool f_checkCurrFileRefs(File *file);
+int f_updateFileRefs(File *oldFile, File *newFile);
 File *f_copyFileObject(File *oldFile, bool headroom);
+
+unsigned long f_getFileFullLength(TextArea *textArea);
 
 void f_newFile(char *filename);
 bool f_openFile(char *filename);
@@ -222,6 +224,7 @@ void f_deleteTextAreaFromWindow(EditorWindow *window, TextArea *textArea);
 void f_freeFileList(List *fileList);
 void f_freeWindowList(List *windowList);
 void f_freeWorkspace();
+TextArea *f_createTextArea(char *filename);
 TextArea *f_addTextAreaToWindow(EditorWindow *window, TextArea *textArea);
 EditorWindow *f_addWindowToWorkspace(Workspace *workspace, EditorWindow *window);
 

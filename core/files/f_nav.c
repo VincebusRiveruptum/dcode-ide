@@ -41,13 +41,13 @@ void f_prepareFileNavDialog(){
 void f_drawFileNavDialog(){
     bool selected = false;
     TextArea *textArea;
-    File *file;
 	Node *textAreaNode = NULL;
 	int i = 0;
 
     if (
 		!currentWindow ||
-		!currentWindow->textAreaList
+		!currentWindow->textAreaList ||
+		!currentWindow->textAreaList->firstNode
 	) {
 		logger("[f_drawFileNavDialog]: No window opened or no files opened in current window");
         return;
@@ -63,11 +63,10 @@ void f_drawFileNavDialog(){
 	textAreaNode = currentWindow->textAreaList->firstNode;
 
 	while(textAreaNode != NULL){
-		//file = (File*)textAreaNode->data;
 		textArea = (TextArea*)textAreaNode->data;
 		
-		if (file != NULL) {
-			selected = (currentWindow->textArea->file == file);
+		if (textArea != NULL) {
+			selected = (currentWindow->textArea->file == textArea->file);
 
 			dw_writeBuffer(
 				textmemptr, 
@@ -75,7 +74,7 @@ void f_drawFileNavDialog(){
 				5, 5 + i, 33, 5 + i, 
 				COLOR_WHITE, COLOR_RED,
 				(selected ? ">" : " "),
-				file->name
+				textArea->file->name
 			);
 			i++;
 		}

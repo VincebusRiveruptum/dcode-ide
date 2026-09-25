@@ -21,14 +21,14 @@ void f_closeFile(File *file){
 TextArea *f_createTextArea(char *filename){
     TextArea *textArea = NULL;
     MemoryArena *arena = NULL;
-    char *filenameTmp = NULL;
+    char filenameTmp[255] = {'\0'};
     
     if(!filename){
         logger("[f_createTextArea]: Filename must be not NULL.");
         exit(1);
     }
     
-    filenameTmp = sprintf(filenameTmp, "%s-textarea", filename);
+    sprintf(filenameTmp, "%s-textarea", filename);
     
     logger("[f_createTextArea]: Creating %s textArea arena", filenameTmp);
     
@@ -111,6 +111,7 @@ void f_refreshTextArea(TextArea *textArea){
 	return;
 
 }
+
 TextArea *f_copyTextArea(TextArea *src, bool duplicate){
 	TextArea *textArea = NULL;
 
@@ -126,7 +127,7 @@ TextArea *f_copyTextArea(TextArea *src, bool duplicate){
 	}
 
 	textArea->file =
-		duplicate == false 
+		duplicate == true 
 		? f_copyFileObject(src->file, true)
 		: src->file;
 
@@ -143,7 +144,6 @@ TextArea *f_copyTextArea(TextArea *src, bool duplicate){
 	f_refreshTextArea(textArea);
 	
 	return textArea;
-
 }
 
 void f_closeTextArea(TextArea *textArea){
@@ -510,7 +510,7 @@ void f_splitWindow(){
 		exit(1);
 	}
 
-	newWnd->textArea = f_copyTextArea(currentWindow->textArea, true);
+	newWnd->textArea = f_copyTextArea(currentWindow->textArea, false);
 
 	f_addTextAreaToWindow(newWnd, currentWindow->textArea);
 
@@ -535,9 +535,19 @@ void f_cycleActiveWindow(){
 	Node *currNode;
 	Node *nextNode;
 
-	if (!currentWorkspace || !currentWorkspace->windowList || currentWorkspace->windowList->length <= 1) return;
+	if (
+		!currentWorkspace || 
+		!currentWorkspace->windowList
+	){
+		logger("[f_cycleActiveWindow] Error: Invalid workspace universe.");
+		exit(1);
+	};
+	
+	if(currentWorkspace->windowList->length <= 1)
+		return;
 
 	currNode = currentWorkspace->windowList->firstNode;
+
 	while (currNode != NULL) {
 		if (currNode->data == currentWorkspace->currentWindow) {
 			break;

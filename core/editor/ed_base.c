@@ -702,7 +702,6 @@ void ed_newLine(){
     bool isAutoClose = false;
     Node *newLineNode = NULL;
     Line *newLine = NULL;
-    MemoryArena *arena = NULL;
 	TextArea *textArea = NULL;
 
 	textArea = currentWindow->textArea;
@@ -725,8 +724,6 @@ void ed_newLine(){
             return;
         }
     };
-
-    arena = textArea->file->arena;
 
     cursorCol = textArea->cursorCol;
 

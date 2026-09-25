@@ -104,11 +104,9 @@ void ed_handleSelection() {
 void ed_renderLineSelection(){
     // Copy crrent line video memory area
     unsigned short *lineBuffer = NULL;
-    static TextArea *textArea = NULL;
     // Selectection metadata
     unsigned short selectedStartX = 0;
     unsigned short selectedEndX = 0;
-    unsigned short tmp = 0;
     int step = 0;
     int i=0;
 
@@ -117,8 +115,6 @@ void ed_renderLineSelection(){
         !currentWorkspace->currentWindow ||
         !currentWorkspace->currentWindow->textArea
     )   return ;
-
-    textArea = currentWorkspace->currentWindow->textArea;
 
     lineBuffer = 
         _getCurrentLinePtrInBuffer(
@@ -263,9 +259,7 @@ void _glueLines(Node *start, Node *end, unsigned short startLineIndex){
 int _deleteSelectedLines(){
     TextArea *textArea = currentWorkspace->currentWindow->textArea;
     Node *start = NULL;
-    Node *startNext = NULL;
     Node *end = NULL;
-    Node *endPrev = NULL;
     Node *rec = NULL, *tmp=NULL;
     unsigned short startLineIndex;
     // Ordering so always start is a a position
@@ -316,7 +310,6 @@ int _deleteSelectedLines(){
 void ed_deleteSelection(){
     EditorWindow *currentWindow = NULL;
     TextArea *textArea = NULL;
-    Line *deletedLine = NULL;
     
     if( 
         !currentWorkspace ||

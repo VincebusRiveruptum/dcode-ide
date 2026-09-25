@@ -8,6 +8,7 @@
 #include "../editor/editor.h"
 
 struct File;
+struct TextArea;
 
 #define COLOR_BLACK 0x00
 #define COLOR_BLUE 0x01
@@ -93,7 +94,16 @@ void dw_rectangle(
 );
 
 void dw_writeBuffer(unsigned short *buffer, const char *format, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, ...);
-void dw_writeBufferEditorFormatted(unsigned short *destBuffer, int x1, int y1, int x2, int y2, int foregroundColor, int backgroundColor, struct TextArea *textArea);
+void dw_writeBufferEditorFormatted(
+	unsigned short *destBuffer, 
+	int x1, 
+	int y1, 
+	int x2, 
+	int y2, 
+	int foregroundColor, 
+	int backgroundColor, 
+	struct TextArea *textArea
+);
 
 bool dw_isCharSelected(struct TextArea *textArea, int lineIndex, int colIndex);
 

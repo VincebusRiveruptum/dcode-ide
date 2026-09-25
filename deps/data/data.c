@@ -298,6 +298,31 @@ void addGenericNode(List **list, void *data, MemoryArena *arena){
 	addNode(list, newNode, arena);
 }
 
+// This brings the entire Node from a list
+// if there is any match of data ptr. 
+Node *getNodeByDataPtr(List **list, void *data){
+    Node *rec = NULL;
+
+    if(
+        !(*list) ||
+        !(data)
+    ){
+        logger("[data/insertGenericNode]: Error, Invalid data universe.");
+        return NULL;
+    }
+
+    rec = (*list)->firstNode;
+
+    while(rec != NULL){
+        if(rec->data == data){
+            return rec;
+        }
+        rec = rec->next;
+    }
+    
+    return NULL;
+}
+
 Node *insertGenericNode(List **list, void *data, MemoryArena *arena, unsigned int index){
     Node *temp = NULL;
     Node *newNode = NULL;

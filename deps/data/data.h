@@ -23,6 +23,7 @@ List *createList(MemoryArena *arena);
 void addGenericNode(List **list, void *data, MemoryArena *arena);
 Node *insertGenericNode(List **list, void *data, MemoryArena *arena, unsigned int index);
 void deleteNodeByPtr(List **list, void *ptr);
+Node *getNodeByDataPtr(List **list, void *data);
 
 void freeList(List **list);
 

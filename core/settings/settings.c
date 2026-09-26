@@ -4,7 +4,7 @@
 
 Settings settings;
 
-bool cfg_loadSettings(){
+bool s_loadSettings(){
     log_enable = false;
 
     loadEnv();
@@ -12,11 +12,6 @@ bool cfg_loadSettings(){
     settings.DEBUG                          
         = (unsigned char)atoi(getEnv("DEBUG", "0"));
     
-    settings.MAX_FILE_INSTANCE_SIZE         
-        = (unsigned int)atoi(getEnv("MAX_FILE_INSTANCE_SIZE","%ld", (MEM_ARENA_512K / 1024))) 
-		* 1024 ;
-    settings.MAX_FILE_INSTANCES_OPENED      
-        = (unsigned int)atoi(getEnv("MAX_FILE_INSTANCES_OPENED", "%d", 32));
     settings.MAX_LINE_LENGTH                
         = (unsigned int)atoi(getEnv("MAX_LINE_LENGTH", "%d", MAX_FILE_LINE_LENGTH));
     settings.FILE_HEADROOM                
@@ -43,15 +38,15 @@ bool cfg_loadSettings(){
 
     settings.AUTOSAVE                       
         = (unsigned char)atoi(getEnv("AUTOSAVE", "0"));
-    settings.DEFAULT_VIDEO_MODE             
-        = (unsigned char)atoi(getEnv("DEFAULT_VIDEO_MODE", "1"));
+    settings.DEFAULT_TEXT_MODE             
+        = (unsigned char)atoi(getEnv("DEFAULT_TEXT_MODE", "1"));
     
 
     // Validate that DEFUALT_VIDEO_MODE is never 0 or ther will be an infite loop when trying to switch video modes.
     if (
-        settings.DEFAULT_VIDEO_MODE <= 0 || 
-        settings.DEFAULT_VIDEO_MODE > 8)
-    settings.DEFAULT_VIDEO_MODE = 1;
+        settings.DEFAULT_TEXT_MODE <= 0 || 
+        settings.DEFAULT_TEXT_MODE > 8)
+    settings.DEFAULT_TEXT_MODE = 1;
 
     settings.STATUSBAR_COLOR_BG             
         = (unsigned char)atoi(getEnv("STATUSBAR_COLOR_BG", "%d", COLOR_LIGHT_GRAY));
@@ -92,7 +87,7 @@ bool cfg_loadSettings(){
     
     log_enable = settings.DEBUG ;
     
-    logger("[cfg_loadSettings]: default.cfg loaded successfully");
+    logger("[s_loadSettings]: default.cfg loaded successfully");
 
     return true;
 }

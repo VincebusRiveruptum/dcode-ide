@@ -432,7 +432,7 @@ void ed_moveCursor(short x, short y){
         // after.
         if(
             tabCount > 0 &&
-            tabCount == textArea->currentLine->length
+            (size_t)tabCount == textArea->currentLine->length
         )
             textArea->cursorCol = tabCount;
     }
@@ -1371,4 +1371,19 @@ void ed_swapLine(short lineJump){
     ed_updateCursor();
 	
 	dw_requestRenderEvent(DW_RENDER_WINDOW);
+}
+
+char *ed_getRandomWord(){
+    unsigned char len = 0; 
+    unsigned int random = 0;
+    
+    srand(time(NULL));
+
+    while(sillyWords[len][0] != '\0'){
+        len++;
+    }
+
+    random = rand() % len;
+
+    return sillyWords[random];
 }

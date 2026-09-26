@@ -22,6 +22,7 @@
 #define ED_ACTIVITY_SWAP_DOWN 6
 
 
+extern char sillyWords[20][100]; 
 /*
  * IBM PC / DOS Code Page 437
  * Line Drawing & Special Characters
@@ -199,6 +200,8 @@ void ed_updateScrollY();
 void ed_updateCursor();
 
 void dw_renderEventDispatcher();
+
+char *ed_getRandomWord();
 
 #endif
 

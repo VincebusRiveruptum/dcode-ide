@@ -686,7 +686,6 @@ void f_saveFile(){
     char *fileParsingBuffer = NULL;
     Line *line = NULL;
     File *oldFile = NULL;
-    Node *currNode = NULL;
     Node *currentNode = NULL;
     TextArea *textArea = NULL;
     unsigned long fulllen = 0;

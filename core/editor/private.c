@@ -1,5 +1,18 @@
 #include "editor.h"
 
+char sillyWords[20][100] = {
+    "You gotta cry 96 tears...",
+    "Praised by the glory of loved ones now gone",
+    "I was warned about you baby, but my feelings were a little bit too strong!",
+    "And now I know how Joan of Arc felt",
+    "Lime and limpid green, a second scene, a fight between the blue you once knew",
+    "I leave you with photographs, pictures of trickery",
+    "[Instrumental Break]",
+    "Here's a man, there's a man, lots of gingerbread men",
+    "Kissed the girls and made them cry",
+    ""
+};
+
 int _get_tab_counts_until(int col){
     int i = 0;
     int tabCount = 0;

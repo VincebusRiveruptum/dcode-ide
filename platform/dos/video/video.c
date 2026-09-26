@@ -114,9 +114,9 @@ unsigned char hal_vid_setVideoMode(unsigned char mode, unsigned char show_msg){
             hal_vid_set132x60();
             break;
         default:        /* if mode is 0 or whatever */
-            recmode = hal_vid_setVideoMode(settings.DEFAULT_VIDEO_MODE, show_msg);
+            recmode = hal_vid_setVideoMode(settings.DEFAULT_TEXT_MODE, show_msg);
 
-            if(show_msg == HAL_SHOW_MSG) ed_statusBarMessage("Set default video mode (%d)", settings.DEFAULT_VIDEO_MODE);
+            if(show_msg == HAL_SHOW_MSG) ed_statusBarMessage("Set default video mode (%d)", settings.DEFAULT_TEXT_MODE);
             return recmode;
     }
 

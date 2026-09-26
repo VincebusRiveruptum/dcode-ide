@@ -3,7 +3,7 @@ void ed_initConfig(int argc, char *argv[]){
     //f_defaultExtension
 
     // We will hardcode the default extension until i implement .ENV/CFG LOADING
-    if(!cfg_loadSettings()){
+    if(!s_loadSettings()){
         //logger("[ed_initConfig]: Could not load config file!");
         // App exits
         printf("\nCould not load config file!.");
@@ -14,7 +14,7 @@ void ed_initConfig(int argc, char *argv[]){
     logger("[ed_initConfig]: %d %s", argc, argv[1]);
     ed_handleArguments(argc, argv);
 
-    v_currentMode = settings.DEFAULT_VIDEO_MODE;
+    v_currentMode = settings.DEFAULT_TEXT_MODE;
 
     ed_updateCursor();
 }

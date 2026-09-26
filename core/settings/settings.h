@@ -6,8 +6,6 @@
 typedef struct Settings{
     // EDITOR SETTING
     unsigned char DEBUG;
-    unsigned long MAX_FILE_INSTANCE_SIZE;
-    unsigned long MAX_FILE_INSTANCES_OPENED;
 
     unsigned int FILE_RESIZE;
     unsigned int FILE_HEADROOM;
@@ -23,7 +21,7 @@ typedef struct Settings{
     unsigned char AUTOSAVE;
     unsigned char MOUSE;
 
-    unsigned char DEFAULT_VIDEO_MODE;
+    unsigned char DEFAULT_TEXT_MODE;
     // CUSTOMIZATION
     unsigned char STATUSBAR_COLOR_BG;
     unsigned char STATUSBAR_COLOR_TEXT;
@@ -33,6 +31,6 @@ typedef struct Settings{
 
 extern Settings settings;
 
-bool cfg_loadSettings();
+bool s_loadSettings();
 
 #endif

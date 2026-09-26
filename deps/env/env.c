@@ -157,7 +157,7 @@ Config *loadEnv() {
   int i = 0;
 
   if (!fp)
-    fp = fopen(CFG_FILENAME, "r");
+    fp = fopen(S_FILENAME, "r");
   
   if (!fp)
     return NULL;

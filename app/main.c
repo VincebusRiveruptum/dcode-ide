@@ -175,6 +175,6 @@ int main(int argc, char *argv[]){
 	dw_cls(textmemptr);
 	hal_vid_set25Lines();
 	log_shutdown();
-	printf("96 Tears...\n");
+	printf("%s\n", ed_getRandomWord());
 	return 0;
 }

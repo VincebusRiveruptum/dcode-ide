@@ -11,7 +11,7 @@
 #include <ctype.h>
 
 #define ENV_FILENAME ".env"
-#define CFG_FILENAME "default.cfg"
+#define S_FILENAME "default.cfg"
 
 #define ENV_TYPE_STRING 0
 #define ENV_TYPE_INT 1

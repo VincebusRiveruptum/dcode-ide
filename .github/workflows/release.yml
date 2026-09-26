@@ -24,7 +24,10 @@ jobs:
 
       - name: Build DOS target
         run: |
+<<<<<<< Updated upstream
           cd /github/workspace
+=======
+>>>>>>> Stashed changes
           wmake -f makefile.watcom-linux build
           
       - name: Prepare DOS package
@@ -62,6 +65,10 @@ jobs:
 
       - name: Build Linux target
         run: |
+<<<<<<< Updated upstream
+=======
+          mkdir -p bin/linux
+>>>>>>> Stashed changes
           make -f makefile.linux
 
       - name: Prepare Linux package

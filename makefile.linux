@@ -47,6 +47,7 @@ $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -x c -c $< -o $@
 
 clean:
+	@mkdir -p ./bin/linux
 	@cp ./$(TARGET) ./bin/linux/ 
 	@rm ./$(TARGET) 
 	@rm -f $(OBJS) $(TARGET)

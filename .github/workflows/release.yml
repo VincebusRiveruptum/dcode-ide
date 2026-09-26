@@ -32,7 +32,13 @@ jobs:
           cp bin/dos/dcode.exe dcode-dos/
           cp external/read.me dcode-dos/
           cp default.cfg dcode-dos/
-          cp external/dos4gw.exe dcode-dos/
+          if [ -f external/dos4gw.exe ]; then
+            cp external/dos4gw.exe dcode-dos/
+          elif [ -f /usr/local/watcom/binw/dos4gw.exe ]; then
+            cp /usr/local/watcom/binw/dos4gw.exe dcode-dos/
+          else
+            find / -name "dos4gw.exe" 2>/dev/null | head -n 1 | xargs -I {} cp {} dcode-dos/
+          fi
           
       - name: Create zip archive
         run: |

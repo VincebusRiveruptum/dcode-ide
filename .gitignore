@@ -18,6 +18,7 @@ errors.txt
 **/*.obj
 **/*.EXE
 **/*.exe
+!external/dos4gw.exe
 **/*.ERR
 **/*.err
 **/.DS_Store

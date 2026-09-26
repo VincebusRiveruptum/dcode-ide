@@ -24,7 +24,6 @@ jobs:
 
       - name: Build DOS target
         run: |
-          cd /github/workspace
           wmake -f makefile.watcom-linux build
           
       - name: Prepare DOS package
@@ -62,6 +61,7 @@ jobs:
 
       - name: Build Linux target
         run: |
+          mkdir -p bin/linux
           make -f makefile.linux
 
       - name: Prepare Linux package

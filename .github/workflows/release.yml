@@ -1,0 +1,134 @@
+name: Build & Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - dev
+    tags:
+      - 'v*'          
+  workflow_dispatch: 
+
+permissions:
+  contents: write
+
+jobs:
+  build-dos:
+    runs-on: ubuntu-latest
+    container:
+      image: arlaneenalra/watcom-docker:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build DOS target
+        run: |
+          wmake -f makefile.watcom-linux build
+          
+      - name: Prepare DOS package
+        run: |
+          mkdir -p dcode-dos
+          cp bin/dos/dcode.exe dcode-dos/
+          cp external/read.me dcode-dos/
+          cp default.cfg dcode-dos/
+          if [ -f external/dos4gw.exe ]; then
+            cp external/dos4gw.exe dcode-dos/
+          elif [ -f /usr/local/watcom/binw/dos4gw.exe ]; then
+            cp /usr/local/watcom/binw/dos4gw.exe dcode-dos/
+          else
+            find / -name "dos4gw.exe" 2>/dev/null | head -n 1 | xargs -I {} cp {} dcode-dos/
+          fi
+          
+      - name: Create zip archive
+        run: |
+          apt-get update && apt-get install -y zip
+          if [ "${{ github.ref_name }}" = "develop" ] || [ "${{ github.ref_name }}" = "dev" ]; then
+            zip -r dcode-dos-dev.zip dcode-dos/
+          else
+            zip -r dcode-dos.zip dcode-dos/
+          fi
+
+      - name: Upload DOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dos-artifact
+          path: dcode-dos*.zip
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install GCC & dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc make
+
+      - name: Build Linux target
+        run: |
+          mkdir -p bin/linux
+          make -f makefile.linux
+
+      - name: Prepare Linux package
+        run: |
+          mkdir -p dcode-linux
+          cp bin/linux/dcode dcode-linux/
+          cp external/read.me dcode-linux/
+          cp default.cfg dcode-linux/
+          
+      - name: Create archive
+        run: |
+          if [ "${{ github.ref_name }}" = "develop" ] || [ "${{ github.ref_name }}" = "dev" ]; then
+            tar -czf dcode-linux-dev.tar.gz dcode-linux/
+          else
+            tar -czf dcode-linux.tar.gz dcode-linux/
+          fi
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-artifact
+          path: dcode-linux*.tar.gz
+
+  create-release:
+    needs: [build-dos, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download DOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dos-artifact
+          
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-artifact
+
+      - name: Determine Release Parameters
+        id: release_info
+        run: |
+          if [ "${{ github.ref_name }}" = "develop" ] || [ "${{ github.ref_name }}" = "dev" ]; then
+            echo "tag_name=dev-latest" >> $GITHUB_OUTPUT
+            echo "release_name=dcode IDE - Development Build (Testing)" >> $GITHUB_OUTPUT
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "tag_name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            echo "release_name=dcode IDE Release ${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_info.outputs.tag_name }}
+          name: ${{ steps.release_info.outputs.release_name }}
+          prerelease: ${{ steps.release_info.outputs.prerelease == 'true' }}
+          files: |
+            dcode-dos*.zip
+            dcode-linux*.tar.gz
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

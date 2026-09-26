@@ -18,17 +18,24 @@ This app could be helpful for anyone in my scenario, where there is interest in 
 ## Project Environment & Compilation Workflow
 
 - **Target System**: 32-bit Protected Mode MS-DOS (i386 386DX-33 minimum to Pentium-class machines) using the **DOS4GW** DPMI extender.
-- **Compiler**: Watcom C 10.6 / OpenWatcom.
-- **Compilation Constraint**: The code is compiled inside a virtual machine (e.g. DOSBox-X). It cannot be compiled directly on the modern host operating system where the workspace is open.
-- **Build Command**: The build is managed via the root `MAKEFILE`. Compilation is triggered in the VM by running:
-  ```cmd
-  wmake build
-  ```
-  This cleans previous builds, compiles all dependency (`DEPS/`) and engine (`ENG/`) modules into object files (`.OBJ`) in `BIN/`, and links them to produce `DCODE.EXE` in the root, copying the final binary to `BIN/` and cleaning intermediate files afterwards.
+- **Compiler**: Watcom C 10.6 / OpenWatcom (for DOS), and GCC (for Linux).
+- **Compilation Constraint**: The DOS binary is compiled inside a virtual machine (e.g., DOSBox-X) and cannot be compiled directly on the modern host operating system. The Linux binary can be compiled directly on the host using GCC.
+- **Build Commands**:
+  - **DOS**: Managed via the root `makefile`. Compilation is triggered in the VM by running:
+    ```cmd
+    wmake build
+    ```
+    This compiles all dependency (`deps/`), HAL/platform (`hal/`, `platform/dos/`), and core engine (`core/`) modules into `.OBJ` files inside `bin/dos/`, and links them to produce `dcode.exe`.
+  - **Linux**: Managed via `makefile.linux`. Compilation is run using:
+    ```bash
+    make -f makefile.linux
+    ```
+    This compiles and links the Linux-specific source files to produce `dcode` inside `bin/linux/`.
 
 ## Coding Style Rules
 
 The project strictly follows the coding standards defined in the sibling rules file `.agents/rules/c-code-stlye.md` (note the spelling typo in the filename):
+
 - **Standard**: C89 (strict 90's compatibility).
 - **Naming Scheme**: Function names must follow a module abbreviation prefix structure: `moduleabreviation_functionName` (e.g., `vid_putPixel` or `ed_typeChar`).
 - **Defensive Coding**: Early error validation to avoid heavily nested `if` blocks (e.g., `if (!videoMemory) return 0;`).
@@ -36,63 +43,98 @@ The project strictly follows the coding standards defined in the sibling rules f
 ## Advanced Architecture & Subsystems
 
 ### 1. Rendering & Buffering Pipeline
+
 DCode IDE uses a multi-layered, flicker-free rendering pipeline:
+
 - **File Buffer / Doubly Linked List**: Text is managed in memory as a doubly linked list of lines.
 - **Editor Buffer (`editormemptr`)**: A local buffer containing the formatted/rendered editor text and UI components.
-- **Video Buffer (`textmemptr` at `0xB8000`)**: Direct memory access write for VGA Text Mode 3.
+- **Video Buffer (`textmemptr` at `0xB8000` on DOS)**: Direct memory access write for VGA Text Mode 3 (or ANSI escape rendering on Linux).
 
 ### 2. Memory Arena Management
-To prevent memory fragmentation in vintage DOS environments, a custom arena memory allocation system is implemented under `DEPS/MEM`:
-- Each open file gets its own isolated memory "arena" (`FileArena`) to store its line structures and data.
-- The editor allocates block structures from specific arenas (`MEM_ARENA_TEXT`, `MEM_ARENA_METADATA`, etc.) rather than calling standard `malloc`/`free` directly during active editing.
+
+To prevent memory fragmentation in vintage DOS environments, a custom arena memory allocation system is implemented under `deps/mem/`:
+
+- Each open file gets its own dynamically allocated memory "arena" (`MemoryArena`) to store its line structures and data.
+- Standard memory allocation helper functions (`mem_arena_create` and `mem_arena_alloc`) do not use fixed types or static arrays; they allocate structures on the heap dynamically, scaling with the number of open windows and tabs.
 
 ### 3. Keyboard Input & ISR Handling
-- The editor employs a custom ISR (Interrupt Service Routine) keyboard driver under `DEPS/INPUT` to detect complex key combinations and modifier edge states (e.g., holding `Alt` while pressing `Shift`).
-- Standard characters and arrow navigation keys are captured by querying `kbhit()` and `getch()` to leverage standard BIOS translation for different codepages (e.g. CP437).
+
+- The editor employs a platform-specific keyboard driver defined under `platform/dos/input/` and `platform/linux/input/` through `hal/hal_inp.h`. On DOS, it uses a custom ISR (Interrupt Service Routine) to detect complex key combinations and modifier edge states (e.g., holding `Alt` while pressing `Shift`).
+- Standard characters and arrow navigation keys are captured by querying `kbhit()` and `getch()` to leverage standard BIOS translation for different codepages (e.g., CP437).
 - Buffer syncing is crucial: to prevent hotkeys (like `Ctrl+O`) from leaking as ghost inputs into dialog text prompts, the input buffer must be synchronized by waiting for key release (`inp_waitForRelease()`) and clearing the buffer (`inp_clearKeyboardBuffer()`) before opening prompts.
 
 ### 4. Direct VGA/VESA Video Modes
-- Direct register manipulation is used to modify the CRT controller and sequencer registers for changing display resolutions.
+
+- Direct register manipulation is used to modify the CRT controller and sequencer registers for changing display resolutions under DOS (`platform/dos/video/`).
 - Supports standard `80x25` as well as high-density modes (`80x43`, `80x50`, `132x50`, `132x60`, etc.), cycled using the `F11` hotkey (or specified via settings).
 
 ## Sub-dialogs & Core IDE Features
 
 - **Quick Open Dialog (`Ctrl+O`)**: Reactive filesystem viewer that dynamically updates the list of files in the current folder as the user types an absolute path.
-- **File Switcher (`Alt+Shift`)**: Visual overlay triggered by holding `Alt` and tapping `Shift` to cycle through currently open file arenas.
+- **File Switcher (`Alt+Shift`)**: Non-blocking async visual overlay triggered by holding `Alt` and tapping `Shift` to cycle through tabs opened _in the current window_ using the main loop's cycle.
+- **EditorWindow Split (`Ctrl + \`)**: Splits the screen vertically. The new pane duplicates the active tab, sharing the exact same file memory space so that edits are instantly synchronized.
+- **EditorWindow Switcher (`Ctrl + W`)**: Cycles cursor focus through open split panes. Closing all tabs in a split automatically closes the split window and expands the remaining split back to full screen.
 - **Search Tool (`Ctrl+F`)**: Dialogue that counts matching occurrences of a string in the current file; navigates matches forward with `Enter` and backward with `Shift+Enter`.
 - **Selection Tool (`Shift + Navigation Keys`)**: Anchors a selection at the initial cursor position, allowing text block selection for editing operations.
-- **Shell Spawn (`F9`)**: Suspends the IDE, restores standard 80x25 display settings, and spawns a DOS command interpreter shell (using `COMSPEC`) to let the user compile or test their code. Typing `exit` returns the user cleanly to the IDE, restoring their video mode, cursor, and editor state.
-- **Memory Visualizer (`F12`)**: Displays active allocation maps and sizes of memory arenas (implemented in `ENG/VISMEM.C` and triggered in `MAIN.C`).
+- **Shell Spawn (`F9`)**: Suspends the IDE, restores standard 80x25 display settings, and spawns a command interpreter shell (using `COMSPEC` on DOS or `SHELL` on Linux) to let the user compile or test their code. Typing `exit` returns the user cleanly to the IDE, restoring their video mode, cursor, and editor state.
+- **Memory Visualizer (`F12`)**: Displays active allocation maps and sizes of memory arenas (implemented in `core/vismem/vismem.c` and triggered in `app/main.c`).
 
 ## Folder & Component Structure
 
 ### Root
-- **`MAKEFILE`**: Build instructions for Watcom C.
-- **`README.MD`**: High-level details of key features, building, and running.
+
+- **`makefile`**: Build instructions for Watcom C (MS-DOS).
+- **`makefile.linux`**: Build instructions for GCC (Linux).
+- **`readme.md`**: High-level details of key features, building, and running.
 - **`.agents/rules/`**: Context guidelines for AI coding assistants.
 
-### APP
-- **`MAIN.C` / `MAIN.H`**: Application entry point, main event loop, global keybinding declarations, and keyboard ISR initialization/teardown.
+### `app/`
 
-### DEPS (Generic/Reusable Dependencies)
-- **`DATA/`**: Doubly linked list implementation for text lines and generic collections.
-- **`ENV/`**: Deserialization of config files (`.CFG` / `.ENV`). Loads editor config (like default colors and settings).
-- **`EXT/`**: Extends standard C library functions (e.g. `VSNPRNTF` override missing in Watcom C).
-- **`INPUT/`**: ISR keyboard driver handling scan codes and modifier key combinations.
-- **`LOG/`**: Global logger utility writes events to `LOGS.TXT`.
-- **`MEM/`**: Arena allocator base code for memory pooling.
-- **`SORT/`**: Generic sorting macros.
-- **`STR/`**: Custom string utilities (trimming, slicing, reversing) designed for future portability.
-- **`VGA/`**: Low-level register configuration for VGA text layout.
+- **`main.c` / `main.h`**: Application entry point, main event loop, global keybinding declarations, and keyboard ISR initialization/teardown.
 
-### ENG (Domain Engine Modules)
-- **`CONFIG/`**: Handling editor configuration options (smart closing, indentation, colors).
-- **`DRAW/`**: Low-level screen buffering, borders, box drawing characters, window layouts, and editor token syntax highlighting.
-- **`EDITOR/`**: Central text manipulation (backspace, type character, newline), cursor navigation, search logic, selection logic, and shell spawning.
-- **`FILES/`**: File system loading, saving, creating, closing, and tracking active `FileArena` lists.
-- **`FS/`**: Platform-specific directory listing and path utilities.
-- **`STD/`**: Aggregate header of standard libraries.
-- **`TEST/`**: Testing playground / debugger overlay.
-- **`TIMER/`**: Unused timer module structure.
-- **`VIDEO/`**: Direct video memory pointers, resolution setup, and mode cycling.
-- **`VISMEM/`**: Graphical visualization utility for memory arenas.
+### `hal/` (Hardware Abstraction Layer)
+
+Defines unified cross-platform interfaces for hardware control:
+
+- **`hal_fs.h`**: Filesystem and directory listing abstraction.
+- **`hal_inp.h`**: Keyboard input and ISR driver abstraction.
+- **`hal_vid.h`**: Text-mode/video mode abstraction.
+
+### `platform/` (Platform-Specific Implementations)
+
+- **`dos/`**: MS-DOS specific implementations for fs, input ISR, and VGA text mode video.
+- **`linux/`**: Linux specific implementations for terminal keyboard input, ANSI escape video rendering, and filesystem operations.
+
+### `core/` (Core Engine Modules)
+
+- **`settings/`**: Handling editor configuration options (smart closing, indentation, colors).
+- **`draw/`**: Low-level screen buffering, borders, box drawing characters, window layouts, and editor token syntax highlighting.
+- **`editor/`**: Central text manipulation (backspace, type character, newline), cursor navigation, search logic, selection logic, and shell spawning.
+- **`files/`**: File system loading, saving, creating, closing, and tracking active `Workspace` and `EditorWindow` splits and tabs.
+- **`test/`**: Testing playground / debugger overlay.
+- **`vismem/`**: Graphical visualization utility for memory arenas.
+- **`std.h`**: Aggregate header of standard libraries.
+
+### `deps/` (Generic/Reusable Dependencies)
+
+- **`data/`**: Doubly linked list implementation for text lines and generic collections.
+- **`env/`**: Deserialization of config files (`.cfg` / `.env`). Loads editor config.
+- **`ext/`**: Extends standard C library functions (e.g., custom `vsnprintf` implementation).
+- **`input/`**: Platform-independent input helpers and structures.
+- **`log/`**: Global logger utility writing events to `LOGS.TXT`.
+- **`mem/`**: Arena allocator base code for memory pooling.
+- **`sort/`**: Generic sorting macros/functions.
+- **`str/`**: Custom string utilities (trimming, slicing, reversing).
+
+### `bin/` (Build Outputs)
+
+- **`dos/`**: Intermediate object files (`.OBJ`) and the compiled `dcode.exe` DOS binary.
+- **`linux/`**: Compiled `dcode` Linux binary.
+
+### `books/`
+
+- Reference manuals, cheatsheets, and architectural documentation for the editor's development.
+
+### `pground/`
+
+- A playground directory containing standalone code (`pground.c`) for testing.

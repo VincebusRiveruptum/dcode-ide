@@ -25,3 +25,10 @@ errors.txt
 books
 BOOKS
 PGROUND
+
+**/*.o
+**/*.O
+**/*.lib
+**/*.LIB
+**/*.TMP
+**/*.tmp

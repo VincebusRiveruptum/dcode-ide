@@ -43,7 +43,7 @@ $(APPNAME).exe: $(DEPS_LIB) $(CORE_OBJS)
 $(CFLAGS_LNK): .ALWAYS
 	@if not exist $(OBJDIR) mkdir $(OBJDIR)
 	@%create $@
-	@%append $@ /3r /s /otexan
+	@%append $@ /3r /s /otexan /w4 	-za
 	@%append $@ -i=hal -i=app -i=core -i=deps\data -i=deps\sort -i=deps\env -i=deps\mem -i=deps\log -i=deps\ext
 	@%append $@ -i=platform\dos\input -i=platform\dos\video -i=platform\dos\fs
 

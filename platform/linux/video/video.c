@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 unsigned short *textmemptr = NULL;
-unsigned short *editormemptr = NULL;
+unsigned short *backbuffer = NULL;
 int v_currentMode = HAL_VID_80X25;
 
 char tempBuffer[HAL_VIDEO_BUFFER_SIZE];
@@ -22,9 +22,9 @@ void hal_vid_init(void) {
     }
 
     textmemptr = (unsigned short *)malloc(VIDEO_COLS * VIDEO_ROWS * sizeof(unsigned short));
-    editormemptr = (unsigned short *)malloc(VIDEO_COLS * VIDEO_ROWS * sizeof(unsigned short));
+    backbuffer = (unsigned short *)malloc(VIDEO_COLS * VIDEO_ROWS * sizeof(unsigned short));
     hal_vid_clearBuffer(textmemptr);
-    hal_vid_clearBuffer(editormemptr);
+    hal_vid_clearBuffer(backbuffer);
     
     // Hide cursor and clear terminal screen
     printf("\033[?25l\033[2J");
@@ -36,9 +36,9 @@ void hal_vid_close(void) {
         free(textmemptr);
         textmemptr = NULL;
     }
-    if (editormemptr) {
-        free(editormemptr);
-        editormemptr = NULL;
+    if (backbuffer) {
+        free(backbuffer);
+        backbuffer = NULL;
     }
     // Show cursor, reset colors, clear screen
     printf("\033[0m\033[2J\033[?25h\033[H");
@@ -150,10 +150,10 @@ void hal_vid_refresh(void) {
             VIDEO_ROWS = w.ws_row;
             
             textmemptr = (unsigned short *)realloc(textmemptr, VIDEO_COLS * VIDEO_ROWS * sizeof(unsigned short));
-            editormemptr = (unsigned short *)realloc(editormemptr, VIDEO_COLS * VIDEO_ROWS * sizeof(unsigned short));
+            backbuffer = (unsigned short *)realloc(backbuffer, VIDEO_COLS * VIDEO_ROWS * sizeof(unsigned short));
             
             hal_vid_clearBuffer(textmemptr);
-            hal_vid_clearBuffer(editormemptr);
+            hal_vid_clearBuffer(backbuffer);
             
             printf("\033[2J");
             fflush(stdout);

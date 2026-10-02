@@ -147,6 +147,7 @@ preclean: .SYMBOLIC
 	@if exist *.OBJ del *.OBJ
 	@if exist *.exe del *.exe
 	@if exist *.ERR del *.ERR
+	@if exist *.err del *.err
 	@if exist *.lnk del *.lnk
 
 postclean: .SYMBOLIC

@@ -19,7 +19,7 @@
 #define HAL_NO_MSG 1
 
 extern unsigned short *textmemptr;      /* Video buffer pointer */
-extern unsigned short *editormemptr;    /* Editor buffer */
+extern unsigned short *backbuffer;    /* Editor buffer */
 extern char tempBuffer[HAL_VIDEO_BUFFER_SIZE];
 
 extern unsigned char VIDEO_COLS;

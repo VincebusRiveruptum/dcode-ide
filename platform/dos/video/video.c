@@ -4,7 +4,7 @@
 #include "../../../core/editor/editor.h"
 
 unsigned short *textmemptr;
-unsigned short *editormemptr = NULL;
+unsigned short *backbuffer = NULL;
 int v_currentMode = HAL_VID_80X25;
 
 char tempBuffer[HAL_VIDEO_BUFFER_SIZE];
@@ -13,7 +13,7 @@ void hal_vid_init(void){
     hal_vid_setVideoMode(0, HAL_NO_MSG);
 
     textmemptr = (unsigned short *)0xB8000;
-    editormemptr = (unsigned short *)malloc(HAL_VIDEO_BUFFER_SIZE * sizeof(unsigned short));
+    backbuffer = (unsigned short *)malloc(HAL_VIDEO_BUFFER_SIZE * sizeof(unsigned short));
     dw_cls(textmemptr);
 }
 
@@ -153,8 +153,8 @@ void hal_vid_putCursor(unsigned char x, unsigned char y){
 
 void hal_vid_close(void){
     hal_vid_set25Lines();
-    if (editormemptr) {
-        free(editormemptr);
-        editormemptr = NULL;
+    if (backbuffer) {
+        free(backbuffer);
+        backbuffer = NULL;
     }
 }

@@ -47,7 +47,7 @@ The project strictly follows the coding standards defined in the sibling rules f
 DCode IDE uses a multi-layered, flicker-free rendering pipeline:
 
 - **File Buffer / Doubly Linked List**: Text is managed in memory as a doubly linked list of lines.
-- **Editor Buffer (`editormemptr`)**: A local buffer containing the formatted/rendered editor text and UI components.
+- **Editor Buffer (`backbuffer`)**: A local buffer containing the formatted/rendered editor text and UI components.
 - **Video Buffer (`textmemptr` at `0xB8000` on DOS)**: Direct memory access write for VGA Text Mode 3 (or ANSI escape rendering on Linux).
 
 ### 2. Memory Arena Management

@@ -220,14 +220,14 @@ void ed_updateWindow(Workspace *workspace){
         exit(1);
     };
 
-    //hal_vid_clearBuffer(editormemptr);
+    //hal_vid_clearBuffer(backbuffer);
 
     wnd = workspace->currentWindow;
     
     if (!wnd->textArea) return;
 
 	dw_writeBufferEditorFormatted(
-		//editormemptr, 
+		//backbuffer, 
 		textmemptr, 
 		wnd->x, 
 		wnd->y, 
@@ -278,7 +278,7 @@ void ed_renderWindows(Workspace *workspace){
 			// We re-render the editor.
 			if (wnd && wnd->textArea) {
 				dw_writeBufferEditorFormatted(
-					//editormemptr, 
+					//backbuffer, 
 					textmemptr, 
 					wnd->x, 
 					wnd->y, 

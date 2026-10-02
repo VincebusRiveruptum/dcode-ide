@@ -434,9 +434,9 @@ void dw_rectangle(
     ){
 
     unsigned short screenCharacter = 0;
-    unsigned short i = 0;
-    unsigned short leftLimit = 0;
-    unsigned short rightLimit = 0;
+    size_t i = 0;
+    size_t leftLimit = 0;
+    size_t rightLimit = 0;
     unsigned short width = 0;
     short titleStartPos = 0;
     short titleCharIndex = 0;

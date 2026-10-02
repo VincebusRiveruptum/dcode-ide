@@ -4,7 +4,7 @@
 #include "../../app/main.h"
 
 typedef struct Settings{
-    // EDITOR SETTING
+    /* EDITOR SETTING */
     unsigned char DEBUG;
 
     unsigned int FILE_RESIZE;
@@ -22,7 +22,7 @@ typedef struct Settings{
     unsigned char MOUSE;
 
     unsigned char DEFAULT_TEXT_MODE;
-    // CUSTOMIZATION
+    /* CUSTOMIZATION */
     unsigned char STATUSBAR_COLOR_BG;
     unsigned char STATUSBAR_COLOR_TEXT;
 

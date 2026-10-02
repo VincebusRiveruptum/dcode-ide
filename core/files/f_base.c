@@ -40,8 +40,8 @@ void f_dumpBufferTofile(
         return;
     }
     
-    // We ignore the last character, as it is a line jump, this could
-    // add a new line each time we save...
+    /* We ignore the last character, as it is a line jump, this could */
+    /* add a new line each time we save... */
     for(i=0; i < bufferLength - 1; i++){
         fputc(buffer[i], fp);
     }
@@ -64,8 +64,8 @@ unsigned char f_getExtensionId(char *filename){
     return FILE_EXTENSION_TXT;
 }
 
-// This calculates a LIne full size
-// This could be a macro
+/* This calculates a LIne full size */
+/* This could be a macro */
 size_t f_getLineSize(){
     size_t lineSize = 0;
 
@@ -80,11 +80,11 @@ size_t f_getLineSize(){
     return lineSize;
 }
 
-// This checks if adding a new line could overflow the 
-// textArea file memory arena.
-// Returns boolean value.
-// FUll = false
-// space available = True
+/* This checks if adding a new line could overflow the */
+/* textArea file memory arena. */
+/* Returns boolean value. */
+/* FUll = false */
+/* space available = True */
 bool f_checkNewLineMemory(TextArea *textArea){
 
     if(
@@ -111,8 +111,8 @@ bool f_checkNewLineMemory(TextArea *textArea){
     return true;
 }
 
-// This function calculates the complete File object
-// size from the content of the file to be opened.
+/* This function calculates the complete File object */
+/* size from the content of the file to be opened. */
 size_t f_getFileClosestSize(FILE *fp, char *filename){
 	size_t fileSize = 0, lineMem, fileMem, finalSize;
     int c;
@@ -129,8 +129,8 @@ size_t f_getFileClosestSize(FILE *fp, char *filename){
     }
 	rewind(fp);
 
-    // if there is just one line with no line jump in
-    // the file
+    /* if there is just one line with no line jump in */
+    /* the file */
     lineCount += (c != '\n');
      
     lineMem = (
@@ -140,9 +140,9 @@ size_t f_getFileClosestSize(FILE *fp, char *filename){
     );
 
     fileMem = (
-        ALIGN16(sizeof(File)) +      // File struct
-        ALIGN16(sizeof(List)) +      // Lines
-        ALIGN16(sizeof(List)) +      // Deleted Lines
+        ALIGN16(sizeof(File)) +      /* File struct */
+        ALIGN16(sizeof(List)) +      /* Lines */
+        ALIGN16(sizeof(List)) +      /* Deleted Lines */
         ALIGN16(strlen(filename) + 1)
     );
 
@@ -161,8 +161,8 @@ size_t f_getFileClosestSize(FILE *fp, char *filename){
 	return finalSize;
 }
 
-// This basically adds more headroom to a file when memory arena gets
-// full after editing the file.
+/* This basically adds more headroom to a file when memory arena gets */
+/* full after editing the file. */
 void f_resizeTextArea(TextArea *textArea){
     File *newFile = NULL;
     MemoryArena *oldArena = NULL;
@@ -177,22 +177,22 @@ void f_resizeTextArea(TextArea *textArea){
     }
     
     logger("[f_resizeTextArea]: Resizing textArea file %s", textArea->file->name);
-    // We clone the file into the new Arena
+    /* We clone the file into the new Arena */
     oldArena = textArea->file->arena;
     newFile = f_copyFileObject(textArea->file, true);
     
     textArea->file = newFile;
-    // Update textArea metadata
+    /* Update textArea metadata */
     f_refreshTextArea(textArea);
     
-    // Freeing up old arena
+    /* Freeing up old arena */
     mem_arena_free(oldArena);
     
     return;
 }
 
-// This checks if a file is already bein refered in
-// a TextArea instance in all windows and workspaces.
+/* This checks if a file is already bein refered in */
+/* a TextArea instance in all windows and workspaces. */
 bool f_checkFileRefs(File *file){
     Node *wndNode, *taNode;
     List *taList = NULL;
@@ -245,8 +245,8 @@ bool f_checkFileRefs(File *file){
     return false;
 }
 
-// This will check if the currentWindow textArea
-// file is refenced in other windows
+/* This will check if the currentWindow textArea */
+/* file is refenced in other windows */
 bool f_checkCurrFileRefs(File *file){
     Node *wndNode;
     TextArea *textArea = NULL;
@@ -277,9 +277,9 @@ bool f_checkCurrFileRefs(File *file){
     return false;
 }
 
-// This update OLD file pointer references in textAreaList
-// window and workspace  with the NEW right reference.
-// Returns count of file refs updated.
+/* This update OLD file pointer references in textAreaList */
+/* window and workspace  with the NEW right reference. */
+/* Returns count of file refs updated. */
 int f_updateFileRefs(File *oldFile, File *newFile){
     Node *wndNode, *taNode;
     List *taList = NULL;
@@ -341,7 +341,7 @@ int f_updateFileRefs(File *oldFile, File *newFile){
     return refCount;
 }
 
-// This creates a FIle object replica.
+/* This creates a FIle object replica. */
 File *f_copyFileObject(File *oldFile, bool headroom){
 	char *newArenaName = "NEW";
     File *newFile = NULL;
@@ -386,8 +386,8 @@ File *f_copyFileObject(File *oldFile, bool headroom){
     return newFile;
 }
 
-// This calculates the total number of characrers of the file 
-// instance in the textArea 
+/* This calculates the total number of characrers of the file */
+/* instance in the textArea */
 unsigned long f_getFileFullLength(TextArea *textArea){
     Node *rec = NULL;
     Line *line = NULL;
@@ -465,9 +465,9 @@ void f_newFile(char *filename){
         sprintf(tempName, "%s", filename);
     }
 
-    // TODO: IMPLEMENT MEMORY RESIZE ON DEMAND
-    // WHEN THE FILE SIZE INCREASES WEN
-    // EDITING.
+    /* TODO: IMPLEMENT MEMORY RESIZE ON DEMAND */
+    /* WHEN THE FILE SIZE INCREASES WEN */
+    /* EDITING. */
     arenaSize = settings.FILE_HEADROOM;
     
 	fileArena = (MemoryArena *)mem_arena_create(tempName, arenaSize);
@@ -516,7 +516,7 @@ void f_newFile(char *filename){
 
     addGenericNode(&file->lines, (void*)firstLine, fileArena);
         
-    // We create the textArea file wrapper
+    /* We create the textArea file wrapper */
     textArea = f_createTextArea(file->name);
     textArea->file = file;
     textArea->currentLineNode = file->lines->firstNode;
@@ -727,15 +727,15 @@ void f_saveFile(){
     
 
     /* Replace oldFile with newFile in active window's fileList in-place */
-    // Update all textArea FIle old pointer no the new pointer.
-    // and free up old file arena.
+    /* Update all textArea FIle old pointer no the new pointer. */
+    /* and free up old file arena. */
     f_updateFileRefs(oldFile, textArea->file);
 
     textArea->file->isModified = false;
 
     fulllen = f_getFileFullLength(textArea);
 
-    // Dump content to file
+    /* Dump content to file */
 	fileParsingBuffer = (char*)malloc(sizeof(char) + fulllen);
     
     if(!fileParsingBuffer){
@@ -848,7 +848,7 @@ void f_triggerClose(bool end_program){
             return;
         } 
         
-        //ed_renderWindows(currentWorkspace);
+        /*ed_renderWindows(currentWorkspace); */
         if(_isDefaultFileName() == true){
             dw_writeBuffer(
                 textmemptr, 
@@ -881,7 +881,7 @@ void f_triggerClose(bool end_program){
 
                 len = strlen(filename);
 
-                //ed_renderWindows(currentWorkspace);
+                /*ed_renderWindows(currentWorkspace); */
 
                 if(len <= 3 || len > 12){
                     dw_writeBuffer(

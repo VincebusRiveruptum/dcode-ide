@@ -1,3 +1,10 @@
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE
+#endif
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200809L
+#endif
+
 #include "../../../hal/hal_fs.h"
 #include <unistd.h>
 #include <dirent.h>
@@ -94,7 +101,7 @@ char *fs_getFileExtension(char *filename){
     return strrchr(filename, '.');
 }
 
-// We get where the file name starts
+/* We get where the file name starts */
 char *fs_getFileName(char *filename){
     size_t length = 0;
     char *end = NULL;

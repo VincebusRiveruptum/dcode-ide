@@ -10,7 +10,7 @@ typedef enum ListDirection {
 
 typedef struct Node{
     void *data;
-    unsigned char isDeleted; //bool
+    unsigned char isDeleted; /*bool */
     struct Node *prev;
     struct Node *next;
 } Node;

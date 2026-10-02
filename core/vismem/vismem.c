@@ -1,6 +1,6 @@
 #include "vismem.h"
 
-// This funciton shows up a chart that shows memory usage.
+/* This funciton shows up a chart that shows memory usage. */
 const int SIZE_RATIO = 200;
 const int RECT_WIDTH=76;
 const int RECT_HEIGHT=18;
@@ -29,7 +29,7 @@ void mem_vis_mem(){
 
 	currentFile = currentWindow->textArea->file;
 
-    // We clear the screen
+    /* We clear the screen */
     dw_cls(textmemptr);
     dw_rectangle(
 		textmemptr, 
@@ -46,9 +46,9 @@ void mem_vis_mem(){
 		DRAW_BORDER_SIMPLE, 
 		NULL
 	);
-    // If we want to draw all the memory map into a 70x20 rectangle then
-    // we have to scale down the memory size and offset by some ratio
-    // lets divide by 100
+    /* If we want to draw all the memory map into a 70x20 rectangle then */
+    /* we have to scale down the memory size and offset by some ratio */
+    /* lets divide by 100 */
 
     perc_usage = 
 		((float)currentFile->arena->offset * 100.0f) / 
@@ -101,7 +101,7 @@ void mem_vis_mem(){
 
     dw_writeBuffer(
 		textmemptr,
-		"Used memory: %d bytes (%.2f\% used)", 
+		"Used memory: %d bytes (%.2f%% used)", 
 		1,
 		3,
 		42,
@@ -113,10 +113,10 @@ void mem_vis_mem(){
 	);
 
     while(endvis == false){
-        // Render stuff
+        /* Render stuff */
         
-        //logger("[mem_vis_mem]: Rendering %d arena", i);
-        // w does not get reset
+        /*logger("[mem_vis_mem]: Rendering %d arena", i); */
+        /* w does not get reset */
 
         if(!currentFile->arena){
             logger("[mem_vis_mem]: NULL memory arena!");
@@ -126,14 +126,14 @@ void mem_vis_mem(){
         numblocks = (int)(currentFile->arena->offset / SIZE_RATIO);
         numbgblocks = (int)(currentFile->arena->size / SIZE_RATIO);
         
-        // WE DRAW THE MEMORY ARENA CHART
+        /* WE DRAW THE MEMORY ARENA CHART */
         for(j=0;j<numbgblocks;j++){
-            // iF the line to be drawn is overflowing the container
-            // rectangle, then we do not draw the block...
+            /* iF the line to be drawn is overflowing the container */
+            /* rectangle, then we do not draw the block... */
             if(w >= (RECT_HEIGHT - RECT_YSTART)) continue;
 
-            // We do a Y step if the block number on the line
-            // is more than the width
+            /* We do a Y step if the block number on the line */
+            /* is more than the width */
             if(j % (RECT_WIDTH - RECT_XSTART) == 0 ) w++;
 
             curr_color = 
@@ -149,7 +149,7 @@ void mem_vis_mem(){
 			);
         }
     
-        //Checks for end loop
+        /*Checks for end loop */
         if(hal_inp_isKeyDown(HAL_KEY_ESC)) endvis = true;
         if(!hal_inp_kbhit()){
             hal_inp_getch();

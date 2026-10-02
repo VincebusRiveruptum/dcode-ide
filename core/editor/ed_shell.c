@@ -1,6 +1,6 @@
 #include "editor.h"
 
-// Shell spawn.. 
+/* Shell spawn.. */
 void ed_shellSpawn(){
     char cmd[255];
     char currPath[255];
@@ -25,7 +25,7 @@ void ed_shellSpawn(){
     hal_vid_set25Lines();
     dw_cls(textmemptr);
 
-    // TODO: SAVE FILE
+    /* TODO: SAVE FILE */
 
 #if defined(__MSDOS__) || defined(__WATCOMC__)
     if (!comspec) comspec = "COMMAND.COM";

@@ -1,3 +1,10 @@
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE
+#endif
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200809L
+#endif
+
 #include "../../../hal/hal_inp.h"
 #include <termios.h>
 #include <unistd.h>
@@ -7,7 +14,7 @@
 #include <sys/time.h>
 #include <linux/input.h>
 
-#define INP_KEY_RELEASE_TIMEOUT 400 // ms
+#define INP_KEY_RELEASE_TIMEOUT 400 /* ms */
 #define FIFO_SIZE 256
 
 /* Keyboard State Globals */
@@ -25,7 +32,7 @@ static int fifo_tail = 0;
 /* Linux input device globals */
 static int keyboard_fd = -1;
 static char keyboard_dev_path[256] = "";
-static long long last_input_time = 0;
+static unsigned long last_input_time = 0;
 static struct termios orig_termios;
 static int raw_mode_active = 0;
 
@@ -34,10 +41,10 @@ static void press_key(unsigned char key);
 static void fifo_push(char c);
 
 /* Time Utility helper */
-static long long get_time_ms(void) {
+static unsigned long get_time_ms(void) {
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    return (long long)tv.tv_sec * 1000 + tv.tv_usec / 1000;
+    return (unsigned long)tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
 /* State tracker helper */
@@ -56,8 +63,9 @@ static void fifo_push(char c) {
 }
 
 static char fifo_pop(void) {
+    char c;
     if (fifo_head == fifo_tail) return 0;
-    char c = fifo_buf[fifo_head];
+    c = fifo_buf[fifo_head];
     fifo_head = (fifo_head + 1) % FIFO_SIZE;
     return c;
 }
@@ -68,31 +76,40 @@ static bool fifo_empty(void) {
 
 /* Dynamically scan /proc/bus/input/devices to find keyboard handler */
 static void find_keyboard_device(void) {
-    FILE *f = fopen("/proc/bus/input/devices", "r");
+    int is_kbd;
+    int ev_num;
+    char line[512];
+    char name[256];
+    char handlers[256];
+    char *p = NULL;
+    char *end = NULL;
+    char *ev = NULL;
+    FILE *f = NULL;
+
+    f = fopen("/proc/bus/input/devices", "r");
     if (!f) {
         strcpy(keyboard_dev_path, "/dev/input/event0");
         return;
     }
 
-    char line[512];
-    char name[256] = "";
-    char handlers[256] = "";
-    int is_kbd = 0;
+    name[0] = '\0';
+    handlers[0] = '\0';
+    is_kbd = 0;
 
     while (fgets(line, sizeof(line), f)) {
         if (line[0] == 'N') {
-            char *p = strchr(line, '"');
+            p = strchr(line, '"');
             if (p) {
                 strcpy(name, p + 1);
-                char *end = strrchr(name, '"');
+                end = strrchr(name, '"');
                 if (end) *end = '\0';
             }
         } else if (line[0] == 'H') {
-            strcpy(handlers, line + 12); // Skip "H: Handlers="
+            strcpy(handlers, line + 12); /* Skip "H: Handlers=" */
         } else if (line[0] == '\n' || line[0] == '\r') {
             if (strstr(handlers, "kbd") && strstr(handlers, "event")) {
-                char *ev = strstr(handlers, "event");
-                int ev_num = 0;
+                ev = strstr(handlers, "event");
+                ev_num = 0;
                 if (sscanf(ev, "event%d", &ev_num) == 1) {
                     sprintf(keyboard_dev_path, "/dev/input/event%d", ev_num);
                     is_kbd = 1;
@@ -136,23 +153,27 @@ static unsigned char map_linux_code_to_hal(unsigned short code) {
 
 /* Polling the event device file */
 static void poll_keyboard_device(void) {
+    int rd;
+    int n_events;
+    int i;
+    unsigned char hal_key;
+    struct input_event evs[64];
+
     if (keyboard_fd < 0) return;
 
-    struct input_event evs[64];
-    int rd = read(keyboard_fd, evs, sizeof(evs));
+    rd = read(keyboard_fd, evs, sizeof(evs));
     if (rd > 0) {
-        int n_events = rd / sizeof(struct input_event);
-        int i;
+        n_events = rd / sizeof(struct input_event);
         for (i = 0; i < n_events; i++) {
             if (evs[i].type == EV_KEY) {
-                unsigned char hal_key = map_linux_code_to_hal(evs[i].code);
+                hal_key = map_linux_code_to_hal(evs[i].code);
                 if (hal_key == 0) continue;
 
-                if (evs[i].value == 1) { // Press
+                if (evs[i].value == 1) { /* Press */
                     inp_state[hal_key] = 1;
                     press_key(hal_key);
 
-                    // Push special action keys to FIFO queue
+                    /* Push special action keys to FIFO queue */
                     if (hal_key == HAL_KEY_UP) { fifo_push(0); fifo_push(HAL_KEY_UP); }
                     else if (hal_key == HAL_KEY_DOWN) { fifo_push(0); fifo_push(HAL_KEY_DOWN); }
                     else if (hal_key == HAL_KEY_LEFT) { fifo_push(0); fifo_push(HAL_KEY_LEFT); }
@@ -169,10 +190,10 @@ static void poll_keyboard_device(void) {
                     else if (hal_key == HAL_KEY_TAB) { fifo_push(HAL_CHAR_TAB); }
                     else if (hal_key == HAL_KEY_SPACE) { fifo_push(HAL_CHAR_SPACE); }
 
-                } else if (evs[i].value == 0) { // Release
+                } else if (evs[i].value == 0) { /* Release */
                     inp_state[hal_key] = 0;
                     inp_released[hal_key] = 1;
-                } else if (evs[i].value == 2) { // Repeat
+                } else if (evs[i].value == 2) { /* Repeat */
                     press_key(hal_key);
                     if (hal_key == HAL_KEY_UP) { fifo_push(0); fifo_push(HAL_KEY_UP); }
                     else if (hal_key == HAL_KEY_DOWN) { fifo_push(0); fifo_push(HAL_KEY_DOWN); }
@@ -197,19 +218,23 @@ static void poll_keyboard_device(void) {
 
 /* non-blocking stdin reader with trailing byte timeouts */
 static int read_stdin_timeout(char *buf, int max_len, int timeout_ms) {
-    int num_read = 0;
-    int r = read(0, &buf[0], 1);
+    int num_read;
+    int r;
+    int ret;
+    struct pollfd pfd;
+
+    num_read = 0;
+    r = read(0, &buf[0], 1);
     if (r <= 0) {
-        return 0; // immediate return if no input
+        return 0; /* immediate return if no input */
     }
     num_read = 1;
 
-    struct pollfd pfd;
     pfd.fd = 0;
     pfd.events = POLLIN;
     
     while (num_read < max_len) {
-        int ret = poll(&pfd, 1, timeout_ms);
+        ret = poll(&pfd, 1, timeout_ms);
         if (ret > 0 && (pfd.revents & POLLIN)) {
             r = read(0, &buf[num_read], 1);
             if (r > 0) {
@@ -226,16 +251,21 @@ static int read_stdin_timeout(char *buf, int max_len, int timeout_ms) {
 
 /* Process stdin - raw text input mode (discards ANSI escape sequences) */
 static void poll_stdin_raw(void) {
+    int n;
+    int i;
+    int seq_end;
+    char c;
     char buf[64];
-    int n = read_stdin_timeout(buf, 64, 10);
+
+    n = read_stdin_timeout(buf, 64, 10);
     if (n > 0) {
         last_input_time = get_time_ms();
-        int i = 0;
+        i = 0;
         while (i < n) {
-            if (buf[i] == 27) { // ESC sequence beginning
+            if (buf[i] == 27) { /* ESC sequence beginning */
                 if (i + 1 < n) {
                     if (buf[i+1] == '[' || buf[i+1] == 'O') {
-                        int seq_end = i + 2;
+                        seq_end = i + 2;
                         while (seq_end < n && 
                                !(buf[seq_end] >= 'A' && buf[seq_end] <= 'Z') && 
                                !(buf[seq_end] >= 'a' && buf[seq_end] <= 'z') && 
@@ -251,7 +281,7 @@ static void poll_stdin_raw(void) {
                 }
                 i++;
             } else {
-                char c = buf[i];
+                c = buf[i];
                 if (c > 32 && c != 127) {
                     fifo_push(c);
                 }
@@ -263,16 +293,22 @@ static void poll_stdin_raw(void) {
 
 /* Process stdin - fallback emulation mode (parses escape codes manually) */
 static void poll_stdin_fallback(void) {
+    int n;
+    int i;
+    int seq_end;
+    char mod;
+    char key;
     char buf[64];
-    int n = read_stdin_timeout(buf, 64, 10);
+
+    n = read_stdin_timeout(buf, 64, 10);
     if (n > 0) {
         last_input_time = get_time_ms();
         inp_state[HAL_KEY_LALT] = 0;
         inp_state[HAL_KEY_LSHIFT] = 0;
         inp_state[HAL_KEY_LCTRL] = 0;
-        int i = 0;
+        i = 0;
         while (i < n) {
-            if (buf[i] == 27) { // ESC sequence
+            if (buf[i] == 27) { /* ESC sequence */
                 if (i + 1 < n) {
                     if (buf[i+1] == 27) {
                         inp_state[HAL_KEY_LALT] = 1;
@@ -281,7 +317,7 @@ static void poll_stdin_fallback(void) {
                         continue;
                     }
                     if (buf[i+1] == '[') {
-                        int seq_end = i + 2;
+                        seq_end = i + 2;
                         while (seq_end < n && 
                                !(buf[seq_end] >= 'A' && buf[seq_end] <= 'Z') && 
                                !(buf[seq_end] >= 'a' && buf[seq_end] <= 'z') && 
@@ -305,21 +341,21 @@ static void poll_stdin_fallback(void) {
                             else if (strncmp(&buf[i+2], "23~", seq_end - (i+2) + 1) == 0) { inp_state[HAL_KEY_F11] = 1; press_key(HAL_KEY_F11); }
                             else if (strncmp(&buf[i+2], "24~", seq_end - (i+2) + 1) == 0) { inp_state[HAL_KEY_F12] = 1; press_key(HAL_KEY_F12); }
                             else if (buf[i+2] == '1' && buf[i+3] == ';') {
-                                char mod = buf[i+4];
-                                char key = buf[i+5];
-                                if (mod == '2') { // Shift
+                                mod = buf[i+4];
+                                key = buf[i+5];
+                                if (mod == '2') { /* Shift */
                                     inp_state[HAL_KEY_LSHIFT] = 1;
                                     press_key(HAL_KEY_LSHIFT);
                                     if (key == 'A') { fifo_push(0); fifo_push(HAL_KEY_UP); inp_state[HAL_KEY_UP] = 1; press_key(HAL_KEY_UP); }
                                     else if (key == 'B') { fifo_push(0); fifo_push(HAL_KEY_DOWN); inp_state[HAL_KEY_DOWN] = 1; press_key(HAL_KEY_DOWN); }
                                     else if (key == 'C') { fifo_push(0); fifo_push(HAL_KEY_RIGHT); inp_state[HAL_KEY_RIGHT] = 1; press_key(HAL_KEY_RIGHT); }
                                     else if (key == 'D') { fifo_push(0); fifo_push(HAL_KEY_LEFT); inp_state[HAL_KEY_LEFT] = 1; press_key(HAL_KEY_LEFT); }
-                                } else if (mod == '3') { // Alt
+                                } else if (mod == '3') { /* Alt */
                                     inp_state[HAL_KEY_LALT] = 1;
                                     press_key(HAL_KEY_LALT);
                                     if (key == 'A') { inp_state[HAL_KEY_UP] = 1; press_key(HAL_KEY_UP); }
                                     else if (key == 'B') { inp_state[HAL_KEY_DOWN] = 1; press_key(HAL_KEY_DOWN); }
-                                } else if (mod == '5') { // Ctrl
+                                } else if (mod == '5') { /* Ctrl */
                                     inp_state[HAL_KEY_LCTRL] = 1;
                                     press_key(HAL_KEY_LCTRL);
                                     if (key == 'C') { inp_state[HAL_KEY_RIGHT] = 1; press_key(HAL_KEY_RIGHT); }
@@ -426,6 +462,8 @@ static void poll_stdin(void) {
 /* HAL Key API implementation */
 void hal_inp_initKeyboard(void) {
     int i;
+    struct termios raw;
+
     for (i = 0; i < 256; i++) {
         inp_state[i] = 0;
         inp_pressed[i] = 0;
@@ -441,7 +479,7 @@ void hal_inp_initKeyboard(void) {
     
     if (!raw_mode_active) {
         tcgetattr(0, &orig_termios);
-        struct termios raw = orig_termios;
+        raw = orig_termios;
         raw.c_lflag &= ~(ICANON | ECHO | ISIG);
         raw.c_iflag &= ~(IXON | ICRNL);
         raw.c_cc[VMIN] = 0;
@@ -464,13 +502,16 @@ void hal_inp_closeKeyboard(void) {
 
 void hal_inp_updateKeyboard(void) {
     int i;
-    long long current_time = get_time_ms();
+    int nfds;
+    unsigned long current_time;
+    struct pollfd fds[2];
+
+    current_time = get_time_ms();
     
     /* 1. CPU optimization: block up to 50ms if FIFO is empty to avoid high CPU usage */
     if (fifo_empty()) {
-        struct pollfd fds[2];
-        int nfds = 1;
-        fds[0].fd = 0; // stdin
+        nfds = 1;
+        fds[0].fd = 0; /* stdin */
         fds[0].events = POLLIN;
         if (keyboard_fd >= 0) {
             fds[1].fd = keyboard_fd;
@@ -594,7 +635,7 @@ bool hal_inp_kbhit(void) {
 char hal_inp_getch(void) {
     while (fifo_empty()) {
         poll_stdin();
-        usleep(5000); // 5ms sleep
+        usleep(5000); /* 5ms sleep */
     }
     return fifo_pop();
 }

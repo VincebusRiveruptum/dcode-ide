@@ -32,23 +32,21 @@ extern unsigned int inPortw(int);
 
 #pragma aux inPortb =   \
     "in al, dx"         \
-    parm [dx]           \
-    value [al];
-
+    __parm [__dx]       \
+    __value [__al]
 
 #pragma aux inPortw =   \
     "in ax, dx"         \
-    parm [dx]           \
-    value [ax];
+    __parm [__dx]       \
+    __value [__ax]
 
 #pragma aux outPortb =  \
     "out dx, al"        \
-    parm [dx] [al];
-
+    __parm [__dx] [__al]
 
 #pragma aux outPortw =  \
     "out dx, ax"        \
-    parm [dx] [ax];
-
+    __parm [__dx] [__ax]
 
 #endif
+

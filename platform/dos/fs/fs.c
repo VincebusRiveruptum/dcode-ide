@@ -89,18 +89,18 @@ Directory *hal_fs_getDirectoryFileList(const char *path){
     return d;
 }
 
-// We get where the file extension starts
+/* We get where the file extension starts */
 char *fs_getFileExtension(char *filename){
     size_t i=strlen(filename);
     
-    while(i > 0 && filename[i] != '.'){ // Find the last dot
+    while(i > 0 && filename[i] != '.'){ /* Find the last dot */
         i--;
     }
 
     return strrchr(filename, '.');
 }
 
-// We get where the file name starts
+/* We get where the file name starts */
 char *fs_getFileName(char *filename){
     size_t length = 0;
     char *end = NULL;

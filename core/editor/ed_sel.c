@@ -47,7 +47,7 @@ void ed_handleSelection() {
     
     textArea = currentWindow->textArea;
 
-    // Check if cursor actually moved
+    /* Check if cursor actually moved */
     if (
 		textArea->currentLineNode == textArea->oldLineNode && 
 		textArea->cursorCol == textArea->oldCol
@@ -68,43 +68,43 @@ void ed_handleSelection() {
 			hal_inp_isKeyDown(HAL_KEY_LSHIFT) || 
 			hal_inp_isKeyDown(HAL_KEY_RSHIFT)) 
 		{
-            // If selection is not active, anchor it at the old position
+            /* If selection is not active, anchor it at the old position */
             if (textArea->selectedStartNode == NULL) {
                 textArea->selectedStartNode = textArea->oldLineNode;
                 textArea->selectedStartX = textArea->oldCol;
                 textArea->selectedStartLine = textArea->oldLine;
             }
-            // Always update selection end to the new position
+            /* Always update selection end to the new position */
             textArea->selectedEndNode = textArea->currentLineNode;
             textArea->selectedEndX = textArea->cursorCol;
             textArea->selectedEndLine = textArea->cursorLine;
             on_selection_tool = true;
             dw_requestRenderEvent(DW_RENDER_SELECTION);
         } else {
-            // Clear selection since we moved cursor without Shift
+            /* Clear selection since we moved cursor without Shift */
             ed_clearSelection();
         }
     } else {
-        // Any other cursor movement (e.g. typing, backspace, new line) 
-		// clears selection
+        /* Any other cursor movement (e.g. typing, backspace, new line) */
+		/* clears selection */
         ed_clearSelection();
     }
     
 }
 
-// This is agnostic to draw.c line rendering methods as this
-// copy the screen line portion on the screen and 
-// applies the selection mask
+/* This is agnostic to draw.c line rendering methods as this */
+/* copy the screen line portion on the screen and */
+/* applies the selection mask */
 
-// This is WIP
-// currently just renders the last state of the selected line
-// if we are selecting more that one line, the lines between will 
-// not be rendered yet.
-// 
+/* This is WIP */
+/* currently just renders the last state of the selected line */
+/* if we are selecting more that one line, the lines between will */
+/* not be rendered yet. */
+/* */
 void ed_renderLineSelection(){
-    // Copy crrent line video memory area
+    /* Copy crrent line video memory area */
     unsigned short *lineBuffer = NULL;
-    // Selectection metadata
+    /* Selectection metadata */
     unsigned short selectedStartX = 0;
     unsigned short selectedEndX = 0;
     int step = 0;
@@ -125,15 +125,15 @@ void ed_renderLineSelection(){
     if(!lineBuffer)
         return;
 
-    // This retruns the start and position of the selection
-    // highlingting depending on the selection direction
+    /* This retruns the start and position of the selection */
+    /* highlingting depending on the selection direction */
     _calculateSelectedLineStartEnd(
         currentWorkspace->currentWindow,
         &selectedStartX, 
         &selectedEndX,
         &step 
     );
-     // Selection Highlighting
+     /* Selection Highlighting */
     for(i=selectedStartX; i != selectedEndX ; i += step){
         lineBuffer[i] = lineBuffer[i] & 0x00FF;
         lineBuffer[i] = lineBuffer[i] | ((COLOR_LIGHT_GRAY << 4 | COLOR_BLACK) << 8);
@@ -144,16 +144,16 @@ void ed_renderLineSelection(){
     return;
 }
 
-// SAFE, no validation!!
-// Returns number of deleted chars in a selected
-// block in a line.
+/* SAFE, no validation!! */
+/* Returns number of deleted chars in a selected */
+/* block in a line. */
 int _deleteInSingleLine(){
     TextArea *textArea = currentWorkspace->currentWindow->textArea;
     Line *line = textArea->currentLine;
     unsigned short start, end, lenBetween;
 
-    // Start must be a minor index 
-    // than the end index.
+    /* Start must be a minor index */
+    /* than the end index. */
     if(
         textArea->selectedStartX <
         textArea->selectedEndX
@@ -172,7 +172,7 @@ int _deleteInSingleLine(){
     
     memcpy(line->buffer + start, line->buffer + end, lenBetween);
 
-    // Null termination, so remaining garbage is ignored.
+    /* Null termination, so remaining garbage is ignored. */
     line->buffer[start + lenBetween + 1] = '\0';
     line->length = start + lenBetween;
 
@@ -185,7 +185,7 @@ void _glueLines(Node *start, Node *end, unsigned short startLineIndex){
     Line *startLine, *endLine;
     TextArea *textArea = currentWorkspace->currentWindow->textArea;
     unsigned short startX, endX, lenOnwards;
-    // Validation
+    /* Validation */
     if(
         !start ||
         !start->data ||
@@ -198,9 +198,9 @@ void _glueLines(Node *start, Node *end, unsigned short startLineIndex){
     startLine = (Line*)start->data;
     endLine = (Line*)end->data;
 
-    // Column gluing
-    // Start must be a minor index 
-    // than the end index.
+    /* Column gluing */
+    /* Start must be a minor index */
+    /* than the end index. */
     if(
         textArea->selectedStartX <
         textArea->selectedEndX
@@ -226,9 +226,9 @@ void _glueLines(Node *start, Node *end, unsigned short startLineIndex){
     startLine->buffer[startX + lenOnwards + 1] = '\0'; 
     startLine->length = startX + lenOnwards; 
     
-    //;
+    /*; */
     
-    // We glue the lines
+    /* We glue the lines */
     start->next = 
         end &&
         end->next
@@ -243,10 +243,10 @@ void _glueLines(Node *start, Node *end, unsigned short startLineIndex){
         end->next->prev = start;
     }
 
-    // Recycle end node
+    /* Recycle end node */
     ed_softDeleteLine(textArea, end);
 
-    // Update editor metadata
+    /* Update editor metadata */
     textArea->currentLineNode = start;
     textArea->currentLine = startLine;
     textArea->prevLine = start->prev ? (Line*)start->prev->data : NULL;
@@ -262,8 +262,8 @@ int _deleteSelectedLines(){
     Node *end = NULL;
     Node *rec = NULL, *tmp=NULL;
     unsigned short startLineIndex;
-    // Ordering so always start is a a position
-    // previous to the end
+    /* Ordering so always start is a a position */
+    /* previous to the end */
 
     if(
         textArea->selectedStartLine <
@@ -279,12 +279,12 @@ int _deleteSelectedLines(){
         end = textArea->selectedStartNode;   
     }
     
-    // Then we delete the nodes in between
-    // Only if there are more than three
-    // lines selected.
+    /* Then we delete the nodes in between */
+    /* Only if there are more than three */
+    /* lines selected. */
     if(
-        (!start || !end) ||     // null check
-        (start == end)       // bound check
+        (!start || !end) ||     /* null check */
+        (start == end)       /* bound check */
     ) return -1;
     
     rec = start->next;
@@ -299,8 +299,8 @@ int _deleteSelectedLines(){
         rec = tmp;
     }
        
-    // Then we glue the lines on each side of the
-    // deleted lines gap.
+    /* Then we glue the lines on each side of the */
+    /* deleted lines gap. */
     _glueLines(start, end, startLineIndex);
 
     ed_clearSelection();
@@ -320,14 +320,14 @@ void ed_deleteSelection(){
 
     currentWindow = currentWorkspace->currentWindow;
     textArea = currentWindow->textArea;
-    // Check selected line nodes
+    /* Check selected line nodes */
     if(
         !textArea->selectedStartNode ||
         !textArea->selectedEndNode
     )
     return;
     
-    //  Simple deletion,, in the same line
+    /*  Simple deletion,, in the same line */
     if(
         (
             textArea->selectedStartNode ==
@@ -346,7 +346,7 @@ void ed_deleteSelection(){
         }
             
     }else{
-        // deletion if more lines involved ( >1)
+        /* deletion if more lines involved ( >1) */
         _deleteSelectedLines();
         
     }

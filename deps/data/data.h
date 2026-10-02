@@ -1,4 +1,4 @@
-// Generic Simple doubly linked list by vincebus riveruptum. 
+/* Generic Simple doubly linked list by vincebus riveruptum. */
 
 #ifndef DATA_H
 #define DATA_H

@@ -78,7 +78,7 @@ char *getConfigValue(char *line) {
   strncpy(val, line + index + 1, valLen);
   val[valLen] = '\0';
   
-  // Strip trailing newline/carriage return
+  /* Strip trailing newline/carriage return */
   while (valLen > 0 && (val[valLen-1] == '\n' || val[valLen-1] == '\r')) {
       val[--valLen] = '\0';
   }
@@ -95,22 +95,22 @@ bool isfloat(const char *str) {
         return false;
     }
     
-    // Check for optional sign
+    /* Check for optional sign */
     if (str[i] == '+' || str[i] == '-') {
         i++;
     }
     
-    // Check digits and decimal point
+    /* Check digits and decimal point */
     while (str[i] != '\0') {
         if (isdigit(str[i])) {
             has_digit = true;
         } else if (str[i] == '.') {
             if (has_dot) {
-                return false;  // Multiple dots
+                return false;  /* Multiple dots */
             }
             has_dot = true;
         } else {
-            return false;  // Invalid character
+            return false;  /* Invalid character */
         }
         i++;
     }
@@ -145,9 +145,9 @@ char getConfigType(char *value) {
 }
 
 Config *loadEnv() {
-  // Look for a .env file in the current directory
-  // Parse the contents of the .env
-  // Return the Config type object
+  /* Look for a .env file in the current directory */
+  /* Parse the contents of the .env */
+  /* Return the Config type object */
 
   FILE *fp = fopen(ENV_FILENAME, "r");
   char tmpBuffer[256];
@@ -162,7 +162,7 @@ Config *loadEnv() {
   if (!fp)
     return NULL;
   
-  // We get the numeber of attributes in the config file
+  /* We get the numeber of attributes in the config file */
   while (fgets(tmpBuffer, sizeof(tmpBuffer), fp) != NULL) {
     i++;
   }
@@ -177,13 +177,13 @@ Config *loadEnv() {
   }
   config->length = i;
   
-  // We reset the file pointer to the beginning
+  /* We reset the file pointer to the beginning */
   i=0;
   rewind(fp);
   
-  // We parse the config file
+  /* We parse the config file */
   while (fgets(tmpBuffer, sizeof(tmpBuffer), fp) != NULL) {
-    // ignore comments
+    /* ignore comments */
     if (tmpBuffer[0] == '#' || tmpBuffer[0] == '\n' || tmpBuffer[0] == '\r') continue;
     
     key = getConfigKey(tmpBuffer);
@@ -198,8 +198,8 @@ Config *loadEnv() {
     
     type = getConfigType(value);
 
-    // Add to global configEntries
-    //    config->entries = realloc(config->entries, sizeof(ConfigEntry) * (i + 1));
+    /* Add to global configEntries */
+    /*    config->entries = realloc(config->entries, sizeof(ConfigEntry) * (i + 1)); */
     config->entries[i].key = key;
     config->entries[i].value = value;
     config->entries[i].type = type;

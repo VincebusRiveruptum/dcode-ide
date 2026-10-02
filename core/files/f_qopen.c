@@ -20,7 +20,7 @@ void f_quickOpenFileDialog(){
     int MAX_LIST_HEIGHT = 11;
     int entryScrollY = 0;
     int selectedEntryScrollY = 0;
-    char scrollChar = '\0';
+    unsigned char scrollChar = 0;
     char selectedEntryFullPath[512];
     char currentPath[255];
     bool isSelected = false;
@@ -69,7 +69,7 @@ void f_quickOpenFileDialog(){
     hal_inp_waitForRelease();
 
     do{
-        // Key selection
+        /* Key selection */
         if(hal_inp_isKeyPressed(HAL_KEY_UP)){
             selectedEntry = 
             selectedEntry > 1
@@ -86,30 +86,30 @@ void f_quickOpenFileDialog(){
                 ? selectedEntry + 1
                 : filesLength; 
 
-            // We calculate the scrolling
+            /* We calculate the scrolling */
             if(selectedEntry - entryScrollY - 2 > MAX_LIST_HEIGHT ){
                 entryScrollY++;
             }
             
                 
         }else if(hal_inp_isKeyPressed(HAL_KEY_ENTER)){
-            // If we press enter, we have to detect if the entry is either a directory or a file
-            // 
-            if(selectedFileEntry && strcmp(selectedFileEntry->name, "..") == 0){         // .. path
+            /* If we press enter, we have to detect if the entry is either a directory or a file */
+            /* */
+            if(selectedFileEntry && strcmp(selectedFileEntry->name, "..") == 0){         /* .. path */
                 stepIndex = _goBackPath(currentPath);       
                 selectedEntry = 0;
                 selectedFileEntry = NULL;
             }else if(selectedFileEntry && selectedFileEntry->isDirectory){
-                //// Nothing happens
+                /*// Nothing happens */
                 strcat(currentPath, selectedFileEntry->name);
                 strcat(currentPath, FS_PATH_SEPARATOR);
                 stepIndex = strlen(currentPath);
                 selectedEntry = 0;
                 selectedFileEntry = NULL;
             }else if(selectedFileEntry){
-                // We open the file
-                // TODO: SANITIZE buffer by removing the chars until the last directory
-                //snprintf(selectedEntryFullPath, sizeof(selectedEntryFullPath), "%s%s", currentPath, selectedFileEntry->name);
+                /* We open the file */
+                /* TODO: SANITIZE buffer by removing the chars until the last directory */
+                /*snprintf(selectedEntryFullPath, sizeof(selectedEntryFullPath), "%s%s", currentPath, selectedFileEntry->name); */
                 sprintf(selectedEntryFullPath, "%s%s", currentPath, selectedFileEntry->name);
                 f_openFile(selectedEntryFullPath);
                 ed_updateCursor();
@@ -120,12 +120,12 @@ void f_quickOpenFileDialog(){
 			
         }else{
 
-            // Freeing up list of files each time there is a change 
-            // in the prompt.
+            /* Freeing up list of files each time there is a change */
+            /* in the prompt. */
 
-            // Ok, for the file selection we have to clear mark a flag 
-            // for the selected file
-            // By
+            /* Ok, for the file selection we have to clear mark a flag */
+            /* for the selected file */
+            /* By */
             if(currPathDirectory) hal_fs_freeDirectory(currPathDirectory);
 
             selectedFileEntry = NULL;
@@ -138,7 +138,7 @@ void f_quickOpenFileDialog(){
                 return;
             }
 
-            // Draw list of files
+            /* Draw list of files */
             filesLength = currPathDirectory->fileEntries->length;
             node = currPathDirectory->fileEntries->firstNode;
             nodeIndex = 0;
@@ -149,7 +149,7 @@ void f_quickOpenFileDialog(){
             ){
                 fileEntry = (FileEntry*)node->data;
                 nodeIndex++;
-                // We write the filename under the prompt
+                /* We write the filename under the prompt */
                 selectedEntryScrollY = (nodeIndex - entryScrollY);
                         
                 if(selectedEntryScrollY <= 0) {
@@ -159,7 +159,7 @@ void f_quickOpenFileDialog(){
                 
                 isSelected = 
                     (nodeIndex == selectedEntry) ? true : false;
-                    // We mar the selected item or not
+                    /* We mar the selected item or not */
                 if(isSelected == true){
 
                     selectedFileEntry = fileEntry;
@@ -188,13 +188,13 @@ void f_quickOpenFileDialog(){
                     );
                 }
 
-                // Draw scrollbar if there are more items than the 
-                // the height of the list
+                /* Draw scrollbar if there are more items than the */
+                /* the height of the list */
                 if(filesLength - 2 > MAX_LIST_HEIGHT){
-                    // UP ARROW
+                    /* UP ARROW */
                     if((selectedEntryScrollY - 1) == 0){
                         scrollChar = 0x1E;
-                    // DOWN ARROW
+                    /* DOWN ARROW */
                     }else if(selectedEntryScrollY - 2 == MAX_LIST_HEIGHT){
                         scrollChar = 0x1F;
                     }else{
@@ -217,7 +217,7 @@ void f_quickOpenFileDialog(){
                 node = node->next;
             }
 
-            // Clear list container until touches bottom
+            /* Clear list container until touches bottom */
             clearMarkPoint = selectedEntryScrollY;
 
             if(clearMarkPoint < dialogEndY - 5){
@@ -237,8 +237,8 @@ void f_quickOpenFileDialog(){
                 }
             }
             
-            // Draw rect in the middle, 1/4 will be the start and the
-            // end, so i it will always be in the center
+            /* Draw rect in the middle, 1/4 will be the start and the */
+            /* end, so i it will always be in the center */
             hal_vid_refresh();
             
             ed_async_scanf(

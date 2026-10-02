@@ -18,6 +18,8 @@ typedef enum {
     SORT_TYPE_CHAR
 } SortType;
 
+#ifndef BOOL_DEFINED
+#define BOOL_DEFINED
 #if defined(__MSDOS__) || defined(__WATCOMC__)
   #ifndef __cplusplus
     typedef unsigned char bool;
@@ -26,6 +28,7 @@ typedef enum {
   #endif
 #else
   #include <stdbool.h>
+#endif
 #endif
 
 /* 

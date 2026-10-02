@@ -1,4 +1,4 @@
-// ENV/settings LAYER
+/* ENV/settings LAYER */
 #include "settings.h"
 #include <stdlib.h>
 
@@ -42,9 +42,9 @@ bool s_loadSettings(){
         = (unsigned char)atoi(getEnv("DEFAULT_TEXT_MODE", "1"));
     
 
-    // Validate that DEFUALT_VIDEO_MODE is never 0 or ther will be an infite loop when trying to switch video modes.
+    /* Validate that DEFUALT_VIDEO_MODE is never 0 or ther will be an infite loop when trying to switch video modes. */
     if (
-        settings.DEFAULT_TEXT_MODE <= 0 || 
+        settings.DEFAULT_TEXT_MODE == 0 || 
         settings.DEFAULT_TEXT_MODE > 8)
     settings.DEFAULT_TEXT_MODE = 1;
 
@@ -53,7 +53,7 @@ bool s_loadSettings(){
     settings.STATUSBAR_COLOR_TEXT           
         = (unsigned char)atoi(getEnv("STATUSBAR_COLOR_TEXT", "%d", COLOR_RED));
 
-    // Hardcoded for now
+    /* Hardcoded for now */
     settings.clang_colors[DW_RESWORD_NONE]         
         = (unsigned char)atoi(getEnv("DW_RESWORD_NONE", "%d", COLOR_LIGHT_GRAY));      
     settings.clang_colors[DW_RESWORD_PREPROCESSOR] 

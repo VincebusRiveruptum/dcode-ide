@@ -4,9 +4,9 @@ Workspace *currentWorkspace = NULL;
 EditorWindow *currentWindow = NULL;
 
 
-//========================================================================
-// TextAera managing
-//========================================================================
+/*======================================================================== */
+/* TextAera managing */
+/*======================================================================== */
 
 /* CLOSE FILE ==================================================================*/
 void f_closeFile(File *file){
@@ -17,7 +17,7 @@ void f_closeFile(File *file){
     logger("[f_closeFile]: File %s closed successfully", arenaName);    
 }
 
-// Creates a blank textArea
+/* Creates a blank textArea */
 TextArea *f_createTextArea(char *filename){
     TextArea *textArea = NULL;
     MemoryArena *arena = NULL;
@@ -184,14 +184,14 @@ void f_closeCurrentTextArea(){
 		currentWindow->textArea
 	);
 	
-	// Updates current textArea with the first 
-	// textArea avalable on the list
+	/* Updates current textArea with the first */
+	/* textArea avalable on the list */
 	if (currentWindow->textAreaList->length > 0) {
 		nextTextArea = 
             (TextArea *)(currentWindow->textAreaList->firstNode->data);
 		currentWindow->textArea = nextTextArea;
 	} else {
-		// If no text areas, we close the entire window.
+		/* If no text areas, we close the entire window. */
 		currentWindow->textArea = NULL;
 		
 		if (currentWorkspace->windowList->length > 1) {
@@ -234,10 +234,10 @@ void f_closeCurrentTextArea(){
     return;
 }
 
-//========================================================================
-// EditorWindow managing
-// TODO : This should be its own module.
-//========================================================================
+/*======================================================================== */
+/* EditorWindow managing */
+/* TODO : This should be its own module. */
+/*======================================================================== */
 
 EditorWindow *f_createWindow(){
 	EditorWindow *newWindow = NULL;
@@ -252,7 +252,7 @@ EditorWindow *f_createWindow(){
 	newWindow->textAreaList = createList(NULL);
 	newWindow->textArea = NULL;
 
-	// By default will be minimized for now
+	/* By default will be minimized for now */
 	newWindow->status = WndStatus_MINIMIZED;
 	newWindow->x = 0;
 	newWindow->y = 0;
@@ -267,7 +267,7 @@ EditorWindow *f_createWindow(){
 	return newWindow;
 }
 
-// Inits workspace with all atributtes zeroed.
+/* Inits workspace with all atributtes zeroed. */
 Workspace *f_createWorkspace(){
 	char *fullPath = NULL;
 	char pathBuf[512];
@@ -312,11 +312,11 @@ Workspace *f_createWorkspace(){
 	return newWorkspace;
 }
 
-//========================================================================
-//	Workspace - EditorWindow - File DECONSTRUCTOR
-//========================================================================
+/*======================================================================== */
+/*	Workspace - EditorWindow - File DECONSTRUCTOR */
+/*======================================================================== */
 
-// Free an entire textArea list
+/* Free an entire textArea list */
 void f_freeTextAreaList(List *textAreaList){
 	Node *rec=NULL;
 	Node *tmp=NULL;
@@ -333,9 +333,9 @@ void f_freeTextAreaList(List *textAreaList){
 		tmp = rec->next;
 		textArea = (TextArea*)rec->data;
 		if(textArea) {
-			// TODO: Check if thre are no
-			// shared file instances anywhere
-			// if so, free it entirely
+			/* TODO: Check if thre are no */
+			/* shared file instances anywhere */
+			/* if so, free it entirely */
 			if(!f_checkFileRefs(textArea->file))
 				mem_arena_free(textArea->file->arena);
 			
@@ -348,7 +348,7 @@ void f_freeTextAreaList(List *textAreaList){
 	free(textAreaList);
 }
 
-// Free window list, fileList on each window and each file arena.
+/* Free window list, fileList on each window and each file arena. */
 void f_freeWindowList(List *windowList){
 	Node *rec=NULL, *tmp;
 	EditorWindow *wnd = NULL;
@@ -357,7 +357,7 @@ void f_freeWindowList(List *windowList){
 		exit(1);
 	}
 
-	// Freeing windowList
+	/* Freeing windowList */
 	rec = windowList->firstNode;
 
 	while(rec){
@@ -374,14 +374,14 @@ void f_freeWindowList(List *windowList){
 	free(windowList);
 }
 
-// Free workspace, windows, fileList on each window and each file arena.
+/* Free workspace, windows, fileList on each window and each file arena. */
 void f_freeWorkspace(){
 	if(!currentWorkspace) {
 		logger("[f_freeWorkspace]: workspace already free");
 		return;
 	}
 
-	// Freeing windowList
+	/* Freeing windowList */
 	f_freeWindowList(currentWorkspace->windowList);
 
 	free(currentWorkspace->fullPath);
@@ -390,7 +390,7 @@ void f_freeWorkspace(){
 	currentWindow = NULL;
 }
 
-// =======================================================================
+/* ======================================================================= */
 
 TextArea *f_addTextAreaToWindow(EditorWindow *window, TextArea *textArea){
 	if (!textArea || !window->textAreaList || !window){
@@ -414,7 +414,7 @@ EditorWindow *f_addWindowToWorkspace(Workspace *workspace, EditorWindow *window)
 	return window;
 }
 
-// ======
+/* ====== */
 
 void f_deleteTextAreaFromWindow(
 	EditorWindow *window, 
@@ -432,7 +432,7 @@ void f_deleteTextAreaFromWindow(
 	deleteNodeByPtr(&(window->textAreaList), (void*)textArea);
 
 	f_closeTextArea(textArea);
-	//f_closeFile(file);    
+	/*f_closeFile(file); */
 
 	return;
 }
@@ -448,7 +448,7 @@ void f_deleteWindowFromWorkspace(Workspace *workspace, EditorWindow *window){
 
 	deleteNodeByPtr(&(workspace->windowList), (void*)window);
 
-	// Close all textAreas
+	/* Close all textAreas */
 	rec = window->textAreaList->firstNode;
 
 	if(rec){
@@ -490,7 +490,7 @@ void f_deleteWorkspace(Workspace *workspace){
 	free(workspace);
 }
 
-// ===============================
+/* =============================== */
 
 void f_splitWindow(){
 	EditorWindow *newWnd = NULL;

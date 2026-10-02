@@ -10,7 +10,7 @@
 
 #include "editor.h"
 
-//unsigned char attrib = 0x07; // Default attribute: White on Black
+/*unsigned char attrib = 0x07; // Default attribute: White on Black */
 struct Container *root;
 
 unsigned char VIDEO_COLS = 80;
@@ -26,7 +26,7 @@ time_t ed_globalAuxTimer = 0;
 char statusBarMessage[ED_STATUSBAR_WIDTH] = {'\0'};
 
 Node *ed_softDeleteLine(TextArea *textArea, Node *node){
-    // Join adjacent nodes
+    /* Join adjacent nodes */
     if(
         !textArea ||
         !textArea->file ||
@@ -40,12 +40,12 @@ Node *ed_softDeleteLine(TextArea *textArea, Node *node){
         node->prev->next = node->next;
         node->next->prev = node->prev;
     }else if(node->prev && !node->next){
-        // We were at the last node, so prevNode becomes 
-        // the new last node
+        /* We were at the last node, so prevNode becomes */
+        /* the new last node */
         textArea->file->lines->lastNode = node->prev;
         if(node->prev) node->prev->next = NULL;
     }
-    // isolate current node
+    /* isolate current node */
     node->next = NULL;
     node->prev = NULL;
     node->isDeleted = true;
@@ -56,7 +56,7 @@ Node *ed_softDeleteLine(TextArea *textArea, Node *node){
         textArea->arena
     );    
 
-    // We update the line count
+    /* We update the line count */
     textArea->file->lines->length--;
 
     return node;
@@ -97,14 +97,14 @@ void ed_updateScrollX(){
     visualScroll = _calculateVisualOffset(textArea->scrollX);
     displayWidth = currentWindow->width - LINE_COUNTER_WIDTH;
 
-    // If cursor is to the left of the visible area
+    /* If cursor is to the left of the visible area */
     if (visualCursor < visualScroll) {
         textArea->scrollX = textArea->cursorCol;
 		dw_requestRenderEvent(DW_RENDER_WINDOW);
     } 
-    // If cursor is to the right of the visible area
+    /* If cursor is to the right of the visible area */
     else if (visualCursor >= visualScroll + displayWidth) {
-        // We move scrollX forward until the cursor is visible
+        /* We move scrollX forward until the cursor is visible */
         while (
 			_calculateVisualOffset(textArea->scrollX)
 			+ displayWidth 
@@ -143,7 +143,7 @@ void ed_resetActity(){
 }
 
 void ed_markActive(unsigned char activity){
-    // Push activity to editor clipboard
+    /* Push activity to editor clipboard */
     (void)activity;
 
     if(
@@ -156,12 +156,12 @@ void ed_markActive(unsigned char activity){
     currentWindow->textArea->isActive = true;
 }
 
-// =======================================================================
-// EditorWindow refreshing
+/* ======================================================================= */
+/* EditorWindow refreshing */
 
-// This just renders the current line
+/* This just renders the current line */
 void ed_renderCurrentLine(){
-	// TODO : CAREFUL OF THIS ARRAY SIZE...
+	/* TODO : CAREFUL OF THIS ARRAY SIZE... */
 	int xpos = 0, ypos = 0;
 
 	static char tempLineBuffer[1024] = {'\0'};
@@ -207,7 +207,7 @@ void ed_renderCurrentLine(){
 	return;
 }
 
-// This just renders the current window.
+/* This just renders the current window. */
 void ed_updateWindow(Workspace *workspace){
     EditorWindow *wnd = NULL;
 	
@@ -220,14 +220,14 @@ void ed_updateWindow(Workspace *workspace){
         exit(1);
     };
 
-    //hal_vid_clearBuffer(editormemptr);
+    /*hal_vid_clearBuffer(editormemptr); */
 
     wnd = workspace->currentWindow;
     
     if (!wnd->textArea) return;
 
 	dw_writeBufferEditorFormatted(
-		//editormemptr, 
+		/*editormemptr, */
 		textmemptr, 
 		wnd->x, 
 		wnd->y, 
@@ -241,9 +241,9 @@ void ed_updateWindow(Workspace *workspace){
 	return;
 }
 
-// This clears the screen and renders all windows.
+/* This clears the screen and renders all windows. */
 void ed_renderWindows(Workspace *workspace){
-	//int winLen = 0;
+	/*int winLen = 0; */
 	Node *rec = NULL;
 	EditorWindow *wnd = NULL;
 	if(!workspace){
@@ -259,7 +259,7 @@ void ed_renderWindows(Workspace *workspace){
 	hal_vid_clearBuffer(textmemptr);
 
 	rec = workspace->windowList->firstNode;
-	//winLen = workspace->windowList->length;
+	/*winLen = workspace->windowList->length; */
 	
 	while(rec){
 		wnd = (EditorWindow*)rec->data;
@@ -267,18 +267,18 @@ void ed_renderWindows(Workspace *workspace){
 		if(wnd){
 			wnd->height = VIDEO_ROWS - 2;
 
-			// TODO :
-			// Also, re calculate width and x start position relative to 
-			// the screen width.
+			/* TODO : */
+			/* Also, re calculate width and x start position relative to */
+			/* the screen width. */
 			
-			// ALSO...
-			// Recalculate cursor position if resoultion is lower than 
-			// the previous one
+			/* ALSO... */
+			/* Recalculate cursor position if resoultion is lower than */
+			/* the previous one */
 		
-			// We re-render the editor.
+			/* We re-render the editor. */
 			if (wnd && wnd->textArea) {
 				dw_writeBufferEditorFormatted(
-					//editormemptr, 
+					/*editormemptr, */
 					textmemptr, 
 					wnd->x, 
 					wnd->y, 
@@ -297,7 +297,7 @@ void ed_renderWindows(Workspace *workspace){
 	return;
 }
 
-// Makes a line duplicate
+/* Makes a line duplicate */
 Line *ed_dupLine(Line *src, MemoryArena *arena){
     Line *newLine = NULL;
 
@@ -339,9 +339,9 @@ void ed_moveCursor(short x, short y){
         exit(1);
     };
 
-    // If the number of lines is less than the screen heightc
-    // and the current Y cursor position is less than the nmber of lines
-    // DANGEROUS
+    /* If the number of lines is less than the screen heightc */
+    /* and the current Y cursor position is less than the nmber of lines */
+    /* DANGEROUS */
 
     if( 
         y > 0 && 
@@ -351,19 +351,19 @@ void ed_moveCursor(short x, short y){
     	)
 	)    return;
 
-    // We check if we are in the current line
+    /* We check if we are in the current line */
     if(! textArea->currentLineNode){
         logger("[ed_moveCursor]: CurrentLineNode is NULL");
         return;
     }
 
-    // VERTICAL SCROLLING ============================================
-	//
+    /* VERTICAL SCROLLING ============================================ */
+	/* */
 
-    // If the cursor is at 0 and we want to scroll up
+    /* If the cursor is at 0 and we want to scroll up */
     if(y && textArea->cursorLine + y >= 0){       
-        // IF the cursor is moved by 1 step, then we move the data 
-		// between nodes by one node
+        /* IF the cursor is moved by 1 step, then we move the data */
+		/* between nodes by one node */
         if(
             y == -1 &&
             textArea->currentLineNode->prev 
@@ -420,26 +420,26 @@ void ed_moveCursor(short x, short y){
         
         textArea->cursorLine += y;
 
-        // Cursor col update 
+        /* Cursor col update */
         if (textArea->currentLine->length < textArea->cursorCol){
             textArea->cursorCol = textArea->currentLine->length;
         }
 
         tabCount = _get_tab_counts_until(textArea->currentLine->length);
 
-        // Only if the last character in the the line to
-        // move is a tab, we get into the tab position 
-        // after.
+        /* Only if the last character in the the line to */
+        /* move is a tab, we get into the tab position */
+        /* after. */
         if(
             tabCount > 0 &&
             (size_t)tabCount == textArea->currentLine->length
         )
             textArea->cursorCol = tabCount;
     }
-    // END VERTICAL SCROLLING =====================================================
+    /* END VERTICAL SCROLLING ===================================================== */
 
-    // HORIZ, SCROLLING =
-	// ==========================================================
+    /* HORIZ, SCROLLING = */
+	/* ========================================================== */
     if(x){
         if(textArea->cursorCol + x <= 0){
             textArea->cursorCol = 0;
@@ -455,7 +455,7 @@ void ed_moveCursor(short x, short y){
     }
     
     
-    // END HORIZ, SCROLLING =====================================================
+    /* END HORIZ, SCROLLING ===================================================== */
 
 	ed_updateScrollX();
 	ed_updateScrollY();
@@ -464,9 +464,9 @@ void ed_moveCursor(short x, short y){
 }
 
 void ed_typeChar(char c){
-    // We type the char a
-    // X : currentCursorX + LINE_COUNTER_WIDTH + 1
-    // Y : currentCursorY + file->scrollY + 1 
+    /* We type the char a */
+    /* X : currentCursorX + LINE_COUNTER_WIDTH + 1 */
+    /* Y : currentCursorY + file->scrollY + 1 */
     int x = 0;
     int y = 0;
     int i = 0;
@@ -498,7 +498,7 @@ void ed_typeChar(char c){
     line = (Line *)node->data;
     line->length++;
     
-    // Had to use a loop instead of memcpy due to overlapping memory
+    /* Had to use a loop instead of memcpy due to overlapping memory */
     
     for(i = line->length - 1; i >= x; i--){
         line->buffer[i+1] = line->buffer[i];
@@ -520,9 +520,9 @@ void ed_typeChar(char c){
 }
 
 void ed_backspace(){
-        // We type the char at 
-    // X : currentCursorX + LINE_COUNTER_WIDTH + 1
-    // Y : currentCursorY + file->scrollY + 1 
+        /* We type the char at */
+    /* X : currentCursorX + LINE_COUNTER_WIDTH + 1 */
+    /* Y : currentCursorY + file->scrollY + 1 */
     int x = 0;
     int y = 0;
     Node *node = NULL;
@@ -560,14 +560,14 @@ void ed_backspace(){
         dw_requestRenderEvent(DW_RENDER_SELECTION);
         return;
     }
-    // Current character we are on
-    // If we are at the first character of the line
+    /* Current character we are on */
+    /* If we are at the first character of the line */
     if(x == 0){
         line = textArea->currentLine;
-        // wE Delete the current line but also we need to copy 
-		// the current line content to 
-        // the last character of the previous line
-        // We are at the first line of the file
+        /* wE Delete the current line but also we need to copy */
+		/* the current line content to */
+        /* the last character of the previous line */
+        /* We are at the first line of the file */
         if(!node->prev) return;
 
         prevNode = node->prev;
@@ -578,13 +578,13 @@ void ed_backspace(){
             return;
         }
 
-        // Check for buffer overflow before merging
+        /* Check for buffer overflow before merging */
         if((prevLine->length + line->length) >= MAX_FILE_LINE_LENGTH){
-             // Cancel merge if it would overflow
+             /* Cancel merge if it would overflow */
              return;
         }
 
-        // We only insert the content to the previous line if any
+        /* We only insert the content to the previous line if any */
         if(line->length > 0){
             memcpy(
 				prevLine->buffer + prevLine->length,
@@ -599,10 +599,10 @@ void ed_backspace(){
 
         ed_softDeleteLine(textArea, node);
                 
-        // Updating line metadata BEFORE recycling node
+        /* Updating line metadata BEFORE recycling node */
         textArea->currentLineNode = prevNode;
 
-        // Updating line metadata
+        /* Updating line metadata */
         textArea->cursorLine = 
             textArea->cursorLine > 0 
             ?   textArea->cursorLine - 1
@@ -714,7 +714,7 @@ void ed_newLine(){
         exit(1);
     };
     
-    // Check if adding a new line fulls file arena
+    /* Check if adding a new line fulls file arena */
     if(f_checkNewLineMemory(textArea) == false){
         if(settings.FILE_RESIZE == true){
             f_resizeTextArea(textArea);
@@ -730,7 +730,7 @@ void ed_newLine(){
     prevLineTabs =
 		 _get_tab_counts_until(textArea->currentLine->length);
 
-	// Creating new line/reusing deleted line
+	/* Creating new line/reusing deleted line */
     newLineNode = _resolveNewLine(textArea->file);
 
 	newLine = (Line*)newLineNode->data;
@@ -776,9 +776,9 @@ void ed_newLine(){
 		newLine->length += copyLen;
 	}
 
-	// =============
+	/* ============= */
 
-    // Copy prev line tabs
+    /* Copy prev line tabs */
     if(isAutoClose == true){
         newLine->buffer[indentTabs] = '}';
 		memset(
@@ -787,12 +787,12 @@ void ed_newLine(){
 			MAX_FILE_LINE_LENGTH - cursorCol
 		);
     }         
-    // We clear the current line position onwards
+    /* We clear the current line position onwards */
     
     textArea->currentLine->length = cursorCol;
 
-    // Pointer logic
-    // newLineNode is already allocated or recycled above
+    /* Pointer logic */
+    /* newLineNode is already allocated or recycled above */
     newLineNode->prev = textArea->currentLineNode;
     newLineNode->next =
         textArea->currentLineNode->next 
@@ -808,7 +808,7 @@ void ed_newLine(){
     textArea->currentLineNode->next = newLineNode;
     textArea->currentLineNode = newLineNode;
 
-    // Update List structure
+    /* Update List structure */
     if(!newLineNode->next){
         textArea->file->lines->lastNode = newLineNode;
     }
@@ -827,7 +827,7 @@ void ed_newLine(){
     textArea->currentLine = 
 		textArea->currentLineNode->data;
     
-    // Next line logic
+    /* Next line logic */
     textArea->nextLine = 
         textArea->currentLineNode->next &&
         textArea->currentLineNode->next->data
@@ -840,7 +840,7 @@ void ed_newLine(){
     textArea->cursorCol = 0 + indentTabs;
     textArea->cursorLine++;
 
-    // activity flags
+    /* activity flags */
     textArea->file->isModified = true;
     
     ed_markActive(ED_ACTIVITY_NEWLINE);
@@ -850,7 +850,7 @@ void ed_newLine(){
 	dw_requestRenderEvent(DW_RENDER_WINDOW);
 }
 
-// PROMPT ELEMENT
+/* PROMPT ELEMENT */
 char *ed_scanf(
 	unsigned char x, 
 	unsigned char y, 
@@ -886,32 +886,32 @@ char *ed_scanf(
                 ed_putCursor(x + i, y);
             } 
             if(c == KEY_DELETE){
-                // Shift to the left the buffer from the current 
-				// position 
+                /* Shift to the left the buffer from the current */
+				/* position */
                 lenbuff = strlen(buffer);
                 for(j=i; j < lenbuff; j++){
                     buffer[j] = buffer[j+1];
                 }
 
-                // Redraw he entire prompt by copying the
-				//  buffer content to the screen buffer
+                /* Redraw he entire prompt by copying the */
+				/*  buffer content to the screen buffer */
                 for(j=0;j <  maxChars; j++){
                     dw_charXY(textmemptr,buffer[j], x+j, y);
                 }
             }
         }else{   
-            // OK
+            /* OK */
             if(c == CHAR_BACKSPACE && i > 0 ){
                 lenbuff = strlen(buffer);
                 for(j=i; i > 0 && j < lenbuff + 1; j++){
                     buffer[j - 1] = buffer[j];
                 }   
                 
-                // Redraw
+                /* Redraw */
                 i--;
 
-                // Redraw he entire prompt by copying the 
-				// buffer content to the screen buffer
+                /* Redraw he entire prompt by copying the */
+				/* buffer content to the screen buffer */
                 for(j=0;j < maxChars; j++){
                     dw_charXY(textmemptr,buffer[j], x+j, y);
                 }   
@@ -929,8 +929,8 @@ char *ed_scanf(
 
                 buffer[i] = ' ';
 
-                // Redraw he entire prompt by copying the buffer 
-				// content to the screen buffer
+                /* Redraw he entire prompt by copying the buffer */
+				/* content to the screen buffer */
                 for(j=0;j <  maxChars; j++){
                     dw_charXY(textmemptr,buffer[j], x+j, y);
                 }   
@@ -958,9 +958,9 @@ char *ed_scanf(
 }
 
 
-// PROMPT ELEMENT
-// This is async, i mean, each loop step like in the original function
-// in ed_scanf, is done outside the function call.
+/* PROMPT ELEMENT */
+/* This is async, i mean, each loop step like in the original function */
+/* in ed_scanf, is done outside the function call. */
 char *ed_async_scanf(
 	unsigned char x, 
 	unsigned char y, 
@@ -979,7 +979,7 @@ char *ed_async_scanf(
     
     ed_putCursor(x + (*stepIndex),y);    
     
-    // Redraw he entire prompt by copying the buffer content to the screen buffer
+    /* Redraw he entire prompt by copying the buffer content to the screen buffer */
     for(j=0;j < maxChars; j++){
         if(j > (int)bufflen){
             dw_charXY(textmemptr,' ', x+j, y);
@@ -1003,7 +1003,7 @@ char *ed_async_scanf(
             ed_putCursor(x + (*stepIndex), y);
         } 
         if(c == KEY_DELETE){
-            // Shift to the left the buffer from the current position 
+            /* Shift to the left the buffer from the current position */
             lenbuff = strlen(buffer);
             for(j=(*stepIndex); j < lenbuff; j++){
                 buffer[j] = buffer[j+1];
@@ -1011,14 +1011,14 @@ char *ed_async_scanf(
 
         }
     }else{   
-        // OK
+        /* OK */
         if(c == CHAR_BACKSPACE && (*stepIndex) > 0 ){
             lenbuff = strlen(buffer);
             for(j=(*stepIndex); (*stepIndex) > 0 && j < lenbuff + 1; j++){
                 buffer[j - 1] = buffer[j];
             }   
             
-            // Redraw
+            /* Redraw */
             (*stepIndex)--;
 
             ed_putCursor(x + (*stepIndex), y);
@@ -1034,7 +1034,7 @@ char *ed_async_scanf(
             
             (*stepIndex)++;
             ed_putCursor(x + (*stepIndex), y);
-        // Only accept printable characters (ASCII >= 32)
+        /* Only accept printable characters (ASCII >= 32) */
         } else if (
 			c >= 32 &&
 			(*stepIndex) < charLimit && 
@@ -1054,7 +1054,7 @@ char *ed_async_scanf(
     return buffer;
 }
 
-// Update a window textArea currentLine from cursorLine
+/* Update a window textArea currentLine from cursorLine */
 void ed_updateCurrentLine(EditorWindow *window){
     Node *currNode = NULL;
     Line *currLine = NULL;
@@ -1098,7 +1098,7 @@ void ed_updateCurrentLine(EditorWindow *window){
     return;
 }
 
-// HOME
+/* HOME */
 void ed_putCursorEnd(){
 	static TextArea *textArea = NULL;
 
@@ -1122,7 +1122,7 @@ void ed_putCursorEnd(){
     ed_updateCursor();
 }
 
-// END
+/* END */
 void ed_putCursorStart(){   
 	static TextArea *textArea = NULL;
 
@@ -1144,7 +1144,7 @@ void ed_putCursorStart(){
     ed_updateCursor();
 }
 
-// PG UP
+/* PG UP */
 void ed_putCursorFistLine(){
     int screenHeightJump = 0;
 	static TextArea *textArea = NULL;
@@ -1161,39 +1161,39 @@ void ed_putCursorFistLine(){
     screenHeightJump = currentWindow->height;
     textArea = currentWindow->textArea;
 
-    // if we are on any line but the line position is
-    // over the screeen height
+    /* if we are on any line but the line position is */
+    /* over the screeen height */
     if(textArea->cursorLine > textArea->scrollY){
         textArea->cursorLine = textArea->scrollY;
     }else if(
-        // If we are on any page after the third one
+        /* If we are on any page after the third one */
         textArea->cursorLine == textArea->scrollY &&
         (textArea->cursorLine - screenHeightJump > 0)
     ){
         textArea->cursorLine -= screenHeightJump;
     }else if( 
-        // if we are on top but already on the second page
+        /* if we are on top but already on the second page */
         textArea->cursorLine == textArea->scrollY
     ){
         textArea->cursorLine = 0;
     }
     
-    // We update the currentLineNode, currentLine, prevLine, nextLine
-    // File attrs. 
+    /* We update the currentLineNode, currentLine, prevLine, nextLine */
+    /* File attrs. */
     ed_updateCurrentLine(currentWindow);
 
-    // Truncate cursorCol if next position line length is
-    // shorter than the previous one
+    /* Truncate cursorCol if next position line length is */
+    /* shorter than the previous one */
     if(textArea->cursorCol > textArea->currentLine->length)
         textArea->cursorCol = textArea->currentLine->length;
     
-    // Sync file cursor
+    /* Sync file cursor */
     ed_updateScrollY();
 	dw_requestRenderEvent(DW_RENDER_WINDOW);
     ed_updateCursor();
 }
 
-// PG DOWN
+/* PG DOWN */
 void ed_putCursorLastLine(){
     int screenHeightJump = 0;
 	static TextArea *textArea = NULL;
@@ -1210,7 +1210,7 @@ void ed_putCursorLastLine(){
     screenHeightJump = currentWindow->height;
     textArea = currentWindow->textArea;
     
-    // If we are sitting on the last line of the page
+    /* If we are sitting on the last line of the page */
     if(
         (textArea->cursorLine - textArea->scrollY) == 
         (screenHeightJump)
@@ -1224,8 +1224,8 @@ void ed_putCursorLastLine(){
             textArea->cursorLine += screenHeightJump;
         }
     }else{
-        // If we are sitting in the middle of the page, we just go
-        // to the bottom of the page
+        /* If we are sitting in the middle of the page, we just go */
+        /* to the bottom of the page */
         if(textArea->file->lines->length > screenHeightJump){
             textArea->cursorLine = 
                 textArea->scrollY + screenHeightJump;
@@ -1235,17 +1235,17 @@ void ed_putCursorLastLine(){
         }
     }
     
-    // We update the currentLineNode, currentLine, prevLine, nextLine
-    // File attrs. 
+    /* We update the currentLineNode, currentLine, prevLine, nextLine */
+    /* File attrs. */
     ed_updateCurrentLine(currentWindow);
 
-    // Truncate cursorCol if next position line length is
-    // shorter than the previous one
+    /* Truncate cursorCol if next position line length is */
+    /* shorter than the previous one */
     if(textArea->cursorCol > textArea->currentLine->length)
         textArea->cursorCol = textArea->currentLine->length;
-    // then we need to reset some flags so we can redraw the screen properly
+    /* then we need to reset some flags so we can redraw the screen properly */
     
-    // Sync file cursor
+    /* Sync file cursor */
     ed_updateScrollY();
 	dw_requestRenderEvent(DW_RENDER_WINDOW);
     ed_updateCursor();
@@ -1304,9 +1304,9 @@ void ed_wordJump(short wordJump){
     ed_updateCursor();
 }
 
-// This is for swapping the lines with the next or previous one with the
-// ALT + UP or ALT + DOWN key stroke.
-// Similar to visual studio code editor feature
+/* This is for swapping the lines with the next or previous one with the */
+/* ALT + UP or ALT + DOWN key stroke. */
+/* Similar to visual studio code editor feature */
 
 void ed_swapLine(short lineJump){
 	static TextArea *textArea = NULL;
@@ -1341,7 +1341,7 @@ void ed_swapLine(short lineJump){
             tmpNext = currentLineNode->next;
 		    tmpPrev = currentLineNode->prev;
 
-            // Is head
+            /* Is head */
             if(currentLineNode->prev == NULL) 
 				break;
 

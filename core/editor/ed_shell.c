@@ -2,12 +2,12 @@
 
 /* Shell spawn.. */
 void ed_shellSpawn(){
-    char cmd[255];
+    char cmd[512];
     char currPath[255];
     char *comspec = NULL;
     TextArea *textArea = NULL;
 
-    memset(cmd, '\0', 255);
+    memset(cmd, '\0', 512);
     memset(currPath, '\0', 255);
 
 #if defined(__MSDOS__) || defined(__WATCOMC__)

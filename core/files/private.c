@@ -21,14 +21,14 @@ int _checkAvailableName(){
 
     wndNode = currentWorkspace->windowList->firstNode;
     
-	// EditorWindow travel
+	/* EditorWindow travel */
 	while(wndNode){
         wnd = (EditorWindow *)wndNode->data;
         
 		if(wnd && wnd->textAreaList){
             fileNode = wnd->textAreaList->firstNode;
             
-			// textArea travel
+			/* textArea travel */
 			while(fileNode){
 				textArea = (TextArea *)fileNode->data;
                 
@@ -40,11 +40,11 @@ int _checkAvailableName(){
                     fileName = textArea->file->name;
                     match = strstr(fileName, "newfile");
 
-					// Check if there is a match
-					// and if the match position 
-					// is at the beginnig of the 
-					// filename, so at the same 
-					// pointer of filename.
+					/* Check if there is a match */
+					/* and if the match position */
+					/* is at the beginnig of the */
+					/* filename, so at the same */
+					/* pointer of filename. */
                     if(
 						match && 
 						match == fileName 
@@ -194,7 +194,7 @@ int _goBackPath(char *path){
     return (int)(endptr - path) + 1;
 }
 
-// We check if the filename is a default one (ie newfile1.c)
+/* We check if the filename is a default one (ie newfile1.c) */
 bool _isDefaultFileName(void){
     char filename[8] = {'\0'};
     bool res = false;

@@ -24,7 +24,7 @@ bool ed_checkStatusBarMessage(){
 
     time(&endClock);
 
-    // 5 seconds of duration
+    /* 5 seconds of duration */
     if(difftime(endClock, ed_globalAuxTimer) > 5){
         memset(statusBarMessage, '\0', ED_STATUSBAR_WIDTH - 1);
         ed_globalAuxTimer = 0;
@@ -35,7 +35,7 @@ bool ed_checkStatusBarMessage(){
     return true;
 }
 
-// Statusbar drawing function
+/* Statusbar drawing function */
 void ed_statusBar(){
 	static TextArea *textArea = NULL;
 

@@ -1,7 +1,7 @@
 #ifndef APP_MAIN_H
 #define APP_MAIN_H
 
-// DEPS (Generic/Portable)
+/* DEPS (Generic/Portable) */
 #include "../deps/data/data.h"
 #include "../deps/env/env.h"
 #include "../deps/log/log.h"
@@ -10,19 +10,19 @@
 #include "../deps/ext/vsnprntf.h"
 #include "../deps/str/str.h"
 
-// HAL (Hardware Abstraction Layer)
+/* HAL (Hardware Abstraction Layer) */
 #include "../hal/hal_vid.h"
 #include "../hal/hal_inp.h"
 #include "../hal/hal_fs.h"
 
-// PLATFORM SPECIFIC (DOS DRIVERS)
+/* PLATFORM SPECIFIC (DOS DRIVERS) */
 #if defined(__MSDOS__) || defined(__WATCOMC__)
 #include "../platform/dos/input/input.h"
 #include "../platform/dos/video/video.h"
 #include "../platform/dos/fs/fs.h"
 #endif
 
-// CORE ENGINE
+/* CORE ENGINE */
 #include "../core/std.h"
 #include "../core/settings/settings.h"
 #include "../core/draw/draw.h"

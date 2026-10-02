@@ -1,23 +1,23 @@
 #include "files.h"
 
-// ==== SEARCH BEHAVIOR ==================================
+/* ==== SEARCH BEHAVIOR ================================== */
 
-// * Each file arena has its own fileSearchMetadata, its not insidie the 
-// File definition because this could cause memory usage issues when 
-// there are many Word matches, so it separate for better memory 
-// perfomance and control
+/* * Each file arena has its own fileSearchMetadata, its not insidie the */
+/* File definition because this could cause memory usage issues when */
+/* there are many Word matches, so it separate for better memory */
+/* perfomance and control */
 
-// * The search metadata stores all matches in a pointer array. So,
+/* * The search metadata stores all matches in a pointer array. So, */
 
-// * Every time the file changes the searchMetadata of the textArea
-// MUST be flush, so there are no dangling pointers nor references to a word
-// address that changed.
+/* * Every time the file changes the searchMetadata of the textArea */
+/* MUST be flush, so there are no dangling pointers nor references to a word */
+/* address that changed. */
 
-// * The fileListSearchMetadata INDEX is parallel to fileList textArea
-// this makes sure there are no collisions when flushing or filling the 
-// metadata of an already opened file.
+/* * The fileListSearchMetadata INDEX is parallel to fileList textArea */
+/* this makes sure there are no collisions when flushing or filling the */
+/* metadata of an already opened file. */
 
-// The access to the current search meta data index is easy with 
+/* The access to the current search meta data index is easy with */
 
 void ed_prepareSearchTool(){
     if(
@@ -54,7 +54,7 @@ SearchMetadata *f_createSearchMetadata(char *filename){
 	SearchMetadata *new = NULL;
 	MemoryArena *arena = NULL;
 	
-	// we could improve by also adding a random number between them
+	/* we could improve by also adding a random number between them */
 	sprintf(newName, "SRCH-%s",fs_getFileName(filename));
 	arena = (MemoryArena*)mem_arena_create(newName, MEM_ARENA_2K);
 
@@ -78,7 +78,7 @@ SearchMetadata *f_createSearchMetadata(char *filename){
 	return new;
 }
 
-// Free a search meta data object
+/* Free a search meta data object */
 void f_freeSearchMetadata(SearchMetadata *searchMetaData){
     MemoryArena *arena = NULL;
 
@@ -92,7 +92,7 @@ void f_freeSearchMetadata(SearchMetadata *searchMetaData){
     mem_arena_free(arena);
 }
 
-// Reset search metadata, by creating a new fresh arena with
+/* Reset search metadata, by creating a new fresh arena with */
 SearchMetadata *f_resetSearchMetadata(SearchMetadata *searchMetadata){
     char *oldName = NULL;
     if(
@@ -100,7 +100,7 @@ SearchMetadata *f_resetSearchMetadata(SearchMetadata *searchMetadata){
         !searchMetadata->arena
     ) return NULL;
 
-    // Offeted to the end  of the SRCH- prefix
+    /* Offeted to the end  of the SRCH- prefix */
     oldName = strdup(searchMetadata->arena->name + 5);
 
     f_freeSearchMetadata(searchMetadata);
@@ -109,8 +109,8 @@ SearchMetadata *f_resetSearchMetadata(SearchMetadata *searchMetadata){
 
     return searchMetadata;
 }
-// This is a small program for testing. 
-// The purpose is take a phrase and count the words.e
+/* This is a small program for testing. */
+/* The purpose is take a phrase and count the words.e */
 
 int ed_wordCountInStr(char *str){
 	int wordCount = 0;
@@ -121,21 +121,21 @@ int ed_wordCountInStr(char *str){
 	char detectedWord[255] = {'\0'};
 	wordIndexPtr = str;
 	
-	// No words!Wing by spac
+	/* No words!Wing by spac */
 	if(*wordIndexPtr == '\0') return 0;
 
 	while(wordIndexPtr && *wordIndexPtr != '\0'){
-		// Buffer reset
-		// Word start is when the previous char is empty space
-		// Word end is when next char is space
-		// We have to ignore escape chars
-		// We need to calculate the len between both detectedWord offsets.
+		/* Buffer reset */
+		/* Word start is when the previous char is empty space */
+		/* Word end is when next char is space */
+		/* We have to ignore escape chars */
+		/* We need to calculate the len between both detectedWord offsets. */
 		if(!detectedStartOffset &&
 			isalpha(*wordIndexPtr)
 		){
 			detectedStartOffset = wordIndexPtr;
 		
-		// If is an space, we know that a word ended
+		/* If is an space, we know that a word ended */
 		}else if (*wordIndexPtr == ' ' || *(wordIndexPtr + 1) == '\0'){
 			detectedEndOffset = wordIndexPtr;
 			
@@ -144,7 +144,7 @@ int ed_wordCountInStr(char *str){
 				detectedWordLen = detectedEndOffset - detectedStartOffset;
 				memcpy(detectedWord, detectedStartOffset, detectedWordLen);
 				detectedWord[detectedWordLen] = '\0';
-				//printf("\nDetected word: %s", detectedWord);
+				/*printf("\nDetected word: %s", detectedWord); */
 			}
             
 			detectedStartOffset = NULL;
@@ -159,8 +159,8 @@ int ed_wordCountInStr(char *str){
 	return wordCount;
 }
 
-// This will find word matches according to the currentSearchMetadata
-// found word match
+/* This will find word matches according to the currentSearchMetadata */
+/* found word match */
 void ed_findWord(){
     int wordLen = 0;
     unsigned int lineIndex = 0;
@@ -215,13 +215,13 @@ void ed_findWord(){
     searchMetadata->words = NULL;
     searchMetadata->currentWordNode = NULL;
 
-    // If searchMetadata atributes are NULl this means that there is no previous search done
-    // So we will begin the process.
+    /* If searchMetadata atributes are NULl this means that there is no previous search done */
+    /* So we will begin the process. */
 
-    // If there is already a metadata
+    /* If there is already a metadata */
 
-    // Depending on the orientation ( previous, next ) we will look forward or previous from the wordOffset and 
-    // the line index.
+    /* Depending on the orientation ( previous, next ) we will look forward or previous from the wordOffset and */
+    /* the line index. */
     logger(
 		"[ed_findWord]: Current word! : %s",
 		searchMetadata->dialogInputBuffer
@@ -240,7 +240,7 @@ void ed_findWord(){
         }
         
         wordIndexPtr = ((Line*)(lineNode->data))->buffer;
-        // No words!Wing by spac
+        /* No words!Wing by spac */
         if(*wordIndexPtr == '\0'){
             lineNode = lineNode->next;
             lineIndex++;
@@ -273,7 +273,7 @@ void ed_findWord(){
             logger("[ed_findWord]: matchBuffer->cursorLine = %d", lineIndex);
 
             matchBuffer->cursorCol = detectedWordOffset - wordIndexPtr;
-            // Word position in line
+            /* Word position in line */
             matchBuffer->wordPtr = detectedWordOffset;
             
             addGenericNode(
@@ -295,7 +295,7 @@ void ed_findWord(){
         lineIndex++;
     }
 
-    // We set the first found word as current word
+    /* We set the first found word as current word */
     searchMetadata->currentWordNode =
         searchMetadata->words &&
         searchMetadata->words->firstNode
@@ -379,7 +379,7 @@ void ed_searchMoveCursor(){
 		hal_inp_isKeyDown(HAL_KEY_ENTER) && 
 		!hal_inp_isKeyDown(HAL_KEY_LSHIFT)
 	){
-        // We go forward
+        /* We go forward */
         searchMetadata->currentWordNode = 
             searchMetadata->currentWordNode &&
             searchMetadata->currentWordNode->next
@@ -390,7 +390,7 @@ void ed_searchMoveCursor(){
 		hal_inp_isKeyDown(HAL_KEY_ENTER) && 
 		hal_inp_isKeyDown(HAL_KEY_LSHIFT)
 	){
-        // We go back         
+        /* We go back */
         searchMetadata->currentWordNode = 
             searchMetadata->currentWordNode &&
             searchMetadata->currentWordNode->prev
@@ -398,7 +398,7 @@ void ed_searchMoveCursor(){
             : searchMetadata->currentWordNode ;        
     }
 
-    // We update the cursor
+    /* We update the cursor */
     textArea->currentLineNode = 
         searchMetadata->currentWordNode &&
         searchMetadata->currentWordNode->data &&

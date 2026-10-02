@@ -18,7 +18,7 @@ List *createList(MemoryArena *arena){
 
 	return newList;
 }
-// DO NOT USE IF YOU ARE USING ARENAS
+/* DO NOT USE IF YOU ARE USING ARENAS */
 void deleteNodeByIndex(List **list, int index){
     int i=0;
     Node *rec = (*list)->firstNode;
@@ -52,9 +52,9 @@ void deleteNodeByIndex(List **list, int index){
 }
 
 
-// This removes a node from a list
-// NOTE: This does not free the node data,
-// you have to free it after removing the node betwen.
+/* This removes a node from a list */
+/* NOTE: This does not free the node data, */
+/* you have to free it after removing the node betwen. */
 void deleteNodeByPtr(List **list, void *ptr){
     void *nodeData = NULL;
     Node *rec = NULL;
@@ -92,7 +92,7 @@ void deleteNodeByPtr(List **list, void *ptr){
     }
 }
 
-// USE THIS IF YOU ARE USING ARENAS
+/* USE THIS IF YOU ARE USING ARENAS */
 void softDeleteByIndex(List **list, int index){
     int i=0;
     Node *rec = (*list)->firstNode;
@@ -121,7 +121,7 @@ void softDeleteByIndex(List **list, int index){
     return;
 }
 
-// TODO : TEST THIS FUNCTION
+/* TODO : TEST THIS FUNCTION */
 Node *insertByIndex(List **list, Node *newNode, unsigned int index){
     Node *temp = NULL;
 
@@ -143,7 +143,7 @@ Node *insertByIndex(List **list, Node *newNode, unsigned int index){
     }
 }
 
-// TODO : TEST THIS FUNCTION
+/* TODO : TEST THIS FUNCTION */
 
 Node *pop(List **list){
     Node *popped = NULL;
@@ -175,7 +175,7 @@ Node *pop(List **list){
 
 }
 
-// TODO: TEST THIS FUNCTION
+/* TODO: TEST THIS FUNCTION */
 
 List *invertList(List **list){
     Node *rec, *tmp = NULL;
@@ -221,7 +221,7 @@ Node *getNodeByIndex(List **list, int index){
     return NULL;
 }
 
-// DONT USE THIS FUNCTION IF YOU ARE USING ARENAS
+/* DONT USE THIS FUNCTION IF YOU ARE USING ARENAS */
 void freeList(List **list){
     Node *current = (*list)->firstNode;
     Node *temp;
@@ -235,7 +235,7 @@ void freeList(List **list){
     *list = NULL;
 }
 
-//
+/* */
 bool includes(float val, float *arr, size_t n) {
     size_t i = 0;
     for(i = 0; i < n; i++) {
@@ -245,7 +245,7 @@ bool includes(float val, float *arr, size_t n) {
     return false;
 }
 
-// Adds node diretly to List
+/* Adds node diretly to List */
 void addNode(List **list, Node *newNode, MemoryArena *arena){
     Node *rec = NULL;
     if((*list) == NULL){
@@ -277,8 +277,8 @@ void addNode(List **list, Node *newNode, MemoryArena *arena){
     (*list)->length++;
 }
 
-// Adds data to a list in a generi way
-// The data is auto-wrapped to a NOde.
+/* Adds data to a list in a generi way */
+/* The data is auto-wrapped to a NOde. */
 void addGenericNode(List **list, void *data, MemoryArena *arena){
 	Node *newNode = NULL;
 
@@ -298,8 +298,8 @@ void addGenericNode(List **list, void *data, MemoryArena *arena){
 	addNode(list, newNode, arena);
 }
 
-// This brings the entire Node from a list
-// if there is any match of data ptr. 
+/* This brings the entire Node from a list */
+/* if there is any match of data ptr. */
 Node *getNodeByDataPtr(List **list, void *data){
     Node *rec = NULL;
 

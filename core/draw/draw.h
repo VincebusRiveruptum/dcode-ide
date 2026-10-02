@@ -66,12 +66,12 @@ typedef enum {
 	DW_RENDER_NONE = 0,
 	DW_RENDER_CURSOR,
 	DW_RENDER_LINE,
-	DW_RENDER_SELECTION,  // REndering just the selected line
+	DW_RENDER_SELECTION,  /* REndering just the selected line */
 	DW_RENDER_STATUSBAR,
 	DW_RENDER_UI,
 	DW_RENDER_SEARCH,
 	DW_RENDER_WINDOW,
-	DW_RENDER_ALL,
+	DW_RENDER_ALL
 } RenderType;
 
 void dw_cls(unsigned short *buffer);
@@ -116,7 +116,7 @@ void dw_writeColor(unsigned short *buffer, int x, int y, unsigned short foregrou
 char dw_readForegroundColor(unsigned short *buffer, int x, int y);
 char dw_readBackgroundColor(unsigned short *buffer, int x, int y);
 
-// SINGLE LINE FORMATTING
+/* SINGLE LINE FORMATTING */
 void dw_c_lineFormatter(
 	unsigned short *destBuffer, 
 	int x, 
@@ -148,8 +148,8 @@ void dw_requestRenderEvent(RenderType renderType);
 extern unsigned char currentCursorX;
 extern unsigned char currentCursorY;
 
-//extern bool ed_renderLineEvent;
-//extern bool ed_fullRenderEvent;
+/*extern bool ed_renderLineEvent; */
+/*extern bool ed_fullRenderEvent; */
 extern bool dw_renderEvent;
 extern RenderType dw_renderEventType;
 

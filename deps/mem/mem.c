@@ -40,11 +40,11 @@ void mem_arena_init(MemoryArena *arena, char *name, size_t size){
     logger("\n[mem_arena_init]: Arena %s initialized with %d bytes", name, size);
 }
 
-// Not the best approach, but if someon wants to directly asign to an already
-// avaliable arena object in the scope, they just pass the pointer to 
-// the first parameter, 
-// If is not in the same scope, you pass the name of the arena and the function itself
-// will search for it
+/* Not the best approach, but if someon wants to directly asign to an already */
+/* avaliable arena object in the scope, they just pass the pointer to */
+/* the first parameter, */
+/* If is not in the same scope, you pass the name of the arena and the function itself */
+/* will search for it */
 
 void *mem_arena_alloc(MemoryArena *arenaPtr, size_t size){
     void *ptr = NULL;

@@ -1,7 +1,10 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g -O2 -Ihal -Iapp -Icore -Ideps/data -Ideps/sort \
--Ideps/env -Ideps/str -Ideps/mem -Ideps/log -Ideps/ext -Iplatform/linux/input \
--Iplatform/linux/video -Iplatform/linux/fs
+INCLUDES = -Ihal -Iapp -Icore -Ideps/data -Ideps/sort \
+	-Ideps/env -Ideps/str -Ideps/mem -Ideps/log -Ideps/ext -Iplatform/linux/input \
+	-Iplatform/linux/video -Iplatform/linux/fs
+
+CFLAGS ?= -std=c89 -pedantic -Wall -Wextra -g -O2
+override CFLAGS += $(INCLUDES)
 
 TARGET = dcode
 
@@ -41,15 +44,11 @@ $(TARGET): $(OBJS)
 	$(CC) $(OBJS) -o $(TARGET)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-%.o: %.c
 	$(CC) $(CFLAGS) -x c -c $< -o $@
 
 clean:
 	@mkdir -p ./bin/linux
-	@cp ./$(TARGET) ./bin/linux/ 
-	@rm ./$(TARGET) 
-	@rm -f $(OBJS) $(TARGET)
+	@if [ -f ./$(TARGET) ]; then cp ./$(TARGET) ./bin/linux/; rm -f ./$(TARGET); fi
+	@rm -f $(OBJS)
 
 .PHONY: all clean

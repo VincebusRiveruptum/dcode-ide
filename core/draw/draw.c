@@ -3,17 +3,17 @@
 bool dw_renderEvent = true;
 RenderType dw_renderEventType=DW_RENDER_ALL;
 
-// Private functions
+/* Private functions */
 
-// SENTENCE - WORD 
-// tHIS WILL DETECT THE COMMENT ENDS IN THE SINGLE LINE
+/* SENTENCE - WORD */
+/* tHIS WILL DETECT THE COMMENT ENDS IN THE SINGLE LINE */
 
-// Three posible scenarios
-// TERRIBLE I KNOW BUT WORKS
+/* Three posible scenarios */
+/* TERRIBLE I KNOW BUT WORKS */
 unsigned char _isEscapeChar(char *c, bool *isIdentifier){
     bool isEscapeChar = false;
 
-    // ESCAPE CHAR DETECTION
+    /* ESCAPE CHAR DETECTION */
     if(*(c) == '\\' || 
         (*c) == 'a' ||
         (*c) == 'b' ||
@@ -52,7 +52,7 @@ unsigned char _isEscapeChar(char *c, bool *isIdentifier){
         return isEscapeChar ? COLOR_LIGHT_RED : 0;
     };
 
-    // string parameter identifier detection
+    /* string parameter identifier detection */
     if(*(c) == '%'){
         *isIdentifier = true;
         return COLOR_BROWN;
@@ -140,26 +140,26 @@ bool _isWordEnd(char *csWordEnd){
         *(csWordEnd) == '\n' ||
         *(csWordEnd) == '\r' ||
         
-        // DEPENDS
+        /* DEPENDS */
         _isExpression(csWordEnd)
     )    return true;
 
     return false;
 }
 
-// THIS DETECTS WORDS THAT ARE MORE THAN ONE CHARACTER
+/* THIS DETECTS WORDS THAT ARE MORE THAN ONE CHARACTER */
 unsigned char _keywordMap(char *word){
     if(!word) return DW_RESWORD_NONE;
 
-    // CONST
+    /* CONST */
     if(isupper(*word) && isupper(*(word + 1))) return DW_RESWORD_CONSTANT;
     if(atoi(word)) return DW_RESWORD_INT;
     if(atof(word)) return DW_RESWORD_FLOAT;
-    // Then we check if it's a keyword
+    /* Then we check if it's a keyword */
     if(*word == '/' && *(word + 1) == '/') return DW_RESWORD_COMMENT;
     if(*word == '\'' && word[strlen(word) - 1] == '\'') return DW_RESWORD_CHAR;
     
-    // DW_RESWORD_TYPES
+    /* DW_RESWORD_TYPES */
     if (strcmp(word, "int") == 0) return DW_RESWORD_TYPES;
     if (strcmp(word, "long") == 0) return DW_RESWORD_TYPES;
     if (strcmp(word, "short") == 0) return DW_RESWORD_TYPES;
@@ -174,7 +174,7 @@ unsigned char _keywordMap(char *word){
     if (strcmp(word, "struct") == 0) return DW_RESWORD_TYPES;
     if (strcmp(word, "union") == 0) return DW_RESWORD_TYPES;
     
-    // Known STD types
+    /* Known STD types */
     if (strcmp(word, "FILE") == 0) return DW_RESWORD_STD_FUNC;
     if (strcmp(word, "ptrdiff_t") == 0) return DW_RESWORD_STD_FUNC;
     if (strcmp(word, "wchar_t") == 0) return DW_RESWORD_STD_FUNC;
@@ -190,7 +190,7 @@ unsigned char _keywordMap(char *word){
     if (strcmp(word, "va_list") == 0) return DW_RESWORD_STD_FUNC;
     if (strcmp(word, "lconv") == 0) return DW_RESWORD_STD_FUNC;
     
-    // known DOS.H types
+    /* known DOS.H types */
     if (strcmp(word, "REGS") == 0) return DW_RESWORD_DOS_FUNC;
     if (strcmp(word, "WORDREGS") == 0) return DW_RESWORD_DOS_FUNC;
     if (strcmp(word, "BYTEREGS") == 0) return DW_RESWORD_DOS_FUNC;
@@ -215,7 +215,7 @@ unsigned char _keywordMap(char *word){
     if (strcmp(word, "extern") == 0) return DW_RESWORD_CONTROL_FLOW;
     if (strcmp(word, "volatile") == 0) return DW_RESWORD_CONTROL_FLOW;
     
-    // Preprocessor directives
+    /* Preprocessor directives */
     if (strcmp(word, "#include") == 0) return DW_RESWORD_PREPROCESSOR;
     if (strcmp(word, "#define") == 0) return DW_RESWORD_PREPROCESSOR;
     if (strcmp(word, "#ifdef") == 0) return DW_RESWORD_PREPROCESSOR;
@@ -233,14 +233,14 @@ unsigned char _keywordMap(char *word){
     
     if (*word == '0') return DW_RESWORD_INT;
     
-    // Boolean values
+    /* Boolean values */
     if (strcmp(word, "true") == 0) return DW_RESWORD_CONSTANT;
     if (strcmp(word, "false") == 0) return DW_RESWORD_CONSTANT;
 
-    // Null
+    /* Null */
     if (strcmp(word, "NULL") == 0) return DW_RESWORD_CONSTANT;
 
-    // Comments
+    /* Comments */
     if (strcmp(word, "//") == 0) return DW_RESWORD_COMMENT;
     if (strcmp(word, "/*") == 0) return DW_RESWORD_COMMENT;
     if (strcmp(word, "*/") == 0) return DW_RESWORD_COMMENT;
@@ -250,7 +250,7 @@ unsigned char _keywordMap(char *word){
     return DW_RESWORD_NONE;
 }
 
-char _getBorderCharacter(BorderType borderType, RectangleSides side){
+unsigned char _getBorderCharacter(BorderType borderType, RectangleSides side){
     switch(borderType){
         case DRAW_BORDER_SIMPLE:
             switch(side){
@@ -278,28 +278,28 @@ char _getBorderCharacter(BorderType borderType, RectangleSides side){
         case DRAW_BORDER_DOUBLE:
             switch(side){
                 case DW_SIDE_TOP_LEFT:
-                    return 0xC9; //'É';
+                    return 0xC9; /*'É'; */
                 case DW_SIDE_TOP_RIGHT:
-                    return 0xBB;//'»';
+                    return 0xBB;/*'»'; */
                 case DW_SIDE_BOTTOM_LEFT:
-                    return 0xC8;//'È';
+                    return 0xC8;/*'È'; */
                 case DW_SIDE_BOTTOM_RIGHT:
-                    return 0xBC;//'¼';
+                    return 0xBC;/*'¼'; */
                 case DW_SIDE_TOP:
-                    return 0xCD;//'Í';
+                    return 0xCD;/*'Í'; */
                 case DW_SIDE_BOTTOM:
-                    return 0xCD; //'Í';
+                    return 0xCD; /*'Í'; */
                 case DW_SIDE_LEFT:
-                    return 0xBA; //'º';
+                    return 0xBA; /*'º'; */
                 case DW_SIDE_RIGHT:
-                    return 0xBA; //'º';
+                    return 0xBA; /*'º'; */
                 case DW_SIDE_ALL:
-                    return 0xB0; //'°';
+                    return 0xB0; /*'°'; */
                 default:
-                    return 0xB0; //'°';
+                    return 0xB0; /*'°'; */
             }
         default:
-            return 0xB0; //'°';
+            return 0xB0; /*'°'; */
     }
 }
 
@@ -434,9 +434,9 @@ void dw_rectangle(
     ){
 
     unsigned short screenCharacter = 0;
-    unsigned short i = 0;
-    unsigned short leftLimit = 0;
-    unsigned short rightLimit = 0;
+    size_t i = 0;
+    size_t leftLimit = 0;
+    size_t rightLimit = 0;
     unsigned short width = 0;
     short titleStartPos = 0;
     short titleCharIndex = 0;
@@ -444,7 +444,7 @@ void dw_rectangle(
 
     (void)blinking;
 
-    // Boundary check
+    /* Boundary check */
     if(x1 > x2 || y1 > y2) return;
     
     width = x2 - x1;
@@ -452,18 +452,18 @@ void dw_rectangle(
     if(title){
         titleLen = strlen(title);
         
-        // if title is centered we do the following:
-        // we take the half of window width and the half of the title lenght
-        // Then the start position of the tittle text is : windowwHalfWidth - titleHalfWidth
-        // Same with the end position but suming instead,
-        // Because the center is the origin now so we need to substact or add depending to the offset direction.
+        /* if title is centered we do the following: */
+        /* we take the half of window width and the half of the title lenght */
+        /* Then the start position of the tittle text is : windowwHalfWidth - titleHalfWidth */
+        /* Same with the end position but suming instead, */
+        /* Because the center is the origin now so we need to substact or add depending to the offset direction. */
     
         titleStartPos = x1 + (short) (width / 2) - (short) (titleLen / 2);
     } 
 
     i = (y1 * VIDEO_COLS) + x1;
 
-    //If i is the first on the index draw top left corner
+    /*If i is the first on the index draw top left corner */
     buffer[i] = 
         _getBorderCharacter(
             borderType, 
@@ -477,13 +477,13 @@ void dw_rectangle(
         rightLimit = i % VIDEO_COLS <= x2;
         
         if(rightLimit && leftLimit){
-            // If i is the top line draw top line
+            /* If i is the top line draw top line */
             if(i < (y1 * VIDEO_COLS) + x1 + VIDEO_COLS){
                 if(i % VIDEO_COLS == x2){
                     screenCharacter = _getBorderCharacter(borderType, DW_SIDE_TOP_RIGHT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                     buffer[i] = screenCharacter;
                 }else{
-                    // WE DRAW THE TITLE IF i is stepping on the boundaries of the title, of not we just draw the TOP of the rectangle
+                    /* WE DRAW THE TITLE IF i is stepping on the boundaries of the title, of not we just draw the TOP of the rectangle */
                     titleCharIndex = (short)(i % VIDEO_COLS) - titleStartPos;
                         
                     if(titleLen > 0 && (titleCharIndex >= 0 && titleCharIndex < (short)titleLen)){
@@ -495,9 +495,9 @@ void dw_rectangle(
                 }
             }
 
-            // Bottom side
+            /* Bottom side */
             else if( i > ((y2 * VIDEO_COLS) + x2 )- VIDEO_COLS){
-                // If i is the bottom line draw bottom line
+                /* If i is the bottom line draw bottom line */
                 if(i % VIDEO_COLS == x1){
                     screenCharacter = _getBorderCharacter(borderType, DW_SIDE_BOTTOM_LEFT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                     buffer[i] = screenCharacter;
@@ -508,12 +508,12 @@ void dw_rectangle(
 
             }
             
-            // If i is the left line draw left line
+            /* If i is the left line draw left line */
             else if(i % VIDEO_COLS <= x1){
                 screenCharacter = _getBorderCharacter(borderType, DW_SIDE_LEFT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                 buffer[i] = screenCharacter;
             }
-            // If i is the right line draw right line
+            /* If i is the right line draw right line */
             else if(i % VIDEO_COLS >= x2){
                 screenCharacter = _getBorderCharacter(borderType, DW_SIDE_RIGHT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                 buffer[i] = screenCharacter;
@@ -550,8 +550,8 @@ void dw_writeBuffer(
     vsnprintf(tempBuffer, HAL_VIDEO_BUFFER_SIZE, format, args);
     va_end(args);
 
-    // f_dumpBufferTofile(&tempBuffer, HAL_VIDEO_BUFFER_SIZE, "temp1.txt");
-    // Boundary check
+    /* f_dumpBufferTofile(&tempBuffer, HAL_VIDEO_BUFFER_SIZE, "temp1.txt"); */
+    /* Boundary check */
     if(x1 > x2 || y1 > y2) return;
 
     for(y = y1; y < y2 + 1; y++){
@@ -562,7 +562,7 @@ void dw_writeBuffer(
                 buffer[screenPos] = tempBuffer[buffpos] | ((backgroundColor << 4 | foregroundColor) << 8);
                 buffpos++;
             } else {
-                // Fill remaining area with spaces if buffer ends
+                /* Fill remaining area with spaces if buffer ends */
                 buffer[screenPos] = ' ' | ((backgroundColor << 4 | foregroundColor) << 8);
                 
             }
@@ -762,9 +762,9 @@ void dw_c_formatter(
             detectedWordType = DW_RESWORD_NONE;
             isIdentifier=false;
             while(screenX < x2 + 1){
-                //
-                // ============ LINE COUNTER COLUMN ===============================================
-                //
+                /* */
+                /* ============ LINE COUNTER COLUMN =============================================== */
+                /* */
                 
                 screenPos = (y * VIDEO_COLS) + screenX;
                 
@@ -789,14 +789,14 @@ void dw_c_formatter(
                     
                     screenX += LINE_COUNTER_WIDTH;
                 }else{
-                //
-                // ============ LINE CONTENT ========================================================
-                //
+                /* */
+                /* ============ LINE CONTENT ======================================================== */
+                /* */
                     /* After line counter column, we draw the rest of the line content */
                     if(linePos + (int)textArea->scrollX < (int)line->length){
                         c = &line->buffer[linePos + textArea->scrollX];
 
-                        // =========== SPECIAL KEYWORD COLORING=======================================
+                        /* =========== SPECIAL KEYWORD COLORING======================================= */
                         if(c > csWordEnd){
                             memset(previousWord,'\0', 32);
                             memcpy(previousWord, detectedWord, strlen(detectedWord));
@@ -816,7 +816,7 @@ void dw_c_formatter(
                                 isMultilineComment = false;
                             }
                             
-                            // There is no comment in the current line
+                            /* There is no comment in the current line */
                             if(isMultilineComment == false /*&& isSingleLineComment == false*/){
 
                                 /* STRING DETECTION METHOD*/
@@ -824,21 +824,21 @@ void dw_c_formatter(
                                     isString = (*csWordEnd == '"') && !(prevDetectedWordType == DW_RESWORD_PREPROCESSOR) ? true : false;
                                 }
 
-                                // EXCAPE CHAR DETECTION INSIDE STRING DOUBLE QUOTES 
+                                /* EXCAPE CHAR DETECTION INSIDE STRING DOUBLE QUOTES */
                                 stringEscapeCharColor = _isEscapeChar(csWordEnd, &isIdentifier);
                                 
                                 if(isString == true && stringEscapeCharColor){
                                     specialWordColor = stringEscapeCharColor;
                                 }else if(isString == true){
-                                    // We get where the string is supposed to end, this will run  just once.
+                                    /* We get where the string is supposed to end, this will run  just once. */
                                     if(!csStringEnd){
                                         csStringEnd = csWordEnd;
                                         do{
                                             ++csStringEnd;       
                                         }while(*(csStringEnd) != '"' && *(csStringEnd) != '\0');
                                     }
-                                    // If the character is under the addres where the string ends, then we treat the character
-                                    // as string
+                                    /* If the character is under the addres where the string ends, then we treat the character */
+                                    /* as string */
 
                                     if(csWordEnd <= csStringEnd){
                                         specialWordColor = settings.clang_colors[DW_RESWORD_STRING];
@@ -846,12 +846,12 @@ void dw_c_formatter(
                                         csStringEnd = NULL;
                                         isString=false;
                                     }
-                                // FULL #INLUCDE HANDLING (YELLOWING OF THE SECOND PART OF THE #INCLUDE SENTENCE)
+                                /* FULL #INLUCDE HANDLING (YELLOWING OF THE SECOND PART OF THE #INCLUDE SENTENCE) */
                                 }else if(prevDetectedWordType == DW_RESWORD_PREPROCESSOR){
                                     detectedWordType = (*csWordEnd == '>') ? 0 : DW_RESWORD_PREPROCESSOR;
                                     specialWordColor = settings.clang_colors[DW_RESWORD_STRING];
 
-                                // MATH EXPRESSIONS, SYNTAX AND CONTROL CHARACTERS RED COLORING
+                                /* MATH EXPRESSIONS, SYNTAX AND CONTROL CHARACTERS RED COLORING */
                                 }else if(
                                     (_isExpression(csWordEnd) ||
                                     _isComment(csWordEnd)) && 
@@ -859,21 +859,21 @@ void dw_c_formatter(
                                         specialWordColor = settings.clang_colors[DW_RESWORD_EXPRESSION];
                                 /* KEYWORD DETECTION METHOD (SIMPLE )*/
                                 }else{
-                                    // 1. Find the end of the current word
+                                    /* 1. Find the end of the current word */
                                     while(*csWordEnd != '\0' && !_isWordEnd(csWordEnd)){
                                         csWordEnd++;
                                     }
 
-                                    // 2. Extract the word safely
+                                    /* 2. Extract the word safely */
                                     t = (int)(csWordEnd - csWordStart);
                                     if (t > 31) t = 31;
                                     memcpy(detectedWord, csWordStart, t);
                                     detectedWord[t] = '\0';
                                                 
-                                    // 3. Identify the word type
+                                    /* 3. Identify the word type */
                                     detectedWordType = _keywordMap(detectedWord);
                                     
-                                    // 4. Use the settings color array
+                                    /* 4. Use the settings color array */
                                     specialWordColor = settings.clang_colors[detectedWordType];
 
                                     if(detectedWordType == DW_RESWORD_COMMENT){
@@ -889,14 +889,14 @@ void dw_c_formatter(
                             }
                         }
 
-                        // We loop internally until we reach the end of the word
+                        /* We loop internally until we reach the end of the word */
 
-                        // If the word is actually  mapped and has its own color, we use that
+                        /* If the word is actually  mapped and has its own color, we use that */
                         
-                        // If not, we just print the character with the default color                    
+                        /* If not, we just print the character with the default color */
                         
                         if(*c == '\t'){
-                            /// UGLYT TEST
+                            /*/ UGLYT TEST */
                             for(t=0; t < 4 && screenX < x2 + 1; t++){
                                 if (
                                     dw_isCharSelected(textArea, lineCount, linePos + textArea->scrollX) ||
@@ -949,7 +949,7 @@ void dw_c_formatter(
 }
 
 
-// SIMPLER
+/* SIMPLER */
 void dw_txt_formatter(
     unsigned short *destBuffer, 
     int x1, 
@@ -1025,9 +1025,9 @@ void dw_txt_formatter(
             screenX = x1;
 
             while(screenX < x2 + 1){
-                //
-                // ============ LINE COUNTER COLUMN ===============================================
-                //
+                /* */
+                /* ============ LINE COUNTER COLUMN =============================================== */
+                /* */
                 
                 screenPos = (y * VIDEO_COLS) + screenX;
                 
@@ -1052,15 +1052,15 @@ void dw_txt_formatter(
                     
                     screenX += LINE_COUNTER_WIDTH;
                 }else{
-                //
-                // ============ LINE CONTENT ========================================================
-                //
+                /* */
+                /* ============ LINE CONTENT ======================================================== */
+                /* */
                     /* After line counter column, we draw the rest of the line content */
                     if(linePos + (int)textArea->scrollX < (int)line->length){
                         c = &line->buffer[linePos + textArea->scrollX];                
                         
                         if(*c == '\t'){
-                            /// UGLYT TEST
+                            /*/ UGLYT TEST */
                             for(t=0; t < 4 && screenX < x2 + 1; t++){
                                 if (
                                     dw_isCharSelected(textArea, lineCount, linePos + textArea->scrollX) ||
@@ -1142,9 +1142,9 @@ void dw_writeBufferEditorFormatted(
     return;
 }
 
-// SINGLE LINE FORMATTING ===========================================
+/* SINGLE LINE FORMATTING =========================================== */
 
-// TODO: IMPLEMENT FORMATTING
+/* TODO: IMPLEMENT FORMATTING */
 void dw_c_lineFormatter(
 	unsigned short *destBuffer, 
 	int x, 
@@ -1161,13 +1161,13 @@ void dw_c_lineFormatter(
 	if(!destBuffer) return;
 	if(!srcBuffer) return;
 
-	// Check if it starts with a comment somewher
+	/* Check if it starts with a comment somewher */
 	commentStartPtr = strstr(srcBuffer,"//");
 
 	start = destBuffer + ( y * destWidth) + x;
 
 	while(*srcBuffer != '\0'){
-		// Check if current character is a comment or not
+		/* Check if current character is a comment or not */
 		if(commentStartPtr && srcBuffer >= commentStartPtr)
 			fgcolor = settings.clang_colors[DW_RESWORD_COMMENT];
 
@@ -1182,7 +1182,7 @@ void dw_c_lineFormatter(
 					tjump++;
 				};
 
-				// TAB INDICATOR
+				/* TAB INDICATOR */
 				*(start) = 
 						(unsigned short) ((unsigned char) 
 						((settings.TAB_INDICATOR == true) ? 179 : ' ') | 
@@ -1204,7 +1204,7 @@ void dw_c_lineFormatter(
 	return;
 }
 
-// TODO: IMPLEMENT FORMATTING
+/* TODO: IMPLEMENT FORMATTING */
 void dw_txt_lineFormatter(
 	unsigned short *destBuffer, 
 	int x, 
@@ -1285,7 +1285,7 @@ void dw_copyFormatted(
 
 }
 
-// RENDER EVENT REQUEST-DISPATCH=====================================
+/* RENDER EVENT REQUEST-DISPATCH===================================== */
 void dw_requestRenderEvent(RenderType renderType){
     if(dw_renderEventType < renderType)
         dw_renderEventType = renderType;
@@ -1293,7 +1293,7 @@ void dw_requestRenderEvent(RenderType renderType){
     dw_renderEvent = true;
 }
 
-// EVENT DISPATCHER
+/* EVENT DISPATCHER */
 void dw_renderEventDispatcher(){
     if(ed_globalAuxTimer > 0){
         ed_checkStatusBarMessage();
@@ -1325,8 +1325,8 @@ void dw_renderEventDispatcher(){
 				break;
             case DW_RENDER_SELECTION:
 			case DW_RENDER_WINDOW:
-                // Check if current file instance
-                // in window has references
+                /* Check if current file instance */
+                /* in window has references */
                 if(
                     f_checkCurrFileRefs(currentWindow->textArea->file)
                 ){

@@ -21,7 +21,7 @@ int main(int argc, char *argv[]){
 	hal_inp_initKeyboard();
 	hal_vid_init();
 
-	// Debug only
+	/* Debug only */
 	if(settings.DEBUG == true){}
 		t_initTests();
 
@@ -30,23 +30,23 @@ int main(int argc, char *argv[]){
 	while(endProgram == false){
 		ed_prepareSelectionTool();
 		
-		// SEARCH TOOl
+		/* SEARCH TOOl */
 		ed_prepareSearchTool();
 		        
-		// Switch files
+		/* Switch files */
 		f_prepareFileNavDialog();
 
-		// Split window (Ctrl + \)
+		/* Split window (Ctrl + \) */
 		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LCTRL, HAL_KEY_BACKSLASH)) 
 			f_splitWindow();
 
-		// Cycle active window split (Ctrl + W)
+		/* Cycle active window split (Ctrl + W) */
 		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LCTRL, HAL_KEY_W))
 			f_cycleActiveWindow();
 
 
-		// ACTION KEYS HANDLING
-		// This is uses ISR approach, not getch()
+		/* ACTION KEYS HANDLING */
+		/* This is uses ISR approach, not getch() */
 		if(hal_inp_isKeyPressed(HAL_KEY_F11))
 			hal_vid_cycleVideoModes();		
 
@@ -64,31 +64,31 @@ int main(int argc, char *argv[]){
 		if(hal_inp_isKeyPressed(HAL_KEY_PAGEDOWN)) 
 			ed_putCursorLastLine();
 
-		// Horizontal Word jump
+		/* Horizontal Word jump */
 		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LCTRL, HAL_KEY_RIGHT)) 
 			ed_wordJump(ED_WORD_JUMP_NEXT);
 		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LCTRL, HAL_KEY_LEFT)) 
 			ed_wordJump(ED_WORD_JUMP_PREV);
 
-		// Line swapping
+		/* Line swapping */
 		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LALT, HAL_KEY_UP)) 
 			ed_swapLine(ED_LINE_JUMP_UP);
 		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LALT, HAL_KEY_DOWN)) 
 			ed_swapLine(ED_LINE_JUMP_DOWN);
 
-		// SPACE
+		/* SPACE */
 		if(hal_inp_isKeyDown(HAL_KEY_SPACE)) dw_renderEvent = true;
         
-		// DELETE (forward)
+		/* DELETE (forward) */
 		if(hal_inp_isKeyPressed(HAL_KEY_DELETE)) ed_supr();
 
 		/* FILE OPERATIONS */
 		
-		// CLOSE APP
+		/* CLOSE APP */
 		if(hal_inp_isKeyPressed(HAL_KEY_ESC)) 
 			f_triggerClose(true);
 		
-		// NEW FILE
+		/* NEW FILE */
 		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LCTRL, HAL_KEY_N)){
 			f_newFile(NULL);
 			logger(
@@ -96,17 +96,17 @@ int main(int argc, char *argv[]){
 				currentWindow->textArea->file->name);
 		}
 		
-		// OPEN FILE 
+		/* OPEN FILE */
 		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LCTRL, HAL_KEY_O))
 			f_quickOpenFileDialog();
 
-		// CLOSE FILE (Alt+F4)
+		/* CLOSE FILE (Alt+F4) */
 		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LALT, HAL_KEY_F4)){
 			logger("[main]: User closed file.");
 			f_triggerClose(false);
 		}
 
-		// SAVE FILE
+		/* SAVE FILE */
 		if(hal_inp_keysPressed(
 			HAL_INP_TRIGGER_EDGE, 
 			3, 
@@ -116,20 +116,20 @@ int main(int argc, char *argv[]){
 		)) 
 			f_saveFile();
  
-		// SHELL SPAWN
+		/* SHELL SPAWN */
 		if(hal_inp_isKeyPressed(HAL_KEY_F9)) 
 			ed_shellSpawn();
  
 		ed_resetActity();
 		
-		// Getch approach, why? Because getch() reads and uses DOS routines for handling the keyboard
-		// so it translates the input scancode to the correct codepage value.
+		/* Getch approach, why? Because getch() reads and uses DOS routines for handling the keyboard */
+		/* so it translates the input scancode to the correct codepage value. */
 
 		if(hal_inp_kbhit()){
 			c = hal_inp_getch();
             
 			if(c == 0 || (unsigned char)c == 0xE0){
-				// CURSOR ARROW HANDLING
+				/* CURSOR ARROW HANDLING */
 				c = hal_inp_getch(); /* Consume extended byte and arrows */
 
 				/*
@@ -163,8 +163,8 @@ int main(int argc, char *argv[]){
 			ed_handleSelection();
 		}
 
-		// Independent from render-event. as it always poll
-		// globalAuxTimer if there is any timer activated.
+		/* Independent from render-event. as it always poll */
+		/* globalAuxTimer if there is any timer activated. */
 
 		dw_renderEventDispatcher();
 		

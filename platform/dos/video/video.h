@@ -5,6 +5,15 @@
 #include "../../../core/settings/settings.h"
 
 /* ASM Prototypes and pragmas */
+void _set80x25_asm(void);
+void _set80x43_asm(void);
+void _set80x50_asm(void);
+void _set80x60_asm(void);
+void _set132x25_asm(void);
+void _set132x43_asm(void);
+void _set132x50_asm(void);
+void _set132x60_asm(void);
+
 #pragma aux _set80x25_asm = \
     "mov ax, 0x1202" \
     "mov bl, 0x30" \
@@ -14,7 +23,7 @@
     "mov ax, 0x1114" \
     "mov bl, 0x00" \
     "int 0x10" \
-    modify[ax bx cx dx]
+    __modify [__ax __bx __cx __dx]
 
 #pragma aux _set80x43_asm = \
     "mov ax, 0x1201" \
@@ -25,7 +34,7 @@
     "mov ax, 0x1112" \
     "mov bl, 0x00" \
     "int 0x10" \
-    modify[ax bx cx dx]
+    __modify [__ax __bx __cx __dx]
 
 #pragma aux _set80x50_asm = \
     "mov ax, 0x1202" \
@@ -36,7 +45,7 @@
     "mov ax, 0x1112" \
     "mov bl, 0x00" \
     "int 0x10" \
-    modify[ax bx cx dx]
+    __modify [__ax __bx __cx __dx]
 
 #pragma aux _set80x60_asm = \
     "mov ax, 0x1202" \
@@ -47,7 +56,7 @@
     "mov ax, 0x1112" \
     "mov bl, 0x00" \
     "int 0x10" \
-    modify[ax bx cx dx]
+    __modify [__ax __bx __cx __dx]
 
 #pragma aux _set132x25_asm = \
     "mov ax, 0x4F02" \
@@ -56,7 +65,7 @@
     "mov ax, 0x1112" \
     "mov bl, 0x00" \
     "int 0x10" \
-    modify [ax bx cx dx]
+    __modify [__ax __bx __cx __dx]
 
 #pragma aux _set132x43_asm = \
     "mov ax, 0x4F02" \
@@ -65,7 +74,7 @@
     "mov ax, 0x1112" \
     "mov bl, 0x00" \
     "int 0x10" \
-    modify [ax bx cx dx]
+    __modify [__ax __bx __cx __dx]
 
 #pragma aux _set132x50_asm = \
     "mov ax, 0x4F02" \
@@ -74,7 +83,7 @@
     "mov ax, 0x1112" \
     "mov bl, 0x00" \
     "int 0x10" \
-    modify [ax bx cx dx]
+    __modify [__ax __bx __cx __dx]
 
 #pragma aux _set132x60_asm = \
     "mov ax, 0x4F02" \
@@ -83,6 +92,6 @@
     "mov ax, 0x1112" \
     "mov bl, 0x00" \
     "int 0x10" \
-    modify [ax bx cx dx]
+    __modify [__ax __bx __cx __dx]
 
 #endif

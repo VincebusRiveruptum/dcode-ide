@@ -1,0 +1,128 @@
+*******************************************************************************
+*                             DCODE IDE v0.6                                  *
+*                          --- USAGE MANUAL ---                               *
+*******************************************************************************
+
+Welcome, DCode IDE is a modern-style development environment for 32-bit DOS.
+
+This manual provides the basic information you need to start coding.
+
+-------------------------------------------------------------------------------
+1. GETTING STARTED
+-------------------------------------------------------------------------------
+Run DCODE.EXE from your DOS prompt. You can optionally provide a filename:
+    C:\> DCODE.EXE MYFILE.C ANOTHER.C ...
+
+-------------------------------------------------------------------------------
+2. KEYBOARD SHORTCUTS
+-------------------------------------------------------------------------------
+
+FILE OPERATIONS:
+    Ctrl + N            : Create a New File
+    Ctrl + O            : Quick Open File Dialog (interactive directory browser)
+    Ctrl + Shift + S    : Save Current File
+    Alt + F4            : Close Current File / Window Split
+    Esc                 : Exit DCode IDE (prompts to save if modified)
+
+WINDOW SPLITS:
+    Ctrl + \            : Split Active Window Vertically (shares the same file tab)
+    Ctrl + W            : Cycle Active Cursor Focus between Window Splits
+
+NAVIGATION & SELECTION:
+    Arrow Keys          : Move cursor Up, Down, Left, Right
+    Home / End          : Jump to Start / End of Line
+    Page Up / Page Down : Jump to Top / Bottom of File
+    Ctrl + Left/Right   : Jump cursor word-by-word horizontally
+    Alt + Up/Down       : Swap/Move current line Up or Down
+    Alt + Shift         : Open File Switcher Overlay (hold Alt, press Shift)
+
+EDITING:
+    Enter               : Create New Line (with auto-indent)
+    Backspace           : Delete character to the left
+    Delete              : Delete character at cursor (forward)
+    Tab                 : Insert Tab (configurable size and indicator lines)
+
+-------------------------------------------------------------------------------
+3. VIDEO & DISPLAY MODES
+-------------------------------------------------------------------------------
+DCode IDE supports cycling through various VGA text modes to adjust screen 
+density and column width on DOS.
+
+    F11                 : Cycle Video Modes
+    F12                 : Toggle Video Memory Map Viewer (FOR DEBUG)
+
+Supported modes:
+    - VID_80X25 (1)     : Standard 80x25 text mode (Default)
+    - VID_80X43 (2)     : High-density 80x43 text mode
+    - VID_80X50 (3)     : High-density 80x50 text mode
+    - VID_132X50 (7)    : Wide 132x50 text mode
+    - VID_132X60 (8)    : Wide 132x60 text mode
+    *(Modes 4, 5, 6 are reserved / not supported yet)
+
+-------------------------------------------------------------------------------
+4. INTERACTIVE UTILITIES
+-------------------------------------------------------------------------------
+
+QUICK OPEN DIALOG (Ctrl + O):
+    - Opens a centered popup listing files in the current folder.
+    - Pre-fills the current absolute path in an editable text prompt.
+    - Use Left/Right arrows to move cursor within the path prompt.
+    - Use Up/Down arrows to select files/folders from the list.
+    - Press Enter to open files or navigate directories (select '..' to go up).
+    - Press Esc to close the dialog.
+
+FILE SWITCHER (Alt + Shift):
+    - Displays an overlay list of tabs opened in the current window.
+    - Hold the 'Alt' key and press 'Shift' to cycle through the tabs.
+    - The selected tab is marked with an asterisk (*).
+    - Release the 'Alt' key to switch to the selected tab.
+    - Runs asynchronously without blocking screen animations or cursor.
+
+WINDOW SPLITTING (Ctrl + \):
+    - Divides the active pane into side-by-side splits.
+    - Shared editor view: editing in one pane will immediately sync the edits
+      into the adjacent split pane.
+    - Closing all tabs within a split closes the pane, stretching the neighboring
+      pane to fit the reclaimed width automatically.
+
+-------------------------------------------------------------------------------
+5. STARTUP CONFIGURATION
+-------------------------------------------------------------------------------
+Global settings and colors are customized via "DEFAULT.CFG". 
+
+Key settings include:
+    DEBUG               : Set to 1 to enable logs to LOGS.TXT, 0 to disable.
+    MAX_FILE_INSTANCE_SIZE : Max file instance size in kilobytes (default 512).
+    MAX_FILE_INSTANCES_OPENED : Max concurrent open files (default 32).
+    AUTOIDENTING        : Enable auto-indentation on new lines (0/1).
+    AUTOCLOSING         : Enable auto-closing parenthesis/quotes (0/1).
+    AUTOBRACES          : Enable auto-braces matching (0/1).
+    TAB_INDICATOR       : Highlight tab indentation with visual lines (0/1).
+    TAB_SPACE_INDICATOR : Highlight spaces indentation (0/1).
+    DEFAULT_EXTENSION   : Default extension for new files (e.g. .c).
+    DEFAULT_VIDEO_MODE  : Startup video mode index (1-8, defaults to 1).
+    STATUSBAR_COLOR_BG  : Background color code (0-15) for status bar.
+    STATUSBAR_COLOR_TEXT: Foreground color code (0-15) for status bar.
+    DW_RESWORD_*        : Custom C syntax highlighting colors (0-15).
+
+-------------------------------------------------------------------------------
+6. TIPS & DEBUGGING
+-------------------------------------------------------------------------------
+- Check the bottom right status bar to see if the file is marked "MODIFIED"
+  before quitting.
+- Status bar messages last for 5 seconds or disappear upon cursor movement.
+- If rendering issues occur after switching modes or loading large files,
+  use F11 to cycle through display modes to refresh the screen buffer.
+
+*******************************************************************************
+(C) 2026 Vincebus Riveruptum
+*******************************************************************************
+
+
+
+
+
+
+
+
+

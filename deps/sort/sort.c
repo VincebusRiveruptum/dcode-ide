@@ -104,7 +104,7 @@ int main() {
     printList(list);
     
 
-    // Clean up would be good but for a quick test it's fine
+    /* Clean up would be good but for a quick test it's fine */
     return 0;
 }
 

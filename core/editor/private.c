@@ -83,7 +83,7 @@ int _get_auto_close_pos(){
 int _calculateVisualOffset(int col){
     return col + (_get_tab_counts_until(col) * 3);
 }
-// Calculate current line number of tabs
+/* Calculate current line number of tabs */
 int _calculateTabCount(){
     unsigned int i = 0, tabCount = 0;
 	char c;
@@ -135,7 +135,7 @@ void _updateCurrentCursorY(){
 	
     if (!textArea || !currentWindow) return;
 
-     // If the cursor is closer to the bottom
+     /* If the cursor is closer to the bottom */
     if(currentCursorY <= currentWindow->y) currentCursorY = currentWindow->y;
     
     if( textArea->cursorLine - textArea->scrollY >= 0){
@@ -161,7 +161,7 @@ void _updateCurrentCursorX(){
 
     currentCursorX = (visualCursor - visualScroll) + LINE_COUNTER_WIDTH + currentWindow->x;
 
-    // Boundary check to keep cursor on active window split
+    /* Boundary check to keep cursor on active window split */
     if(currentCursorX < currentWindow->x + LINE_COUNTER_WIDTH) {
         currentCursorX = currentWindow->x + LINE_COUNTER_WIDTH;
     }
@@ -185,8 +185,8 @@ void _updateCurrentCursorX(){
         ? textArea->currentLine->buffer[textArea->cursorCol + 1]
         : 0;
 }
-// This gets the pointer of the start offset of the currentWindow's
-// textArea's  current Line relative to the screen buffer ptr (or any)
+/* This gets the pointer of the start offset of the currentWindow's */
+/* textArea's  current Line relative to the screen buffer ptr (or any) */
 unsigned short * _getCurrentLinePtrInBuffer(
     unsigned short *ptr, 
     EditorWindow *currentWindow
@@ -322,12 +322,12 @@ Node *_createLineNode(File *file){
 	return newLineNode;
 }
 
-// This is for reusing a deleted line or creating a new one..
+/* This is for reusing a deleted line or creating a new one.. */
 Node *_resolveNewLine(File *file){
 	Node *newLineNode = NULL;
 	Line *newLine = NULL;
 
-	// Get last deleted line
+	/* Get last deleted line */
 	newLineNode = pop(&file->deletedLines);
     
     if(!newLineNode){

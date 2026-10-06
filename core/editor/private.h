@@ -13,7 +13,7 @@ int _get_tab_counts_until(int col);
 int _get_tab_counts_someline(struct Line *someLine, int col);
 int _get_auto_close_pos();
 
-// New line handling
+/* New line handling */
 struct Line *_createNewEmptyLine(struct File *file);
 
 unsigned short * _getCurrentLinePtrInBuffer(

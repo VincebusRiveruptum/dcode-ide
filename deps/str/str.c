@@ -23,15 +23,15 @@
 
 #include "str.h"
 
-// 
+/* */
 #define TYPE_INT 0
 #define TYPE_CHAR 1
 #define TYPE_FLOAT 2
 #define TYPE_DOUBLE 3
 #define TYPE_STR 4
 
-// Splits string into array of string pointers by a separator
-// This array is null terminated
+/* Splits string into array of string pointers by a separator */
+/* This array is null terminated */
 char **strsplit(char *str, const char *separator){
         size_t sepLen = 0;
         size_t sepCount = 0;
@@ -48,14 +48,14 @@ char **strsplit(char *str, const char *separator){
         sepLen = strlen(separator);
         if(sepLen == 0) return NULL;
 
-        // Count separators found.
+        /* Count separators found. */
         strStart = str;
         while((strStart = strstr(strStart, separator)) != NULL){
                 sepCount++;
                 strStart += sepLen;
         }
         
-        // Allocate string pointer array plus NULL terminator.
+        /* Allocate string pointer array plus NULL terminator. */
         arr = (char**)malloc(sizeof(char*) * (sepCount + 2));
         
         if (!arr) return NULL;
@@ -80,7 +80,7 @@ char **strsplit(char *str, const char *separator){
                                 return NULL;
                 }
 
-                strncpy(arr[i], strStart, strFoundLen);
+                memcpy(arr[i], strStart, strFoundLen);
                 arr[i][strFoundLen] = '\0';
                 
                 if (strEnd) {
@@ -88,13 +88,13 @@ char **strsplit(char *str, const char *separator){
                 }
         }
 
-        // NULL-terminated pointer array.
+        /* NULL-terminated pointer array. */
         arr[sepCount + 1] = NULL;
 
         return arr;
 }
 
-// Reverses an string
+/* Reverses an string */
 char *strinv(char *str){
         size_t len;
         char *newstr = NULL;
@@ -118,7 +118,7 @@ char *strinv(char *str){
 
         return newstr;
 }
-// Joins array into a string by a separator
+/* Joins array into a string by a separator */
 char *strjoinint(int *arr, size_t arrlen, char *separator){
         size_t len = 0;
         size_t i = 0;
@@ -128,8 +128,8 @@ char *strjoinint(int *arr, size_t arrlen, char *separator){
 
         if(!separator) return NULL;
 
-        // We count the number of chars so we can get 
-        // the total length for allocating our new string
+        /* We count the number of chars so we can get */
+        /* the total length for allocating our new string */
         for(i=0; i<arrlen; i++){
                 memset(numbuff, '\0', 48);
                 sprintf(numbuff, "%d%s", arr[i], separator);
@@ -144,7 +144,7 @@ char *strjoinint(int *arr, size_t arrlen, char *separator){
         memset(newstr, '\0', len);
         memset(numbuff, '\0', 48);
 
-        // We start appeding
+        /* We start appeding */
         for(i=0; i<arrlen;i++){
                 if(i<arrlen-1){
                         sprintf(numbuff, "%d%s", arr[i], separator);
@@ -158,7 +158,7 @@ char *strjoinint(int *arr, size_t arrlen, char *separator){
         return newstr;
 }
 
-// Joins array into a string by a separator
+/* Joins array into a string by a separator */
 char *strjoinfloat(float *arr, size_t arrlen, char *separator){
         size_t len = 0;
         size_t i = 0;
@@ -168,8 +168,8 @@ char *strjoinfloat(float *arr, size_t arrlen, char *separator){
 
         if(!separator) return NULL;
 
-        // We count the number of chars so we can get 
-        // the total length for allocating our new string
+        /* We count the number of chars so we can get */
+        /* the total length for allocating our new string */
         for(i=0; i<arrlen; i++){
                 memset(numbuff, '\0', 64);
                 if(i<arrlen-1){
@@ -188,7 +188,7 @@ char *strjoinfloat(float *arr, size_t arrlen, char *separator){
         memset(newstr, '\0', len);
         memset(numbuff, '\0', 64);
 
-        // We start appeding
+        /* We start appeding */
         for(i=0; i<arrlen;i++){
                 if(i<arrlen-1){
                         sprintf(numbuff, "%.5f%s", arr[i], separator);
@@ -211,8 +211,8 @@ char *strjoindouble(double *arr, size_t arrlen, char *separator){
 
         if(!separator) return NULL;
 
-        // We count the number of chars so we can get 
-        // the total length for allocating our new string
+        /* We count the number of chars so we can get */
+        /* the total length for allocating our new string */
         for(i=0; i<arrlen; i++){
                 memset(numbuff, '\0', 64);
                 if(i<arrlen-1){
@@ -231,7 +231,7 @@ char *strjoindouble(double *arr, size_t arrlen, char *separator){
         memset(newstr, '\0', len);
         memset(numbuff, '\0', 64);
 
-        // We start appeding
+        /* We start appeding */
         for(i=0; i<arrlen;i++){
                 if(i<arrlen-1){
                         sprintf(numbuff, "%.5f%s", arr[i], separator);
@@ -245,7 +245,7 @@ char *strjoindouble(double *arr, size_t arrlen, char *separator){
         return newstr;
 }
 
-// Joins array of pointed strings into a string by a separator
+/* Joins array of pointed strings into a string by a separator */
 char *strjoinstr(char **arr, size_t arrlen, char *separator){
         size_t bufflen = 0;
         size_t i = 0;
@@ -253,8 +253,8 @@ char *strjoinstr(char **arr, size_t arrlen, char *separator){
 
         if(!separator) return NULL;
 
-        // We count the number of chars so we can get 
-        // the total length for allocating our new string
+        /* We count the number of chars so we can get */
+        /* the total length for allocating our new string */
         for(i=0; i<arrlen; i++){
                 if(!arr[i]) continue;
 
@@ -268,7 +268,7 @@ char *strjoinstr(char **arr, size_t arrlen, char *separator){
         memset(newstr, '\0', bufflen);
 
         bufflen = 0;
-        // We start appeding
+        /* We start appeding */
         for(i=0; i<arrlen;i++){
                 if(!arr[i]) continue;
 
@@ -290,7 +290,7 @@ char *strjoin(void *arr,unsigned char type, size_t arrlen,  char *separator){
                 case TYPE_INT:
                         return strjoinint((int*)arr, arrlen, separator);
                 case TYPE_CHAR:
-                        return (char*)arr;      // lol
+                        return (char*)arr;      /* lol */
                 case TYPE_FLOAT:
                         return strjoinfloat((float*)arr, arrlen, separator);
                 case TYPE_DOUBLE:
@@ -304,7 +304,7 @@ char *strjoin(void *arr,unsigned char type, size_t arrlen,  char *separator){
         return NULL;
 }
 
-// Removes right spaces
+/* Removes right spaces */
 char *strltrim(char *str){
         size_t len;
         char *strptr;
@@ -320,17 +320,17 @@ char *strltrim(char *str){
 
         len = strlen(strptr);
 
-        newstr = (char*)malloc(len);
+        newstr = (char*)malloc(len + 1);
 
         if (!newstr) return NULL;
 
-        memset(newstr, '\0', len);
-        strncpy(newstr, strptr, len);
+        memcpy(newstr, strptr, len);
+        newstr[len] = '\0';
 
         return newstr;
 }
 
-// Removes left spaces
+/* Removes left spaces */
 char *strrtrim(char *str){
         size_t len;
         char *strptr;
@@ -357,7 +357,7 @@ char *strrtrim(char *str){
 }
 
 
-// Removes spaces from both sides
+/* Removes spaces from both sides */
 char *strtrim(char *str){
         size_t len;
         char *start, *end, *newstr;
@@ -387,7 +387,7 @@ char *strtrim(char *str){
         return newstr;
 }
 
-// Iterative version
+/* Iterative version */
 char *strstrip(char *str) {
         char *newstr = NULL;
         char *src = NULL;
@@ -413,7 +413,7 @@ char *strstrip(char *str) {
         return newstr;
 }
 
-// Slice between a range in a string
+/* Slice between a range in a string */
 char *strnslice(char *str, size_t from, size_t step, size_t strlen ){
         char *newstr = NULL;
         
@@ -428,21 +428,21 @@ char *strnslice(char *str, size_t from, size_t step, size_t strlen ){
         return newstr;
 }
 
-// TODO: 
-// strssearch (char *input, char **wordlist)
-// This compares the input word and find the similar 
-// ones from a string list, ordered from the most to the least
-// similar. COuld be ordered asc to desc.
+/* TODO: */
+/* strssearch (char *input, char **wordlist) */
+/* This compares the input word and find the similar */
+/* ones from a string list, ordered from the most to the least */
+/* similar. COuld be ordered asc to desc. */
 
-// Criteria must be, by prority:
-// - Char position and diference of 10% chars 
-// - Char length
-// - used chars
-// - lower-ppercase
+/* Criteria must be, by prority: */
+/* - Char position and diference of 10% chars */
+/* - Char length */
+/* - used chars */
+/* - lower-ppercase */
 
-// Idea based of command line app option mismatch suggestions. 
-// git puh -> did you mean git push?
-// char **strsearch(char *str, char **words){}
+/* Idea based of command line app option mismatch suggestions. */
+/* git puh -> did you mean git push? */
+/* char **strsearch(char *str, char **words){} */
 
 #ifdef STANDALONE
 
@@ -469,22 +469,22 @@ int main(){
         teststrs[3] = strdup("Farts");
         teststrs[4] = strdup("Foobar");
 
-        // SAMPLE STR
+        /* SAMPLE STR */
         printf("\n%s", str);
         
-        // INVERT
+        /* INVERT */
         printf("\n%s",  strinv(str));
 
-        // SLICE 
+        /* SLICE */
         printf("\n%s", strnslice(renastr, 6,7, strlen(renastr)));
         
-        // JOIN
+        /* JOIN */
         printf("\n[%s]", strjoinint(testnums, 9, ", "));
         printf("\n[%s]", strjoin(teststrs, TYPE_STR, 5, ", "));
         printf("\n[%s]", strjoin(testfloats, TYPE_FLOAT, 4, ", "));
         printf("\n[%s]", strjoin(testdoubles, TYPE_DOUBLE, 4, ", "));
         
-        // Trim
+        /* Trim */
         printf("\n{%s}", strltrim(strLong));
         printf("\n{%s}", strrtrim(strLong2));
         printf("\n{%s}", strtrim(strLong3));
@@ -503,7 +503,7 @@ int main(){
         free(teststrs[3]);
         free(teststrs[4]);
 
-        // Free the array of strings returned by strsplit
+        /* Free the array of strings returned by strsplit */
         i = 0;
         while(arrStr2[i] != NULL){
                 free(arrStr2[i]);

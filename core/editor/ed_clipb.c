@@ -27,7 +27,7 @@ void ed_initClipboard(){
     ed_clearClipboard();
 }
 
-// Clear clipboard ========================================
+/* Clear clipboard ======================================== */
 
 void ed_clearClipboard(){
     mem_arena_reset(clipboardArena);
@@ -46,15 +46,15 @@ void ed_freeClipboard(){
     freeArena(clipboardArena);
 }
 
-// Cut ====================================================
+/* Cut ==================================================== */
 
 void ed_cut(){
     ed_copy();
     ed_deleteSelection();
 }
 
-// Copy ===================================================
-// Copy selected lines into the clipboard's line list
+/* Copy =================================================== */
+/* Copy selected lines into the clipboard's line list */
 void ed_copy(){
     Node *start, *afterEnd, *rec;
     File *currentFile = NULL;
@@ -79,7 +79,7 @@ void ed_copy(){
     rec = start;
 
     while(rec != afterEnd){
-        // Copy node
+        /* Copy node */
         currLine = (Line*)rec->data;
 
         if(!currLine){
@@ -92,14 +92,14 @@ void ed_copy(){
         addGenericNode(&ed_clipboard.lines), newLine);
     }
 
-    // Update clipboard metadata
+    /* Update clipboard metadata */
     ed_clipboard.selectedStartX = currentFile->selectedStartX;
     ed_clipboard.selectedEndX = currentFile->selectedEndX;
 
     return;
 }
 
-// Paste ==================================================
+/* Paste ================================================== */
 
 void ed_paste(){
     File *currentFile = NULL;

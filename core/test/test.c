@@ -22,7 +22,7 @@ void t_drawDebugger(){
 		currentWindow->textArea->scrollY 
 	);
 
-	// TODO: FOrmat arguments each one on its own line...
+	/* TODO: FOrmat arguments each one on its own line... */
 	
     dw_writeBuffer(textmemptr, "scrollX: %d", VIDEO_COLS - 15, 1, VIDEO_COLS - 1, 1,settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG, currentWindow->textArea->scrollX );
     dw_writeBuffer(textmemptr, "cursorLine: %d", VIDEO_COLS - 15, 2, VIDEO_COLS - 1, 2, settings.STATUSBAR_COLOR_TEXT, settings.STATUSBAR_COLOR_BG,currentWindow->textArea->cursorLine );
@@ -53,13 +53,13 @@ void t_drawDebugger(){
 void t_initTests(){
     printf("This is just a blank test\n");
 
-    //dw_fill(textmemptr, COLOR_BLUE, COLOR_LIGHT_BLUE, '°');
+    /*dw_fill(textmemptr, COLOR_BLUE, COLOR_LIGHT_BLUE, '°'); */
     
-    //_colorRectangles();
+    /*_colorRectangles(); */
 
-    //_filesTest();
+    /*_filesTest(); */
 
-    //_scanfTest();
+    /*_scanfTest(); */
 
     logger("[t_initTests]: settings.MAX_LINE_LENGTH=%d", settings.MAX_LINE_LENGTH);
 

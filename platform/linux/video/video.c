@@ -26,7 +26,7 @@ void hal_vid_init(void) {
     hal_vid_clearBuffer(textmemptr);
     hal_vid_clearBuffer(editormemptr);
     
-    // Hide cursor and clear terminal screen
+    /* Hide cursor and clear terminal screen */
     printf("\033[?25l\033[2J");
     fflush(stdout);
 }
@@ -40,7 +40,7 @@ void hal_vid_close(void) {
         free(editormemptr);
         editormemptr = NULL;
     }
-    // Show cursor, reset colors, clear screen
+    /* Show cursor, reset colors, clear screen */
     printf("\033[0m\033[2J\033[?25h\033[H");
     fflush(stdout);
 }
@@ -49,7 +49,7 @@ void hal_vid_clearBuffer(unsigned short *buffer) {
     int i;
     int size = VIDEO_COLS * VIDEO_ROWS;
     for (i = 0; i < size; i++) {
-        buffer[i] = ' ' | (0x07 << 8); // Space with light gray on black
+        buffer[i] = ' ' | (0x07 << 8); /* Space with light gray on black */
     }
 }
 
@@ -66,7 +66,7 @@ unsigned char hal_vid_setVideoMode(unsigned char mode, unsigned char show_msg) {
     }
     
     v_currentMode = mode;
-    // Clear screen to match mode change
+    /* Clear screen to match mode change */
     printf("\033[2J");
     fflush(stdout);
     return mode;
@@ -93,12 +93,12 @@ unsigned short hal_vid_getVideoBufferSize(void) {
 
 static void print_translated_char(unsigned char c) {
     switch (c) {
-        // Blocks
+        /* Blocks */
         case 0xDB: printf("█"); break;
         case 0xB0: printf("░"); break;
         case 0xB1: printf("▒"); break;
         case 0xB2: printf("▓"); break;
-        // Single borders
+        /* Single borders */
         case 179: printf("│"); break;
         case 196: printf("─"); break;
         case 218: printf("┌"); break;
@@ -110,7 +110,7 @@ static void print_translated_char(unsigned char c) {
         case 193: printf("┴"); break;
         case 194: printf("┬"); break;
         case 197: printf("┼"); break;
-        // Double borders
+        /* Double borders */
         case 186: printf("║"); break;
         case 205: printf("═"); break;
         case 201: printf("╔"); break;
@@ -143,7 +143,7 @@ void hal_vid_refresh(void) {
     int last_bg = -1;
     struct winsize w;
 
-    // Check if terminal size has changed
+    /* Check if terminal size has changed */
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0 && w.ws_col > 0 && w.ws_row > 0) {
         if (w.ws_col != VIDEO_COLS || w.ws_row != VIDEO_ROWS) {
             VIDEO_COLS = w.ws_col;
@@ -164,10 +164,10 @@ void hal_vid_refresh(void) {
         }
     }
 
-    // Hide cursor during character updates to prevent flickering
+    /* Hide cursor during character updates to prevent flickering */
     printf("\033[?25l");
 
-    // Move cursor to top left
+    /* Move cursor to top left */
     printf("\033[H");
 
     for (y = 0; y < VIDEO_ROWS; y++) {
@@ -185,13 +185,13 @@ void hal_vid_refresh(void) {
             }
             print_translated_char(c);
         }
-        // Move to next line or print newline
+        /* Move to next line or print newline */
         if (y < VIDEO_ROWS - 1) {
             printf("\r\n");
         }
     }
 
-    // Set cursor position and show cursor
+    /* Set cursor position and show cursor */
     printf("\033[%d;%dH\033[?25h", currentCursorY + 1, currentCursorX + 1);
     fflush(stdout);
 }

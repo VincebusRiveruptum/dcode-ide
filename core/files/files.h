@@ -30,19 +30,19 @@ typedef struct WordMetadata{
 
 
 typedef struct SearchMetadata{
-	// File search arena.
+	/* File search arena. */
     MemoryArena *arena;
 
-    // Input buffer index for the search dialog
+    /* Input buffer index for the search dialog */
     int dialogInputIndex;
     
-    // Word to search (input from search dialog)
+    /* Word to search (input from search dialog) */
     char dialogInputBuffer[255];
     
-    // Count of matches
+    /* Count of matches */
     unsigned int wordCount;
 
-    // List of WordMetadata.
+    /* List of WordMetadata. */
     List *words;
     Node *currentWordNode;
 
@@ -54,11 +54,11 @@ typedef struct Line {
 } Line;
 
 typedef struct File {
-	// File own arena
+	/* File own arena */
 	MemoryArena *arena;
 
-    char *name;         // full name and path
-    unsigned char ext;  // EXTENSION ID
+    char *name;         /* full name and path */
+    unsigned char ext;  /* EXTENSION ID */
 
     size_t bufferLength;  /* also known as file size */
     
@@ -75,32 +75,32 @@ typedef struct TextArea {
 	MemoryArena *arena;
 
     int fileIndex;
-    // Meta helper, used by search functions, could be used for file opening/saving/closing too in the future.
+    /* Meta helper, used by search functions, could be used for file opening/saving/closing too in the future. */
     
-    // Text-area metadata  
+    /* Text-area metadata */
     Node *currentLineNode;
     
     Line *prevLine;
     Line *currentLine;
     Line *nextLine;
 
-    // Current line posPition chars
+    /* Current line posPition chars */
     char prevChar;
     char currentChar;
     char nextChar;
 
-    // This will be used for the editor to know if the previous line to the first visible was a comment
-    // So the comment formmating will still function when scrolling down
+    /* This will be used for the editor to know if the previous line to the first visible was a comment */
+    /* So the comment formmating will still function when scrolling down */
     unsigned short scrollY;
     unsigned short scrollX;
 
-    // Indicates the current cursor line index
+    /* Indicates the current cursor line index */
     unsigned short cursorLine;
 
-    // Indicates the current cursor column index
+    /* Indicates the current cursor column index */
     unsigned short cursorCol;
 
-    // Selectection metadata
+    /* Selectection metadata */
     unsigned short selectedStartX;
     unsigned short selectedEndX;
     unsigned short selectedStartLine;
@@ -122,11 +122,11 @@ typedef enum WndStatus {
 	WndStatus_INITIALIZED,
 	WndStatus_MAXIMIZED,
 	WndStatus_MINIMIZED,
-	WndStatus_FLOATING,	
+	WndStatus_FLOATING	
 }WndStatus;
 
 typedef struct EditorWindow{
-	// EditorWindow tabs
+	/* EditorWindow tabs */
 	List *textAreaList;
 	TextArea *textArea;
 	WndStatus status;
@@ -170,7 +170,7 @@ extern bool endProgram;
 
 #include "private.h"
 
-// f_base
+/* f_base */
 void f_dumpToFile(char *filename);
 void f_dumpBufferTofile(char *buffer, size_t bufferLength, char *filename);
 
@@ -193,11 +193,11 @@ void f_triggerClose(bool end_program);
 void f_closeCurrentTextArea();
 void f_setCurrentFileAsModified();
 
-// f_nav
+/* f_nav */
 void f_prepareFileNavDialog();
 void f_drawFileNavDialog();
 
-// f_search
+/* f_search */
 void ed_prepareSearchTool();
 SearchMetadata *f_createSearchMetadata(char *filename);
 void f_freeSearchMetadata(SearchMetadata *data);
@@ -206,10 +206,10 @@ void ed_drawSearchTool();
 void ed_searchMoveCursor();
 void ed_findWord();
 
-// f_qopen
+/* f_qopen */
 void f_quickOpenFileDialog();
 
-// f_wnd
+/* f_wnd */
 EditorWindow *f_createWindow();
 Workspace *f_createWorkspace();
 

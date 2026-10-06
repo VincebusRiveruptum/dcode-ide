@@ -15,7 +15,7 @@ FILE *logFp = NULL;
 void log_init(){
     if(log_enable != 1) return;
     
-    logFp = fopen("logs.txt", "a+"); // Start fresh on every run
+    logFp = fopen("logs.txt", "a+"); /* Start fresh on every run */
     if(!logFp){
         printf("\n[log_init]: FATAL ERROR: Could not open logs.txt for writing.\n");
     }
@@ -35,7 +35,7 @@ void logToFile(char *outputString){
 
     if(logFp){
         fputs(outputString, logFp);
-        fflush(logFp); // Ensure data is written even if app crashes
+        fflush(logFp); /* Ensure data is written even if app crashes */
     }
 }
 
@@ -45,10 +45,10 @@ void logToConsole(char *outputString){
     printf("%s", outputString);
 }
 
-void logger(const char *format, ...){ // Modified signature for variadic arguments
+void logger(const char *format, ...){ /* Modified signature for variadic arguments */
     char *logType = NULL;
-    char userMessage[1024]; // Increased buffer
-    char logString[2048];  // Increased buffer
+    char userMessage[1024]; /* Increased buffer */
+    char logString[2048];  /* Increased buffer */
     char dateString[64];   
     va_list args;          
     

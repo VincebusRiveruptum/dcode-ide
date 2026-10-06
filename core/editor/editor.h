@@ -4,7 +4,7 @@
 #include "../std.h"
 #include "../files/files.h"
 
-// THIS REQUIRE THE INPUT DEPS
+/* THIS REQUIRE THE INPUT DEPS */
 #include "../../app/main.h"
 
 #define ED_STATUSBAR_WIDTH 132
@@ -13,7 +13,7 @@
 #define ED_LINE_JUMP_UP 0
 #define ED_LINE_JUMP_DOWN 1
 
-// Activity values
+/* Activity values */
 
 #define ED_ACTIVITY_TYPE 2
 #define ED_ACTIVITY_DEL 3
@@ -143,11 +143,11 @@ extern Clipboard ed_clipboard;
 
 struct Node *ed_softDeleteLine(struct TextArea *textArea, struct Node *node);
 
-// ed_cfg
+/* ed_cfg */
 void ed_initConfig(int argc, char *argv[]);
 void ed_handleArguments(int argc, char *argv[]);
 
-// ed_base
+/* ed_base */
 void ed_putCursor(unsigned char x, unsigned char y);
 void ed_moveCursor(short x, short y);
 void ed_typeChar(char c);
@@ -172,25 +172,25 @@ void ed_putCursorLastLine();
 void ed_wordJump(short wordJump);
 void ed_swapLine(short lineJump);
 
-// ed_statb
+/* ed_statb */
 void ed_statusBarMessage(const char *format,  ...);
 bool ed_checkStatusBarMessage();
 void ed_statusBar();
 
-// ed_sel
+/* ed_sel */
 void ed_prepareSelectionTool();
 void ed_clearSelection();
 void ed_handleSelection();
 void ed_renderLineSelection();
 void ed_deleteSelection();
-// ed_search
+/* ed_search */
 void ed_drawSearchTool();
 int ed_wordCountInStr(char *str);
 
-// ed_shell
+/* ed_shell */
 void ed_shellSpawn();
 
-// RENDERING
+/* RENDERING */
 void ed_renderCurrentLine();
 void ed_updateWindow(struct Workspace *workspace);
 void ed_renderWindows(struct Workspace *workspace);

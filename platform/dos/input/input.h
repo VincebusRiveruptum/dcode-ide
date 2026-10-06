@@ -1,3 +1,4 @@
+
 #ifndef PLATFORM_DOS_INPUT_H
 #define PLATFORM_DOS_INPUT_H
 
@@ -14,7 +15,7 @@
 #include "../video/vgaregs.h"
 
 #ifndef __cplusplus
-typedef unsigned char bool;
+
 #define true 1
 #define false 0
 #endif

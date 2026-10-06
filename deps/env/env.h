@@ -3,10 +3,21 @@
 
 #pragma once
 
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE
+#endif
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200809L
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
+
+#if defined(__WATCOMC__)
+char *strdup(const char *s);
+#endif
 #include <stdarg.h>
 #include <ctype.h>
 
@@ -20,6 +31,8 @@
 #define ENV_TYPE_PATH 4
 
 #define STRING_MAX_LENGTH 255
+#ifndef BOOL_DEFINED
+#define BOOL_DEFINED
 #if defined(__MSDOS__) || defined(__WATCOMC__)
   #ifndef __cplusplus
     typedef unsigned char bool;
@@ -28,6 +41,7 @@
   #endif
 #else
   #include <stdbool.h>
+#endif
 #endif
 
 typedef struct ConfigEntry{

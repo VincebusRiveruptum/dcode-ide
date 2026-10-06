@@ -1,9 +1,20 @@
 #ifndef DEPS_STR_H
 #define DEPS_STR_H
 
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE
+#endif
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200809L
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if defined(__WATCOMC__)
+char *strdup(const char *s);
+#endif
 #include <ctype.h>
 #include <limits.h>
 

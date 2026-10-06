@@ -34,7 +34,7 @@ void ed_clearSelection(){
     textArea->selectedEndLine = 0;
     on_selection_tool = false;
 }
-
+ 
 void ed_handleSelection() {
     static TextArea *textArea;
     bool isNav;
@@ -313,10 +313,13 @@ void ed_deleteSelection(){
     
     if( 
         !currentWorkspace ||
-        !currentWindow ||
-        !currentWindow->textArea ||
-        !currentWindow->textArea->file
-    ) return;
+        !currentWorkspace->currentWindow ||
+        !currentWorkspace->currentWindow->textArea ||
+        !currentWorkspace->currentWindow->textArea->file
+    ){
+        logger("[ed_deleteSelection] Error: Invalid file universe.");
+        exit(1);
+    }
 
     currentWindow = currentWorkspace->currentWindow;
     textArea = currentWindow->textArea;
@@ -324,8 +327,9 @@ void ed_deleteSelection(){
     if(
         !textArea->selectedStartNode ||
         !textArea->selectedEndNode
-    )
-    return;
+    ){
+        return;
+    }
     
     /*  Simple deletion,, in the same line */
     if(

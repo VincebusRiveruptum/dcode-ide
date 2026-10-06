@@ -37,6 +37,7 @@ gets complex, so avoid doing this.
 
 - The #ifdef STANDALONE specifies the entry main function and the test code.
 - The dep module should have generic types, avoid using such as bool that could be cross referenced.
+- Function names must not have prefix unlike core module functions.
 - Each dep must be written portable as possible.
 
 ## OBOE avoiding conventions

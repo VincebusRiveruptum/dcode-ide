@@ -7,8 +7,9 @@ LNK = $(OBJDIR)\$(APPNAME).lnk
 CFLAGS_LNK = $(OBJDIR)\CFLAGS.lnk
 
 # Split OBJS to avoid long expansion strings in some wmake versions
-DEPS_OBJS_1 = $(DEPSDIR)\data.obj $(DEPSDIR)\env.obj $(DEPSDIR)\vsnprntf.obj $(DEPSDIR)\input.obj $(DEPSDIR)\log.obj 
-DEPS_OBJS_2 = $(DEPSDIR)\mem.obj $(DEPSDIR)\vgaregs.obj $(DEPSDIR)\sort.obj $(DEPSDIR)\str.obj
+# DEPS
+DEPS_OBJS_1 = $(DEPSDIR)\data.obj $(DEPSDIR)\env.obj $(DEPSDIR)\vsnprntf.obj $(DEPSDIR)\log.obj $(DEPSDIR)\math.obj
+DEPS_OBJS_2 = $(DEPSDIR)\mem.obj $(DEPSDIR)\imgfile.obj $(DEPSDIR)\sort.obj $(DEPSDIR)\str.obj
 
 DEPS_LIB = $(DEPSDIR)\deps.lib
 
@@ -20,22 +21,25 @@ CORE_OBJS_3 = $(OBJDIR)\f_base.obj $(OBJDIR)\f_qopen.obj $(OBJDIR)\f_nav.obj $(O
 DEPS_OBJS = $(DEPS_OBJS_1) $(DEPS_OBJS_2)
 CORE_OBJS = $(CORE_OBJS_1) $(CORE_OBJS_2) $(CORE_OBJS_3) 
 
+HAL_OBJS = $(DEPSDIR)\vgaregs.obj $(DEPSDIR)\input.obj
+
 # ===== CAMBIO AQUÍ: El .exe solo depende de DEPS_LIB + CORE_OBJS =====
 
 # Deps DEPS.LIB packaging
 $(DEPS_LIB): $(DEPS_OBJS)
 	@if not exist $(DEPSDIR) mkdir $(DEPSDIR)
-	wlib -b $@ $(DEPSDIR)\input.obj $(DEPSDIR)\vgaregs.obj $(DEPSDIR)\data.obj
+	wlib -b $@ $(DEPSDIR)\data.obj $(DEPSDIR)\imgfile.obj $(DEPSDIR)\math.obj
 	wlib -b $@ $(DEPSDIR)\sort.obj $(DEPSDIR)\env.obj $(DEPSDIR)\mem.obj
 	wlib -b $@ $(DEPSDIR)\vsnprntf.obj $(DEPSDIR)\log.obj $(DEPSDIR)\str.obj
 
-$(APPNAME).exe: $(DEPS_LIB) $(CORE_OBJS)
+$(APPNAME).exe: $(DEPS_LIB) $(HAL_OBJS) $(CORE_OBJS)
 	@if not exist $(OBJDIR) mkdir $(OBJDIR)
 	@%create $(LNK)
 	@%append $(LNK) system dos4g
 	@%append $(LNK) name $(APPNAME).exe
 	@%append $(LNK) library clib3r.lib
 	@%append $(LNK) library $(DEPS_LIB)
+	@for %i in ($(HAL_OBJS)) do @%append $(LNK) file %i
 	@for %i in ($(CORE_OBJS)) do @%append $(LNK) file %i
 	wlink @$(LNK)
 
@@ -44,19 +48,17 @@ $(CFLAGS_LNK): .ALWAYS
 	@if not exist $(OBJDIR) mkdir $(OBJDIR)
 	@%create $@
 	@%append $@ /3r /s /otexan /w4 	-za
-	@%append $@ -i=hal -i=app -i=core -i=deps\data -i=deps\sort -i=deps\env -i=deps\mem -i=deps\log -i=deps\ext
+	@%append $@ -i=. -i=hal -i=app -i=core -i=deps\data -i=deps\sort -i=deps\env -i=deps\mem -i=deps\log -i=deps\ext -i=deps\str -i=deps\imgfile -i=deps\math
 	@%append $@ -i=platform\dos\input -i=platform\dos\video -i=platform\dos\fs
 
 # Compile rules
 # DEPS
-$(DEPSDIR)\input.obj: .\platform\dos\input\input.c $(CFLAGS_LNK)
-	$(CC) @$(CFLAGS_LNK) -fo=$@ .\platform\dos\input\input.c
-
-$(DEPSDIR)\vgaregs.obj: .\platform\dos\video\vgaregs.c $(CFLAGS_LNK)
-	$(CC) @$(CFLAGS_LNK) -fo=$@ .\platform\dos\video\vgaregs.c
 
 $(DEPSDIR)\data.obj: .\deps\data\data.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\deps\data\data.c
+
+$(DEPSDIR)\env.obj: .\deps\env\env.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\deps\env\env.c
 
 $(DEPSDIR)\vsnprntf.obj: .\deps\ext\vsnprntf.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\deps\ext\vsnprntf.c
@@ -64,17 +66,28 @@ $(DEPSDIR)\vsnprntf.obj: .\deps\ext\vsnprntf.c $(CFLAGS_LNK)
 $(DEPSDIR)\sort.obj: .\deps\sort\sort.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\deps\sort\sort.c
 
-$(DEPSDIR)\env.obj: .\deps\env\env.c $(CFLAGS_LNK)
-	$(CC) @$(CFLAGS_LNK) -fo=$@ .\deps\env\env.c
-
 $(DEPSDIR)\str.obj: .\deps\str\str.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\deps\str\str.c
 
 $(DEPSDIR)\mem.obj: .\deps\mem\mem.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\deps\mem\mem.c
 
+$(DEPSDIR)\imgfile.obj: .\deps\imgfile\imgfile.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\deps\imgfile\imgfile.c
+
+$(DEPSDIR)\math.obj: .\deps\math\math.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\deps\math\math.c
+
 $(DEPSDIR)\log.obj: .\deps\log\log.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\deps\log\log.c
+
+# HAL
+
+$(DEPSDIR)\input.obj: .\platform\dos\input\input.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\platform\dos\input\input.c
+
+$(DEPSDIR)\vgaregs.obj: .\platform\dos\video\vgaregs.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\platform\dos\video\vgaregs.c
 
 # CORE
 $(OBJDIR)\vismem.obj: .\core\vismem\vismem.c $(CFLAGS_LNK)

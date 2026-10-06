@@ -1,6 +1,7 @@
 CC = gcc
-INCLUDES = -Ihal -Iapp -Icore -Ideps/data -Ideps/sort \
-	-Ideps/env -Ideps/str -Ideps/mem -Ideps/log -Ideps/ext -Iplatform/linux/input \
+INCLUDES = -I. -Ihal -Iapp -Icore -Ideps/data -Ideps/sort \
+	-Ideps/env -Ideps/str -Ideps/mem -Ideps/log -Ideps/ext \
+	-Ideps/imgfile -Ideps/math -Iplatform/linux/input \
 	-Iplatform/linux/video -Iplatform/linux/fs
 
 CFLAGS ?= -std=c89 -pedantic -Wall -Wextra -g -O2
@@ -11,12 +12,14 @@ TARGET = dcode
 SRCS = platform/linux/input/input.c \
 	platform/linux/video/video.c \
 	platform/linux/fs/fs.c \
-    deps/data/data.c \
+	deps/data/data.c \
 	deps/sort/sort.c \
 	deps/env/env.c \
 	deps/mem/mem.c \
 	deps/log/log.c \
 	deps/str/str.c \
+	deps/imgfile/imgfile.c \
+	deps/math/math.c \
 	core/vismem/vismem.c \
 	core/test/test.c \
 	core/files/f_base.c \

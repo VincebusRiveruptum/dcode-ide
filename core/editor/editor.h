@@ -23,6 +23,7 @@
 
 
 extern char sillyWords[20][100]; 
+
 /*
  * IBM PC / DOS Code Page 437
  * Line Drawing & Special Characters
@@ -117,6 +118,34 @@ extern char sillyWords[20][100];
  */
 
 /* Types ===================================================*/
+
+typedef struct WordMetadata{
+    struct Node *lineNode;
+    unsigned int wordIndex;
+    unsigned int cursorLine;
+    unsigned int cursorCol;
+    char *wordPtr;
+}WordMetadata;
+
+typedef struct SearchMetadata{
+	/* File search arena. */
+    MemoryArena *arena;
+
+    /* Input buffer index for the search dialog */
+    int dialogInputIndex;
+    
+    /* Word to search (input from search dialog) */
+    char dialogInputBuffer[255];
+    
+    /* Count of matches */
+    unsigned int wordCount;
+
+    /* List of WordMetadata. */
+    List *words;
+    Node *currentWordNode;
+
+} SearchMetadata;
+
 typedef struct Clipboard {
     List *lines;
     unsigned short selectedStartX;
@@ -156,7 +185,6 @@ void ed_supr();
 void ed_tab();
 void ed_newLine();
 void ed_resetActity();
-void ed_prepareSearchTool();
 
 char *ed_getDefaultExtension();
 char *ed_scanf(unsigned char x, unsigned char y, unsigned char maxChars);
@@ -202,6 +230,15 @@ void ed_updateCursor();
 void dw_renderEventDispatcher();
 
 char *ed_getRandomWord();
+
+/* ed_search */
+int ed_prepareSearchTool();
+struct SearchMetadata *ed_createSearchMetadata(char *filename);
+void ed_freeSearchMetadata(struct SearchMetadata *data);
+struct SearchMetadata *ed_resetSearchMetadata(struct SearchMetadata *data);
+void ed_drawSearchTool();
+void ed_searchMoveCursor();
+void ed_findWord();
 
 #endif
 

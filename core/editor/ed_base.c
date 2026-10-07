@@ -517,6 +517,9 @@ void ed_typeChar(char c){
 	}else{
 		dw_requestRenderEvent(DW_RENDER_LINE);
 	}
+
+     // Any editing resets the search metadata
+    ed_resetSearchMetadata(currentWindow->textArea->searchMetadata);
 }
 
 void ed_backspace(){
@@ -652,6 +655,9 @@ void ed_backspace(){
     ed_updateCursor();
 
 	dw_requestRenderEvent(DW_RENDER_LINE);
+
+    // Any editing resets the search metadata
+    ed_resetSearchMetadata(currentWindow->textArea->searchMetadata);
 }
 void ed_supr(){
     unsigned short x = 0;
@@ -691,6 +697,9 @@ void ed_supr(){
     ed_updateCursor();
 
 	dw_requestRenderEvent(DW_RENDER_WINDOW);
+
+    // Any editing resets the search metadata
+    ed_resetSearchMetadata(currentWindow->textArea->searchMetadata);
 }
 
 void ed_newLine(){
@@ -848,6 +857,9 @@ void ed_newLine(){
     ed_updateScrollY();
 
 	dw_requestRenderEvent(DW_RENDER_WINDOW);
+
+    // Any editing resets the search metadata
+    ed_resetSearchMetadata(currentWindow->textArea->searchMetadata);
 }
 
 /* PROMPT ELEMENT */
@@ -1302,6 +1314,9 @@ void ed_wordJump(short wordJump){
     
     textArea->cursorCol = currentCharPos;
     ed_updateCursor();
+
+    // Any editing resets the search metadata
+    ed_resetSearchMetadata(currentWindow->textArea->searchMetadata);
 }
 
 /* This is for swapping the lines with the next or previous one with the */
@@ -1371,6 +1386,9 @@ void ed_swapLine(short lineJump){
     ed_updateCursor();
 	
 	dw_requestRenderEvent(DW_RENDER_WINDOW);
+
+    // Any editing resets the search metadata
+    ed_resetSearchMetadata(currentWindow->textArea->searchMetadata);
 }
 
 char *ed_getRandomWord(){

@@ -521,7 +521,7 @@ void f_newFile(char *filename){
     textArea->file = file;
     textArea->currentLineNode = file->lines->firstNode;
     textArea->currentLine = firstLine;
-    textArea->searchMetadata = f_createSearchMetadata(textArea->file->name);
+    textArea->searchMetadata = ed_createSearchMetadata(textArea->file->name);
     
     f_addTextAreaToWindow(currentWindow, textArea);
     currentWindow->textArea = textArea;
@@ -628,7 +628,7 @@ bool f_openFile(char *filename){
     }
     
     textArea->file = file;
-	textArea->searchMetadata = f_createSearchMetadata(file->name);
+	textArea->searchMetadata = ed_createSearchMetadata(file->name);
     currentWindow->textArea = textArea;
     
     f_addTextAreaToWindow(currentWindow, textArea);

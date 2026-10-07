@@ -20,33 +20,7 @@
 
 /* Types =================================================================*/
 
-typedef struct WordMetadata{
-    struct Node *lineNode;
-    unsigned int wordIndex;
-    unsigned int cursorLine;
-    unsigned int cursorCol;
-    char *wordPtr;
-}WordMetadata;
-
-
-typedef struct SearchMetadata{
-	/* File search arena. */
-    MemoryArena *arena;
-
-    /* Input buffer index for the search dialog */
-    int dialogInputIndex;
-    
-    /* Word to search (input from search dialog) */
-    char dialogInputBuffer[255];
-    
-    /* Count of matches */
-    unsigned int wordCount;
-
-    /* List of WordMetadata. */
-    List *words;
-    Node *currentWordNode;
-
-} SearchMetadata;
+struct SearchMetadata;
 
 typedef struct Line {
     char *buffer;
@@ -113,7 +87,7 @@ typedef struct TextArea {
     Node *selectedStartNode;
     Node *selectedEndNode;
 
-	SearchMetadata *searchMetadata;
+	struct SearchMetadata *searchMetadata;
 	
     bool isActive;
 } TextArea;
@@ -196,15 +170,6 @@ void f_setCurrentFileAsModified();
 /* f_nav */
 void f_prepareFileNavDialog();
 void f_drawFileNavDialog();
-
-/* f_search */
-void ed_prepareSearchTool();
-SearchMetadata *f_createSearchMetadata(char *filename);
-void f_freeSearchMetadata(SearchMetadata *data);
-SearchMetadata *f_resetSearchMetadata(SearchMetadata *data);
-void ed_drawSearchTool();
-void ed_searchMoveCursor();
-void ed_findWord();
 
 /* f_qopen */
 void f_quickOpenFileDialog();

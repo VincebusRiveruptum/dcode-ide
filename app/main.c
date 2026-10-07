@@ -31,7 +31,11 @@ int main(int argc, char *argv[]){
 		ed_prepareSelectionTool();
 		
 		/* SEARCH TOOl */
-		ed_prepareSearchTool();
+		if(ed_prepareSearchTool() == -1){
+			logger("[mainLoop]: Search, continue...");
+			dw_renderEventDispatcher();
+			continue;
+		};
 		        
 		/* Switch files */
 		f_prepareFileNavDialog();
@@ -76,8 +80,9 @@ int main(int argc, char *argv[]){
 		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LALT, HAL_KEY_DOWN)) 
 			ed_swapLine(ED_LINE_JUMP_DOWN);
 
-		/* SPACE */
+		/* SPACE 
 		if(hal_inp_isKeyDown(HAL_KEY_SPACE)) dw_renderEvent = true;
+		*/
         
 		/* DELETE (forward) */
 		if(hal_inp_isKeyPressed(HAL_KEY_DELETE)) ed_supr();

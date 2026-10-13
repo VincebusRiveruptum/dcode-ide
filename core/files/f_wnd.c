@@ -71,7 +71,7 @@ TextArea *f_createTextArea(char *filename){
 
     textArea->isActive = false;
 
-    textArea->searchMetadata = NULL;
+    textArea->searchMetadata = ed_createSearchMetadata(filename);
 
     return textArea;
 }

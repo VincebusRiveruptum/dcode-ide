@@ -991,7 +991,11 @@ char *ed_async_scanf(
     
     ed_putCursor(x + (*stepIndex),y);    
     
-    /* Redraw he entire prompt by copying the buffer content to the screen buffer */
+    /* 
+        Redraw he entire prompt by copying the buffer content to the 
+        screen buffer 
+    */
+   
     for(j=0;j < maxChars; j++){
         if(j > (int)bufflen){
             dw_charXY(textmemptr,' ', x+j, y);

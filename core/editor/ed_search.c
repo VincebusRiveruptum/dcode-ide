@@ -322,8 +322,13 @@ void ed_drawSearchTool(){
     int vis_offset = 0;
     int dialogStartY = 0;
     
+    if (!textArea) {
+		logger("[ed_drawSearchTool] Error: No textArea.");
+		exit(1);
+	}
+
     if (!searchMetadata) {
-		ed_statusBarMessage("No search object instance!.");
+		logger("[ed_drawSearchTool] Error: No search object instance!.");
 		exit(1);
 	}
     

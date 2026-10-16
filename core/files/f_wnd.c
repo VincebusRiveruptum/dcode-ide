@@ -46,6 +46,9 @@ TextArea *f_createTextArea(char *filename){
         exit(1);
     }
 
+    memset(textArea, 0, sizeof(TextArea));
+
+    textArea->arena = arena;
     textArea->file = NULL;
 
     textArea->scrollY = 0;
@@ -147,17 +150,29 @@ TextArea *f_copyTextArea(TextArea *src, bool duplicate){
 }
 
 void f_closeTextArea(TextArea *textArea){
-	logger(
-		"[f_closeTextArea]: Checking %s refs in usage.", 
-		textArea->file->name
-	);    
-	
-	if(!f_checkFileRefs(textArea->file)){
-		logger("[f_closeTextArea]: No refs, closing file.");
-		f_closeFile(textArea->file);
-	}
+    if(!textArea){
+        logger("[f_closeTextArea]: Warning: textArea is NULL.");
+        return;
+    }
+    
+    if(textArea->file){
+        logger(
+            "[f_closeTextArea]: Checking %s refs in usage.", 
+            textArea->file->name ? textArea->file->name : "unnamed"
+        );    
+        
+        if(!f_checkFileRefs(textArea->file)){
+            logger("[f_closeTextArea]: No refs, closing file.");
+            f_closeFile(textArea->file);
+        }
+    }
 
-    mem_arena_free(textArea->arena);
+    ed_freeSearchMetadata(textArea->searchMetadata);
+    textArea->searchMetadata = NULL;
+
+    if(textArea->arena){
+        mem_arena_free(textArea->arena);
+    }
 
     logger("[f_closeTextArea]: TextArea arena closed successfully");    
 }
@@ -333,13 +348,17 @@ void f_freeTextAreaList(List *textAreaList){
 		tmp = rec->next;
 		textArea = (TextArea*)rec->data;
 		if(textArea) {
-			/* TODO: Check if thre are no */
+			/* TODO: Check if there are no */
 			/* shared file instances anywhere */
 			/* if so, free it entirely */
-			if(!f_checkFileRefs(textArea->file))
+			if(textArea->file && !f_checkFileRefs(textArea->file))
 				mem_arena_free(textArea->file->arena);
 			
-			mem_arena_free(textArea->arena);
+			ed_freeSearchMetadata(textArea->searchMetadata);
+			textArea->searchMetadata = NULL;
+
+			if(textArea->arena)
+				mem_arena_free(textArea->arena);
 		}
 		free(rec);
 		rec = tmp;

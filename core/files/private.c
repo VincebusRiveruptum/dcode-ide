@@ -142,24 +142,44 @@ void _splitIntoLines(char *buffer, size_t bufferLength, File *file) {
 size_t _copyLines(File *old, File *new){
     size_t lengthSum = 0;
     size_t lineLen = 0;
-    Node *currentNode = NULL;
     Line *oldLine = NULL;
     Line *newLine = NULL;
+    Node *currentNode = NULL;
 
-    new->lines = NULL;
+    if (!old || !old->lines || !new || !new->arena) {
+        return 0;
+    }
+
+    new->lines = createList(new->arena);
+    if (!new->lines) {
+        return 0;
+    }
     
     currentNode = old->lines->firstNode;
 
     while(currentNode != NULL){
         oldLine = (Line *)currentNode->data;
+        if (!oldLine || !oldLine->buffer) {
+            currentNode = currentNode->next;
+            continue;
+        }
         
         newLine = (Line *)mem_arena_alloc(new->arena, sizeof(Line));
-        newLine->buffer = (char *)mem_arena_alloc(new->arena, sizeof(char) * MAX_FILE_LINE_LENGTH + 1);
-        memset(newLine->buffer, '\0', sizeof(char) * MAX_FILE_LINE_LENGTH + 1);
+        if (!newLine) break;
+        newLine->buffer = (char *)mem_arena_alloc(
+            new->arena, 
+            MAX_FILE_LINE_LENGTH + 1
+        );
+        if (!newLine->buffer) break;
+        memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH + 1);
 
-        lineLen = strlen(oldLine->buffer);
+        lineLen = oldLine->length;
+        if (lineLen > MAX_FILE_LINE_LENGTH) {
+            lineLen = MAX_FILE_LINE_LENGTH;
+        }
 
-        memcpy(newLine->buffer, oldLine->buffer, lineLen + 1);
+        memcpy(newLine->buffer, oldLine->buffer, lineLen);
+        newLine->buffer[lineLen] = '\0';
         newLine->length = lineLen;
 
         addGenericNode(&new->lines, (void *)newLine, new->arena);

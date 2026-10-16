@@ -108,20 +108,21 @@ void ed_freeSearchMetadata(SearchMetadata *searchMetaData){
     mem_arena_free(arena);
 }
 
-/* Reset search metadata, by creating a new fresh arena with */
+/* Reset search metadata in-place without destroying arena or struct */
 SearchMetadata *ed_resetSearchMetadata(SearchMetadata *searchMetadata){
-    char *oldName = NULL;
     if(
         !searchMetadata ||
         !searchMetadata->arena
     ) return NULL;
 
-    /* Offeted to the end  of the SRCH- prefix */
-    oldName = strdup(searchMetadata->arena->name + 5);
+    searchMetadata->wordCount = 0;
+    searchMetadata->words = NULL;
+    searchMetadata->currentWordNode = NULL;
+    searchMetadata->dialogInputIndex = 0;
+    memset(searchMetadata->dialogInputBuffer, '\0', 255);
 
-    ed_freeSearchMetadata(searchMetadata);
-
-    searchMetadata = ed_createSearchMetadata(oldName);
+    /* Reset arena offset to keep SearchMetadata header while clearing match nodes */
+    searchMetadata->arena->offset = (sizeof(SearchMetadata) + 15) & ~15;
 
     return searchMetadata;
 }

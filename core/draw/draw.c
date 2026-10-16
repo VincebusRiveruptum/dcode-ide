@@ -472,13 +472,13 @@ void dw_rectangle(
     
     i++;
 
-    for(; i < (y2 * VIDEO_COLS) + x2; i++){
+    for(; i < (size_t)((y2 * VIDEO_COLS) + x2); i++){
         leftLimit = i % VIDEO_COLS >= x1;
         rightLimit = i % VIDEO_COLS <= x2;
         
         if(rightLimit && leftLimit){
             /* If i is the top line draw top line */
-            if(i < (y1 * VIDEO_COLS) + x1 + VIDEO_COLS){
+            if(i < (size_t)((y1 * VIDEO_COLS) + x1 + VIDEO_COLS)){
                 if(i % VIDEO_COLS == x2){
                     screenCharacter = _getBorderCharacter(borderType, DW_SIDE_TOP_RIGHT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                     buffer[i] = screenCharacter;
@@ -496,7 +496,7 @@ void dw_rectangle(
             }
 
             /* Bottom side */
-            else if( i > ((y2 * VIDEO_COLS) + x2 )- VIDEO_COLS){
+            else if( i > (size_t)(((y2 * VIDEO_COLS) + x2) - VIDEO_COLS)){
                 /* If i is the bottom line draw bottom line */
                 if(i % VIDEO_COLS == x1){
                     screenCharacter = _getBorderCharacter(borderType, DW_SIDE_BOTTOM_LEFT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);

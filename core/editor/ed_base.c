@@ -518,7 +518,7 @@ void ed_typeChar(char c){
 		dw_requestRenderEvent(DW_RENDER_LINE);
 	}
 
-     // Any editing resets the search metadata
+     /* Any editing resets the search metadata */
     ed_resetSearchMetadata(currentWindow->textArea->searchMetadata);
 }
 
@@ -656,7 +656,7 @@ void ed_backspace(){
 
 	dw_requestRenderEvent(DW_RENDER_LINE);
 
-    // Any editing resets the search metadata
+    /* Any editing resets the search metadata */
     ed_resetSearchMetadata(currentWindow->textArea->searchMetadata);
 }
 void ed_supr(){
@@ -698,7 +698,7 @@ void ed_supr(){
 
 	dw_requestRenderEvent(DW_RENDER_WINDOW);
 
-    // Any editing resets the search metadata
+    /* Any editing resets the search metadata */
     ed_resetSearchMetadata(currentWindow->textArea->searchMetadata);
 }
 
@@ -858,7 +858,7 @@ void ed_newLine(){
 
 	dw_requestRenderEvent(DW_RENDER_WINDOW);
 
-    // Any editing resets the search metadata
+    /* Any editing resets the search metadata */
     ed_resetSearchMetadata(currentWindow->textArea->searchMetadata);
 }
 
@@ -1319,7 +1319,7 @@ void ed_wordJump(short wordJump){
     textArea->cursorCol = currentCharPos;
     ed_updateCursor();
 
-    // Any editing resets the search metadata
+    /* Any editing resets the search metadata */
     ed_resetSearchMetadata(currentWindow->textArea->searchMetadata);
 }
 
@@ -1391,7 +1391,7 @@ void ed_swapLine(short lineJump){
 	
 	dw_requestRenderEvent(DW_RENDER_WINDOW);
 
-    // Any editing resets the search metadata
+    /* Any editing resets the search metadata */
     ed_resetSearchMetadata(currentWindow->textArea->searchMetadata);
 }
 

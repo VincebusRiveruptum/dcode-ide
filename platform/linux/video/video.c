@@ -69,6 +69,13 @@ unsigned char hal_vid_setVideoMode(unsigned char mode, unsigned char show_msg) {
     /* Clear screen to match mode change */
     printf("\033[2J");
     fflush(stdout);
+
+    /* 
+        TODO: THIS SHOULD REARANGE ACCORING TO A 
+        METADATA STORED SOMEWRHER
+        probably as workspace attribtute 
+    */
+    f_arrangeWindowsVTile(currentWorkspace);
     return mode;
 }
 

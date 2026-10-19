@@ -1,4 +1,4 @@
-#include "files.h"
+#include "editor.h"
 
 /* ==== SEARCH BEHAVIOR ================================== */
 
@@ -19,14 +19,23 @@
 
 /* The access to the current search meta data index is easy with */
 
-void ed_prepareSearchTool(){
+/*
+    Return value determines how will interfere the main loop
+
+    -1 = will break it
+    1 = will continue it
+*/
+int ed_prepareSearchTool(){
     if(
 		hal_inp_keysPressed(
 			HAL_INP_TRIGGER_EDGE, 
 			2, 
 			HAL_KEY_LCTRL, 
-			HAL_KEY_F)
-		) ed_onSearchTool = true;
+			HAL_KEY_F
+        )
+    ){
+        ed_onSearchTool = true;
+    } 
 		
     if(ed_onSearchTool == true){
         if(hal_inp_isKeyPressed(HAL_KEY_ESC)){
@@ -40,25 +49,32 @@ void ed_prepareSearchTool(){
                 dw_requestRenderEvent(DW_RENDER_ALL);
             }else if (!hal_inp_isKeyDown(HAL_KEY_ENTER)){
                 ed_findWord();
-                dw_requestRenderEvent(DW_RENDER_SEARCH);
+                dw_requestRenderEvent(DW_RENDER_ALL);
             }else{                
                 ed_searchMoveCursor();
                 dw_requestRenderEvent(DW_RENDER_SEARCH);
             }
+
+            return -1;
         }
     } 
+
+    return 1;
 }
 
-SearchMetadata *f_createSearchMetadata(char *filename){
+SearchMetadata *ed_createSearchMetadata(char *filename){
 	char newName[255] = {'\0'};
 	SearchMetadata *new = NULL;
 	MemoryArena *arena = NULL;
 	
 	/* we could improve by also adding a random number between them */
 	sprintf(newName, "SRCH-%s",fs_getFileName(filename));
-	arena = (MemoryArena*)mem_arena_create(newName, MEM_ARENA_2K);
+	arena = (MemoryArena*)mem_arena_create(newName, MEM_ARENA_8K);
 
-	if(!arena) return NULL;
+	if(!arena){
+        logger("[ed_createSearchMetadata] Error: Invalid arena.");
+        exit(1);
+    };
 
 	new = (SearchMetadata*)mem_arena_alloc(arena, sizeof(SearchMetadata));
 	new->arena = arena;
@@ -79,7 +95,7 @@ SearchMetadata *f_createSearchMetadata(char *filename){
 }
 
 /* Free a search meta data object */
-void f_freeSearchMetadata(SearchMetadata *searchMetaData){
+void ed_freeSearchMetadata(SearchMetadata *searchMetaData){
     MemoryArena *arena = NULL;
 
     if(
@@ -92,20 +108,21 @@ void f_freeSearchMetadata(SearchMetadata *searchMetaData){
     mem_arena_free(arena);
 }
 
-/* Reset search metadata, by creating a new fresh arena with */
-SearchMetadata *f_resetSearchMetadata(SearchMetadata *searchMetadata){
-    char *oldName = NULL;
+/* Reset search metadata in-place without destroying arena or struct */
+SearchMetadata *ed_resetSearchMetadata(SearchMetadata *searchMetadata){
     if(
         !searchMetadata ||
         !searchMetadata->arena
     ) return NULL;
 
-    /* Offeted to the end  of the SRCH- prefix */
-    oldName = strdup(searchMetadata->arena->name + 5);
+    searchMetadata->wordCount = 0;
+    searchMetadata->words = NULL;
+    searchMetadata->currentWordNode = NULL;
+    searchMetadata->dialogInputIndex = 0;
+    memset(searchMetadata->dialogInputBuffer, '\0', 255);
 
-    f_freeSearchMetadata(searchMetadata);
-
-    searchMetadata = f_createSearchMetadata(oldName);
+    /* Reset arena offset to keep SearchMetadata header while clearing match nodes */
+    searchMetadata->arena->offset = (sizeof(SearchMetadata) + 15) & ~15;
 
     return searchMetadata;
 }
@@ -166,7 +183,7 @@ void ed_findWord(){
     unsigned int lineIndex = 0;
     char *detectedWordOffset = NULL;
     char *wordIndexPtr = NULL;
-    char searchArenaName[32];
+    char searchArenaName[32] = {0};
     WordMetadata *matchBuffer = NULL;
     Node *lineNode = NULL;
 	TextArea *textArea = NULL;
@@ -181,7 +198,7 @@ void ed_findWord(){
     ){
 
         logger("[ed_findWord]: currentWindow first line node is NULL");
-        return;
+        exit(1);
     }
 
 	textArea = currentWindow->textArea;
@@ -191,25 +208,22 @@ void ed_findWord(){
 	
     if(!lineNode){
         logger("[ed_findWord]: lineNode is NULL");
-        return;
+        exit(1);
     }
     
     if(!searchMetadata){
         logger("[ed_findWord]: searchMetadata is NULL");
-        return;
+        exit(1);
     }
 
-    if(!searchMetadata->arena || !searchMetadata->arena->base){
-        sprintf(searchArenaName, "SRCH");
-        searchMetadata->arena = (MemoryArena *)mem_arena_create(searchArenaName, MEM_ARENA_2K);
-    } else {
-        mem_arena_reset(searchMetadata->arena);
-    }
+    if(!searchMetadata->arena){
+        sprintf(searchArenaName, "%s","SRCH");
+        searchMetadata->arena = (MemoryArena *)mem_arena_create(searchArenaName, MEM_ARENA_8K);
+    } 
 
     wordLen = strlen(searchMetadata->dialogInputBuffer);
 
     if (wordLen == 0) return;
-
 
     searchMetadata->wordCount = 0;
     searchMetadata->words = NULL;
@@ -226,9 +240,8 @@ void ed_findWord(){
 		"[ed_findWord]: Current word! : %s",
 		searchMetadata->dialogInputBuffer
 	);
-
+    
     while(lineNode != NULL){
-        
         if(
             !lineNode->data ||
             !((Line*)lineNode->data)->buffer
@@ -241,7 +254,7 @@ void ed_findWord(){
         
         wordIndexPtr = ((Line*)(lineNode->data))->buffer;
         /* No words!Wing by spac */
-        if(*wordIndexPtr == '\0'){
+        if(wordIndexPtr[0] == '\0'){
             lineNode = lineNode->next;
             lineIndex++;
             continue;
@@ -310,12 +323,17 @@ void ed_drawSearchTool(){
     int vis_offset = 0;
     int dialogStartY = 0;
     
+    if (!textArea) {
+		logger("[ed_drawSearchTool] Error: No textArea.");
+		exit(1);
+	}
+
     if (!searchMetadata) {
-		ed_statusBarMessage("No search object instance!.");
-		return;
+		logger("[ed_drawSearchTool] Error: No search object instance!.");
+		exit(1);
 	}
     
-    vis_offset = (VIDEO_COLS / 4);
+    vis_offset = (VIDEO_COLS / 6);
     dialogStartY = 2;
 
     dw_rectangle(
@@ -347,7 +365,7 @@ void ed_drawSearchTool(){
         (
             searchMetadata->currentWordNode && 
             ((WordMetadata *)searchMetadata->currentWordNode->data) 
-                ? ((WordMetadata *)searchMetadata->currentWordNode->data)->wordIndex
+                ? ((WordMetadata *)searchMetadata->currentWordNode->data)->wordIndex + 1
                 : 0
         )
     );

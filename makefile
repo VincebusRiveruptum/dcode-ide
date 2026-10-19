@@ -16,7 +16,7 @@ DEPS_LIB = $(DEPSDIR)\deps.lib
 # Core objs
 CORE_OBJS_1 = $(OBJDIR)\test.obj $(OBJDIR)\vismem.obj $(OBJDIR)\settings.obj $(OBJDIR)\draw.obj $(OBJDIR)\fs.obj $(OBJDIR)\video.obj 
 CORE_OBJS_2 = $(OBJDIR)\ed_base.obj $(OBJDIR)\ed_cfg.obj $(OBJDIR)\ed_sel.obj $(OBJDIR)\ed_shell.obj $(OBJDIR)\ed_statb.obj $(OBJDIR)\ed_priv.obj 
-CORE_OBJS_3 = $(OBJDIR)\f_base.obj $(OBJDIR)\f_qopen.obj $(OBJDIR)\f_nav.obj $(OBJDIR)\f_wnd.obj $(OBJDIR)\private.obj $(OBJDIR)\f_search.obj $(OBJDIR)\main.obj
+CORE_OBJS_3 = $(OBJDIR)\f_base.obj $(OBJDIR)\f_qopen.obj $(OBJDIR)\f_nav.obj $(OBJDIR)\f_wnd.obj $(OBJDIR)\private.obj $(OBJDIR)\ed_search.obj $(OBJDIR)\main.obj
 
 DEPS_OBJS = $(DEPS_OBJS_1) $(DEPS_OBJS_2)
 CORE_OBJS = $(CORE_OBJS_1) $(CORE_OBJS_2) $(CORE_OBJS_3) 
@@ -109,8 +109,8 @@ $(OBJDIR)\f_wnd.obj: .\core\files\f_wnd.c $(CFLAGS_LNK)
 $(OBJDIR)\private.obj: .\core\files\private.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\files\private.c
 
-$(OBJDIR)\f_search.obj: .\core\files\f_search.c $(CFLAGS_LNK)
-	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\files\f_search.c
+$(OBJDIR)\ed_search.obj: .\core\editor\ed_search.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\editor\ed_search.c
 
 $(OBJDIR)\f_nav.obj: .\core\files\f_nav.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\files\f_nav.c

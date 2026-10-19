@@ -46,6 +46,9 @@ TextArea *f_createTextArea(char *filename){
         exit(1);
     }
 
+    memset(textArea, 0, sizeof(TextArea));
+
+    textArea->arena = arena;
     textArea->file = NULL;
 
     textArea->scrollY = 0;
@@ -71,7 +74,7 @@ TextArea *f_createTextArea(char *filename){
 
     textArea->isActive = false;
 
-    textArea->searchMetadata = NULL;
+    textArea->searchMetadata = ed_createSearchMetadata(filename);
 
     return textArea;
 }
@@ -147,17 +150,29 @@ TextArea *f_copyTextArea(TextArea *src, bool duplicate){
 }
 
 void f_closeTextArea(TextArea *textArea){
-	logger(
-		"[f_closeTextArea]: Checking %s refs in usage.", 
-		textArea->file->name
-	);    
-	
-	if(!f_checkFileRefs(textArea->file)){
-		logger("[f_closeTextArea]: No refs, closing file.");
-		f_closeFile(textArea->file);
-	}
+    if(!textArea){
+        logger("[f_closeTextArea]: Warning: textArea is NULL.");
+        return;
+    }
+    
+    if(textArea->file){
+        logger(
+            "[f_closeTextArea]: Checking %s refs in usage.", 
+            textArea->file->name ? textArea->file->name : "unnamed"
+        );    
+        
+        if(!f_checkFileRefs(textArea->file)){
+            logger("[f_closeTextArea]: No refs, closing file.");
+            f_closeFile(textArea->file);
+        }
+    }
 
-    mem_arena_free(textArea->arena);
+    ed_freeSearchMetadata(textArea->searchMetadata);
+    textArea->searchMetadata = NULL;
+
+    if(textArea->arena){
+        mem_arena_free(textArea->arena);
+    }
 
     logger("[f_closeTextArea]: TextArea arena closed successfully");    
 }
@@ -253,7 +268,7 @@ EditorWindow *f_createWindow(){
 	newWindow->textArea = NULL;
 
 	/* By default will be minimized for now */
-	newWindow->status = WndStatus_MINIMIZED;
+	newWindow->status = WndStatus_MAXIMIZED;
 	newWindow->x = 0;
 	newWindow->y = 0;
 
@@ -333,13 +348,17 @@ void f_freeTextAreaList(List *textAreaList){
 		tmp = rec->next;
 		textArea = (TextArea*)rec->data;
 		if(textArea) {
-			/* TODO: Check if thre are no */
+			/* TODO: Check if there are no */
 			/* shared file instances anywhere */
 			/* if so, free it entirely */
-			if(!f_checkFileRefs(textArea->file))
+			if(textArea->file && !f_checkFileRefs(textArea->file))
 				mem_arena_free(textArea->file->arena);
 			
-			mem_arena_free(textArea->arena);
+			ed_freeSearchMetadata(textArea->searchMetadata);
+			textArea->searchMetadata = NULL;
+
+			if(textArea->arena)
+				mem_arena_free(textArea->arena);
 		}
 		free(rec);
 		rec = tmp;
@@ -569,4 +588,114 @@ void f_cycleActiveWindow(){
 
 	  	dw_requestRenderEvent(DW_RENDER_ALL);
 	}
+}
+
+/*
+	This functions counts the maximized windows
+	in a workspace
+*/
+int f_countMaximizedWindows(Workspace *workspace){
+	int count = 0;
+	Node *node = NULL;
+	EditorWindow *wnd = NULL;
+
+	if(!workspace){
+		logger("[f_countMaximizedWindows] Warning: No workspace ");
+		return 0;
+	}
+	
+	if(
+		!workspace->windowList || 
+		!workspace->windowList->firstNode 
+	){
+		logger("[f_countMaximizedWindows] Warning: No windowList ");
+		return 0;
+	}
+	
+	node = workspace->windowList->firstNode; 
+	
+	while(node){
+		wnd = (EditorWindow*)node->data;
+		
+		if(!wnd){
+			logger("[f_countMaximizedWindows] Error: Window is NULL!. ");
+			exit(1);
+		}
+
+		if(wnd->status == WndStatus_MAXIMIZED){
+			count++;
+		}
+
+		node = node->next;
+	}
+
+	return count;
+}
+
+
+/*
+	This fucntions rearrange the curernt opened windows
+	as a vertical tile.
+
+	- We obtain the number of windows
+	- Based on the count, we calculate the width on each window 
+	- We arrange them next to each other
+*/
+void f_arrangeWindowsVTile(Workspace *workspace){
+	/* VIDEO_COLS VIDEO_ROWS */
+	int wndCount=0;
+	int width, i=0, wndStart = 0;
+	int prevEnd = 0;
+	Node *node = NULL;
+	Node *prev = NULL;
+	EditorWindow *wnd = NULL;
+	EditorWindow *prevWnd = NULL;
+
+	if(
+		!workspace ||
+		!workspace->windowList
+	){
+		logger("[f_arrangeWindows] Error: Invalid file universe.");
+		exit(1);
+	}
+	
+	/* TODO: This could nbe metadata instead of computed */
+	wndCount = f_countMaximizedWindows(workspace);
+	
+	if(wndCount == 0){
+		logger("[f_arrangeWindows] No opened windows.");
+		return;
+	}
+
+	width = (VIDEO_COLS / wndCount) - 1;
+
+	node = workspace->windowList->firstNode;
+
+	while(node){
+		wnd = (EditorWindow*)node->data;
+		
+		if(!wnd){
+			logger("[f_arrangeWindows] Error: Window is NULL");
+			exit(1);
+		}
+		
+		if(wnd->status == WndStatus_MAXIMIZED){
+
+			wndStart = prevWnd ? (prevWnd->x + width) + 1 : 0;
+			wnd->x = wndStart;
+			wnd->width = width;
+			wnd->y = 0;
+			wnd->height = VIDEO_ROWS - 1;
+		}
+		
+		i++;
+		prev = node;
+		prevWnd = (EditorWindow*)prev->data;
+
+		node = node->next;
+	}
+
+	dw_requestRenderEvent(DW_RENDER_ALL);
+
+	return;
 }

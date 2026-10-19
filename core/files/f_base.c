@@ -27,8 +27,10 @@ void f_dumpBufferTofile(
     size_t bufferLength, 
     char *filename
 ){
-    size_t i = 0;
+    size_t writeLen = 0;
     FILE *fp = NULL;
+
+    if(!buffer || !filename) return;
 
     fp = fopen(filename, "w");
     if(fp == NULL){
@@ -40,10 +42,11 @@ void f_dumpBufferTofile(
         return;
     }
     
-    /* We ignore the last character, as it is a line jump, this could */
-    /* add a new line each time we save... */
-    for(i=0; i < bufferLength - 1; i++){
-        fputc(buffer[i], fp);
+    /* We ignore the last character if it is a trailing line jump */
+    writeLen = (bufferLength > 1) ? bufferLength - 1 : bufferLength;
+
+    if(writeLen > 0){
+        fwrite(buffer, sizeof(char), writeLen, fp);
     }
     
     fclose(fp);   
@@ -164,6 +167,7 @@ size_t f_getFileClosestSize(FILE *fp, char *filename){
 /* This basically adds more headroom to a file when memory arena gets */
 /* full after editing the file. */
 void f_resizeTextArea(TextArea *textArea){
+    File *oldFile = NULL;
     File *newFile = NULL;
     MemoryArena *oldArena = NULL;
     
@@ -176,14 +180,22 @@ void f_resizeTextArea(TextArea *textArea){
         exit(1);
     }
     
-    logger("[f_resizeTextArea]: Resizing textArea file %s", textArea->file->name);
+    logger(
+        "[f_resizeTextArea]: Resizing textArea file %s", 
+        textArea->file->name
+    );
     /* We clone the file into the new Arena */
-    oldArena = textArea->file->arena;
-    newFile = f_copyFileObject(textArea->file, true);
+    oldFile = textArea->file;
+    oldArena = oldFile->arena;
+    newFile = f_copyFileObject(oldFile, true);
     
-    textArea->file = newFile;
-    /* Update textArea metadata */
-    f_refreshTextArea(textArea);
+    if (currentWorkspace && currentWorkspace->windowList) {
+        f_updateFileRefs(oldFile, newFile);
+    }
+    if (textArea->file != newFile) {
+        textArea->file = newFile;
+        f_refreshTextArea(textArea);
+    }
     
     /* Freeing up old arena */
     mem_arena_free(oldArena);
@@ -281,30 +293,30 @@ bool f_checkCurrFileRefs(File *file){
 /* window and workspace  with the NEW right reference. */
 /* Returns count of file refs updated. */
 int f_updateFileRefs(File *oldFile, File *newFile){
-    Node *wndNode, *taNode;
-    List *taList = NULL;
-    TextArea *textArea = NULL;
     int refCount = 0;
+    List *taList = NULL;
+    Node *wndNode = NULL;
+    Node *taNode = NULL;
+    TextArea *textArea = NULL;
 
     if(!currentWorkspace){
-        logger("[f_updateFileRefs]: Error: No currentWorskapce.");
-        exit(1);
+        logger("[f_updateFileRefs]: Error: No currentWorkspace.");
+        return 0;
     } 
 
     if(!currentWorkspace->windowList){
         logger("[f_updateFileRefs]: Error: No window list.");
-        exit(1);
+        return 0;
     } 
 
     wndNode = currentWorkspace->windowList->firstNode;
 
     while(wndNode){
-
         taList = ((EditorWindow*)(wndNode->data))->textAreaList;
 
         if(!taList){
             logger("[f_updateFileRefs]: Error: No textArea list.");
-            exit(1);
+            return refCount;
         }
         
         taNode = taList->firstNode;
@@ -317,7 +329,7 @@ int f_updateFileRefs(File *oldFile, File *newFile){
                 !textArea->file
             ){
                 logger("[f_updateFileRefs]: Error: Invalid textArea or data.");
-                exit(1);
+                return refCount;
             }
             
             if(
@@ -329,8 +341,8 @@ int f_updateFileRefs(File *oldFile, File *newFile){
 
                 f_refreshTextArea(textArea);
                 
-                refCount ++; 
-            };
+                refCount++; 
+            }
 
             taNode = taNode->next;
         }
@@ -343,10 +355,11 @@ int f_updateFileRefs(File *oldFile, File *newFile){
 
 /* This creates a FIle object replica. */
 File *f_copyFileObject(File *oldFile, bool headroom){
-	char *newArenaName = "NEW";
+    char *newArenaName = NULL;
     File *newFile = NULL;
     MemoryArena *newArena = NULL;
 
+    newArenaName = "NEW";
     newArena = (MemoryArena*)mem_arena_create(
         newArenaName, 
         oldFile->arena->size + (headroom ? settings.FILE_HEADROOM : 0)
@@ -368,7 +381,10 @@ File *f_copyFileObject(File *oldFile, bool headroom){
     
     newFile->arena = newArena;
     
-    newFile->name = (char*)mem_arena_alloc(newArena, sizeof(char) * (strlen(oldFile->name) + 1));
+    newFile->name = (char*)mem_arena_alloc(
+        newArena, 
+        sizeof(char) * (strlen(oldFile->name) + 1)
+    );
     
     if(!newFile->name){
         logger("[f_saveFile]: Could not allocate file name!");
@@ -378,6 +394,8 @@ File *f_copyFileObject(File *oldFile, bool headroom){
     sprintf(newFile->name, "%s", oldFile->name);
 
     newFile->ext = f_getExtensionId(newFile->name);
+    newFile->isModified = oldFile->isModified;
+    newFile->bufferLength = oldFile->bufferLength;
     
     _copyLines(oldFile, newFile);
     
@@ -521,7 +539,6 @@ void f_newFile(char *filename){
     textArea->file = file;
     textArea->currentLineNode = file->lines->firstNode;
     textArea->currentLine = firstLine;
-    textArea->searchMetadata = f_createSearchMetadata(textArea->file->name);
     
     f_addTextAreaToWindow(currentWindow, textArea);
     currentWindow->textArea = textArea;
@@ -628,7 +645,6 @@ bool f_openFile(char *filename){
     }
     
     textArea->file = file;
-	textArea->searchMetadata = f_createSearchMetadata(file->name);
     currentWindow->textArea = textArea;
     
     f_addTextAreaToWindow(currentWindow, textArea);
@@ -682,15 +698,15 @@ bool f_openFile(char *filename){
 
 /* SAVE FILE ==============================================================================*/
 void f_saveFile(){
-	size_t offset = 0;
+    size_t offset = 0;
+    unsigned long fulllen = 0;
+    unsigned long lineCount = 0;
+    unsigned long totalSize = 0;
     char *fileParsingBuffer = NULL;
     Line *line = NULL;
     File *oldFile = NULL;
     Node *currentNode = NULL;
     TextArea *textArea = NULL;
-    unsigned long fulllen = 0;
-    
-    Node *currentTextAreaNode = NULL;
 
     textArea = currentWindow->textArea;
 
@@ -700,7 +716,7 @@ void f_saveFile(){
         return;
     }
 
-	oldFile = textArea->file;
+    oldFile = textArea->file;
 
     if(!oldFile || !oldFile->arena){
         logger("[f_saveFile]: Error: No file selected");
@@ -713,43 +729,29 @@ void f_saveFile(){
         exit(1);
         return;
     }
-    
-    currentTextAreaNode = 
-        getNodeByDataPtr(
-            &currentWindow->textAreaList,
-            (void*)textArea
-        );
-
-    textArea = f_copyTextArea(textArea, false);
-
-    if(currentTextAreaNode)
-        currentTextAreaNode->data = (TextArea*)textArea;
-    
-
-    /* Replace oldFile with newFile in active window's fileList in-place */
-    /* Update all textArea FIle old pointer no the new pointer. */
-    /* and free up old file arena. */
-    f_updateFileRefs(oldFile, textArea->file);
 
     textArea->file->isModified = false;
 
     fulllen = f_getFileFullLength(textArea);
+    lineCount = (textArea->file->lines) ? 
+        (unsigned long)textArea->file->lines->length : 0;
+    totalSize = fulllen + lineCount;
 
-    /* Dump content to file */
-	fileParsingBuffer = (char*)malloc(sizeof(char) + fulllen);
+    /* Dump content to file with proper size accounting for all newlines */
+    fileParsingBuffer = (char*)malloc(totalSize + 1);
     
     if(!fileParsingBuffer){
-        logger("[f_copyTextArea]: Could not allocate file buffer!");
+        logger("[f_saveFile]: Could not allocate file buffer!");
         exit(1);
         return;
     }
 
-    memset(fileParsingBuffer, '\0', sizeof(char) * fulllen);
+    memset(fileParsingBuffer, '\0', totalSize + 1);
 
-	currentNode = textArea->file->lines->firstNode;
+    currentNode = textArea->file->lines->firstNode;
 
     if(currentNode == NULL){
-        logger("\n[f_textArea]: Error: No lines found");
+        logger("\n[f_saveFile]: Error: No lines found");
         free(fileParsingBuffer);
         exit(1);
         return;
@@ -757,8 +759,10 @@ void f_saveFile(){
     
     while(currentNode != NULL){
         line = (Line *)currentNode->data;
-        memcpy(fileParsingBuffer + offset, line->buffer, line->length);
-        offset += line->length;
+        if(line && line->length > 0){
+            memcpy(fileParsingBuffer + offset, line->buffer, line->length);
+            offset += line->length;
+        }
         fileParsingBuffer[offset] = '\n';
         offset++;
         currentNode = currentNode->next;
@@ -774,12 +778,10 @@ void f_saveFile(){
     
     free(fileParsingBuffer);
 
-    currentWindow->textArea = textArea;
-
     ed_statusBarMessage("File %s saved successfully.", textArea->file->name);
     logger("[f_saveFile]: File %s saved successfully", textArea->file->name);
 
-  	dw_requestRenderEvent(DW_RENDER_ALL);
+    dw_requestRenderEvent(DW_RENDER_ALL);
 }
 
 void f_triggerClose(bool end_program){

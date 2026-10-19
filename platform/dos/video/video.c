@@ -116,10 +116,22 @@ unsigned char hal_vid_setVideoMode(unsigned char mode, unsigned char show_msg){
         default:        /* if mode is 0 or whatever */
             recmode = hal_vid_setVideoMode(settings.DEFAULT_TEXT_MODE, show_msg);
 
+            /* 
+                TODO: THIS SHOULD REARANGE ACCORING TO A 
+                METADATA STORED SOMEWRHER
+                probably as workspace attribtute 
+            */
+            f_arrangeWindowsVTile(currentWorkspace);
             if(show_msg == HAL_SHOW_MSG) ed_statusBarMessage("Set default video mode (%d)", settings.DEFAULT_TEXT_MODE);
             return recmode;
     }
 
+    /* 
+        TODO: THIS SHOULD REARANGE ACCORING TO A 
+        METADATA STORED SOMEWRHER
+        probably as workspace attribtute 
+    */
+    f_arrangeWindowsVTile(currentWorkspace);
     return mode;
 }
 

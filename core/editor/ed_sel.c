@@ -19,7 +19,7 @@ void ed_prepareSelectionTool(){
 }
 
 void ed_clearSelection(){
-	static TextArea *textArea = NULL;
+    TextArea *textArea = NULL;
 
     if(!currentWindow || !currentWindow->textArea) 
 		return;
@@ -32,6 +32,9 @@ void ed_clearSelection(){
     textArea->selectedEndX = 0;
     textArea->selectedStartLine = 0;
     textArea->selectedEndLine = 0;
+    textArea->oldLineNode = (struct Node *)textArea->currentLineNode;
+    textArea->oldLine = textArea->cursorLine;
+    textArea->oldCol = textArea->cursorCol;
     on_selection_tool = false;
 }
  
@@ -144,104 +147,117 @@ void ed_renderLineSelection(){
     return;
 }
 
-/* SAFE, no validation!! */
-/* Returns number of deleted chars in a selected */
-/* block in a line. */
-int _deleteInSingleLine(){
-    TextArea *textArea = currentWorkspace->currentWindow->textArea;
-    Line *line = textArea->currentLine;
-    unsigned short start, end, lenBetween;
+/* Returns number of deleted chars in a selected block in a line. */
+int _deleteInSingleLine(void){
+    unsigned short start = 0;
+    unsigned short end = 0;
+    unsigned short lenBetween = 0;
+    Line *line = NULL;
+    TextArea *textArea = NULL;
 
-    /* Start must be a minor index */
-    /* than the end index. */
     if(
-        textArea->selectedStartX <
-        textArea->selectedEndX
-     ){
-        start =  textArea->selectedStartX;
-        end =  textArea->selectedEndX;
+        !currentWorkspace ||
+        !currentWorkspace->currentWindow ||
+        !currentWorkspace->currentWindow->textArea ||
+        !currentWorkspace->currentWindow->textArea->currentLine
+    ){
+        return -1;
+    }
+
+    textArea = currentWorkspace->currentWindow->textArea;
+    line = textArea->currentLine;
+
+    if(!line->buffer || line->length == 0){
+        return -1;
+    }
+
+    /* Start must be a minor index than the end index. */
+    if(textArea->selectedStartX < textArea->selectedEndX){
+        start = textArea->selectedStartX;
+        end = textArea->selectedEndX;
     }else{
         start = textArea->selectedEndX;
         end = textArea->selectedStartX;
     }
 
+    if(start > line->length){
+        start = line->length;
+    }
+    if(end > line->length){
+        end = line->length;
+    }
+
     lenBetween = line->length - end;
 
-    if(!line->buffer || !line->length) 
-        return -1;
-    
-    memcpy(line->buffer + start, line->buffer + end, lenBetween);
+    if(lenBetween > 0){
+        memcpy(line->buffer + start, line->buffer + end, lenBetween);
+    }
 
-    /* Null termination, so remaining garbage is ignored. */
-    line->buffer[start + lenBetween + 1] = '\0';
     line->length = start + lenBetween;
+    line->buffer[line->length] = '\0';
 
     textArea->cursorCol = start;
     
-    return (end - start);
+    return (int)(end - start);
 }
 
-void _glueLines(Node *start, Node *end, unsigned short startLineIndex){
-    Line *startLine, *endLine;
-    TextArea *textArea = currentWorkspace->currentWindow->textArea;
-    unsigned short startX, endX, lenOnwards;
+void _glueLines(
+    Node *start, 
+    Node *end, 
+    unsigned short startLineIndex,
+    unsigned short startX,
+    unsigned short endX
+){
+    unsigned short lenOnwards = 0;
+    Line *startLine = NULL;
+    Line *endLine = NULL;
+    TextArea *textArea = NULL;
+
     /* Validation */
     if(
+        !currentWorkspace ||
+        !currentWorkspace->currentWindow ||
+        !currentWorkspace->currentWindow->textArea ||
         !start ||
         !start->data ||
         !((Line*)(start->data))->buffer ||
         !end ||
         !end->data ||
         !((Line*)(end->data))->buffer
-    )   return;
+    ){
+        return;
+    }
 
+    textArea = currentWorkspace->currentWindow->textArea;
     startLine = (Line*)start->data;
     endLine = (Line*)end->data;
 
-    /* Column gluing */
-    /* Start must be a minor index */
-    /* than the end index. */
-    if(
-        textArea->selectedStartX <
-        textArea->selectedEndX
-     ){
-        startX =  textArea->selectedStartX;
-        endX =  textArea->selectedEndX;
-    }else{
-        startX = textArea->selectedEndX;
-        endX = textArea->selectedStartX;
+    if(startX > startLine->length){
+        startX = startLine->length;
+    }
+    if(endX > endLine->length){
+        endX = endLine->length;
     }
 
-    lenOnwards = 
-        (int)(endLine->length - endX) > 0
-        ? (endLine->length - endX)
-        : 0;
+    lenOnwards = (endLine->length > endX) ? (endLine->length - endX) : 0;
+    if(startX + lenOnwards > MAX_FILE_LINE_LENGTH){
+        lenOnwards = MAX_FILE_LINE_LENGTH - startX;
+    }
 
-    memcpy(
-        startLine->buffer + startX, 
-        endLine->buffer + endX, 
-        lenOnwards
-    );
+    if(lenOnwards > 0){
+        memcpy(
+            startLine->buffer + startX, 
+            endLine->buffer + endX, 
+            lenOnwards
+        );
+    }
     
-    startLine->buffer[startX + lenOnwards + 1] = '\0'; 
     startLine->length = startX + lenOnwards; 
-    
-    /*; */
-    
-    /* We glue the lines */
-    start->next = 
-        end &&
-        end->next
-        ? end->next
-        : NULL;
-         
-    if(
-        end &&
-        end->next &&
-        end->next->prev
-    ){
-        end->next->prev = start;
-    }
+    startLine->buffer[startLine->length] = '\0'; 
+
+    /* Link start and end directly before recycling end */
+    end->prev = start;
+    start->next = end;
 
     /* Recycle end node */
     ed_softDeleteLine(textArea, end);
@@ -256,58 +272,99 @@ void _glueLines(Node *start, Node *end, unsigned short startLineIndex){
     textArea->cursorLine = startLineIndex;
 }
 
-int _deleteSelectedLines(){
-    TextArea *textArea = currentWorkspace->currentWindow->textArea;
+int _deleteSelectedLines(void){
+    int i = 0;
+    unsigned short startLineIndex = 0;
+    unsigned short startX = 0;
+    unsigned short endX = 0;
     Node *start = NULL;
     Node *end = NULL;
-    Node *rec = NULL, *tmp=NULL;
-    unsigned short startLineIndex;
-    /* Ordering so always start is a a position */
-    /* previous to the end */
+    Node *rec = NULL;
+    Node *tmp = NULL;
+    Node *check = NULL;
+    TextArea *textArea = NULL;
 
     if(
-        textArea->selectedStartLine <
-        textArea->selectedEndLine 
+        !currentWorkspace || 
+        !currentWorkspace->currentWindow ||
+        !currentWorkspace->currentWindow->textArea ||
+        !currentWorkspace->currentWindow->textArea->file ||
+        !currentWorkspace->currentWindow->textArea->file->lines
     ){
+        return -1;
+    }
+
+    textArea = currentWorkspace->currentWindow->textArea;
+
+    /* Ordering so always start is at a position previous to the end */
+    if(textArea->selectedStartLine < textArea->selectedEndLine){
         start = textArea->selectedStartNode;
         startLineIndex = textArea->selectedStartLine;
+        startX = textArea->selectedStartX;
         end = textArea->selectedEndNode;
-        
-    }else{
+        endX = textArea->selectedEndX;
+    }else if(textArea->selectedStartLine > textArea->selectedEndLine){
         start = textArea->selectedEndNode;
         startLineIndex = textArea->selectedEndLine;
-        end = textArea->selectedStartNode;   
+        startX = textArea->selectedEndX;
+        end = textArea->selectedStartNode;
+        endX = textArea->selectedStartX;
+    }else{
+        check = textArea->selectedStartNode ? 
+            textArea->selectedStartNode->next : NULL;
+        while(check != NULL && check != textArea->selectedEndNode){
+            check = check->next;
+        }
+        if(check == textArea->selectedEndNode){
+            start = textArea->selectedStartNode;
+            startLineIndex = textArea->selectedStartLine;
+            startX = textArea->selectedStartX;
+            end = textArea->selectedEndNode;
+            endX = textArea->selectedEndX;
+        }else{
+            start = textArea->selectedEndNode;
+            startLineIndex = textArea->selectedEndLine;
+            startX = textArea->selectedEndX;
+            end = textArea->selectedStartNode;
+            endX = textArea->selectedStartX;
+        }
     }
     
-    /* Then we delete the nodes in between */
-    /* Only if there are more than three */
-    /* lines selected. */
-    if(
-        (!start || !end) ||     /* null check */
-        (start == end)       /* bound check */
-    ) return -1;
+    /* Bounds and null check */
+    if(!start || !end || start == end){
+        return -1;
+    }
     
     rec = start->next;
 
-    while(
-        (rec != NULL ) && 
-        (rec != end->prev) &&          
-        (rec != end)      
-    ){
+    /* Delete all nodes in between start and end */
+    while(rec != NULL && rec != end){
         tmp = rec->next;
         ed_softDeleteLine(textArea, rec);
+        logger("DELETING %d lines", i);
         rec = tmp;
+        i++;
+    }
+
+    if(rec != end){
+        logger("[_deleteSelectedLines] Error: end node was not reached");
+        return -1;
     }
        
-    /* Then we glue the lines on each side of the */
-    /* deleted lines gap. */
-    _glueLines(start, end, startLineIndex);
+    /* Glue the lines on each side of the deleted lines gap */
+    _glueLines(
+        start, 
+        end, 
+        startLineIndex, 
+        startX, 
+        endX
+    );
 
     ed_clearSelection();
     return 1;
 }
 
-void ed_deleteSelection(){
+void ed_deleteSelection(void){
     EditorWindow *currentWindow = NULL;
     TextArea *textArea = NULL;
     
@@ -323,6 +380,7 @@ void ed_deleteSelection(){
 
     currentWindow = currentWorkspace->currentWindow;
     textArea = currentWindow->textArea;
+
     /* Check selected line nodes */
     if(
         !textArea->selectedStartNode ||
@@ -331,7 +389,7 @@ void ed_deleteSelection(){
         return;
     }
     
-    /*  Simple deletion,, in the same line */
+    /* Simple deletion, in the same line */
     if(
         (
             textArea->selectedStartNode ==
@@ -348,12 +406,12 @@ void ed_deleteSelection(){
                 " deleting selected text"
             );
         }
-            
+        ed_clearSelection();
     }else{
-        /* deletion if more lines involved ( >1) */
+        /* Deletion if more lines involved ( >1) */
         _deleteSelectedLines();
-        
     }
 
+    ed_updateScrollY();
     f_setCurrentFileAsModified();
 }

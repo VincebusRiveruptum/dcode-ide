@@ -173,6 +173,10 @@ unsigned char _keywordMap(char *word){
     if (strcmp(word, "enum") == 0) return DW_RESWORD_TYPES;
     if (strcmp(word, "struct") == 0) return DW_RESWORD_TYPES;
     if (strcmp(word, "union") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "typedef") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "static") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "extern") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "volatile") == 0) return DW_RESWORD_TYPES;
     
     /* Known STD types */
     if (strcmp(word, "FILE") == 0) return DW_RESWORD_STD_FUNC;
@@ -211,10 +215,7 @@ unsigned char _keywordMap(char *word){
     if (strcmp(word, "default") == 0) return DW_RESWORD_CONTROL_FLOW;
     if (strcmp(word, "goto") == 0) return DW_RESWORD_CONTROL_FLOW;
     if (strcmp(word, "continue") == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strcmp(word, "typedef") == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strcmp(word, "extern") == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strcmp(word, "volatile") == 0) return DW_RESWORD_CONTROL_FLOW;
-    
+
     /* Preprocessor directives */
     if (strcmp(word, "#include") == 0) return DW_RESWORD_PREPROCESSOR;
     if (strcmp(word, "#define") == 0) return DW_RESWORD_PREPROCESSOR;
@@ -472,13 +473,13 @@ void dw_rectangle(
     
     i++;
 
-    for(; i < (y2 * VIDEO_COLS) + x2; i++){
+    for(; i < (size_t)((y2 * VIDEO_COLS) + x2); i++){
         leftLimit = i % VIDEO_COLS >= x1;
         rightLimit = i % VIDEO_COLS <= x2;
         
         if(rightLimit && leftLimit){
             /* If i is the top line draw top line */
-            if(i < (y1 * VIDEO_COLS) + x1 + VIDEO_COLS){
+            if(i < (size_t)((y1 * VIDEO_COLS) + x1 + VIDEO_COLS)){
                 if(i % VIDEO_COLS == x2){
                     screenCharacter = _getBorderCharacter(borderType, DW_SIDE_TOP_RIGHT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
                     buffer[i] = screenCharacter;
@@ -496,7 +497,7 @@ void dw_rectangle(
             }
 
             /* Bottom side */
-            else if( i > ((y2 * VIDEO_COLS) + x2 )- VIDEO_COLS){
+            else if( i > (size_t)(((y2 * VIDEO_COLS) + x2) - VIDEO_COLS)){
                 /* If i is the bottom line draw bottom line */
                 if(i % VIDEO_COLS == x1){
                     screenCharacter = _getBorderCharacter(borderType, DW_SIDE_BOTTOM_LEFT) | ((backgroundBorderColor << 4 | foregroundBorderColor) << 8);
@@ -1305,6 +1306,7 @@ void dw_renderEventDispatcher(){
 				ed_updateCursor();
                 dw_renderEventType = DW_RENDER_NONE;
 				dw_renderEvent = false;
+                ed_statusBar();
 				hal_vid_refresh();
 				return;
 			case DW_RENDER_LINE:

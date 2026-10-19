@@ -1,0 +1,23 @@
+name: c89
+
+on:
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "dev" ]
+
+permissions:
+  contents: read
+
+jobs:
+  c89:
+    name: C89 conformance (Linux build)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build with strict C89
+        run: |
+          make -f makefile.linux -k \
+            CFLAGS="-std=c89 -pedantic -Wall -Wextra"

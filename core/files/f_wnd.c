@@ -645,8 +645,11 @@ void f_arrangeWindowsVTile(Workspace *workspace){
 	/* VIDEO_COLS VIDEO_ROWS */
 	int wndCount=0;
 	int width, i=0, wndStart = 0;
+	int prevEnd = 0;
 	Node *node = NULL;
+	Node *prev = NULL;
 	EditorWindow *wnd = NULL;
+	EditorWindow *prevWnd = NULL;
 
 	if(
 		!workspace ||
@@ -664,28 +667,31 @@ void f_arrangeWindowsVTile(Workspace *workspace){
 		return;
 	}
 
-	width = VIDEO_COLS / wndCount;
+	width = (VIDEO_COLS / wndCount) - 1;
 
 	node = workspace->windowList->firstNode;
 
 	while(node){
 		wnd = (EditorWindow*)node->data;
-
+		
 		if(!wnd){
 			logger("[f_arrangeWindows] Error: Window is NULL");
 			exit(1);
 		}
-
+		
 		if(wnd->status == WndStatus_MAXIMIZED){
-			wndStart = i * width;
 
+			wndStart = prevWnd ? (prevWnd->x + width) + 1 : 0;
 			wnd->x = wndStart;
 			wnd->width = width;
 			wnd->y = 0;
 			wnd->height = VIDEO_ROWS - 1;
 		}
-
+		
 		i++;
+		prev = node;
+		prevWnd = (EditorWindow*)prev->data;
+
 		node = node->next;
 	}
 

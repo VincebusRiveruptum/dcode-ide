@@ -173,6 +173,10 @@ unsigned char _keywordMap(char *word){
     if (strcmp(word, "enum") == 0) return DW_RESWORD_TYPES;
     if (strcmp(word, "struct") == 0) return DW_RESWORD_TYPES;
     if (strcmp(word, "union") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "typedef") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "static") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "extern") == 0) return DW_RESWORD_TYPES;
+    if (strcmp(word, "volatile") == 0) return DW_RESWORD_TYPES;
     
     /* Known STD types */
     if (strcmp(word, "FILE") == 0) return DW_RESWORD_STD_FUNC;
@@ -211,10 +215,7 @@ unsigned char _keywordMap(char *word){
     if (strcmp(word, "default") == 0) return DW_RESWORD_CONTROL_FLOW;
     if (strcmp(word, "goto") == 0) return DW_RESWORD_CONTROL_FLOW;
     if (strcmp(word, "continue") == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strcmp(word, "typedef") == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strcmp(word, "extern") == 0) return DW_RESWORD_CONTROL_FLOW;
-    if (strcmp(word, "volatile") == 0) return DW_RESWORD_CONTROL_FLOW;
-    
+
     /* Preprocessor directives */
     if (strcmp(word, "#include") == 0) return DW_RESWORD_PREPROCESSOR;
     if (strcmp(word, "#define") == 0) return DW_RESWORD_PREPROCESSOR;

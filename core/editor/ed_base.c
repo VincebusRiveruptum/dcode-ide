@@ -256,7 +256,7 @@ void ed_renderWindows(Workspace *workspace){
 		return;
 	}
 	
-	hal_vid_clearBuffer(textmemptr);
+	/*hal_vid_clearBuffer(textmemptr); */
 
 	rec = workspace->windowList->firstNode;
 	/*winLen = workspace->windowList->length; */

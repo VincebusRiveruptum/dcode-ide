@@ -1305,6 +1305,7 @@ void dw_renderEventDispatcher(){
 				ed_updateCursor();
                 dw_renderEventType = DW_RENDER_NONE;
 				dw_renderEvent = false;
+                ed_statusBar();
 				hal_vid_refresh();
 				return;
 			case DW_RENDER_LINE:

@@ -268,7 +268,7 @@ EditorWindow *f_createWindow(){
 	newWindow->textArea = NULL;
 
 	/* By default will be minimized for now */
-	newWindow->status = WndStatus_MINIMIZED;
+	newWindow->status = WndStatus_MAXIMIZED;
 	newWindow->x = 0;
 	newWindow->y = 0;
 
@@ -588,4 +588,108 @@ void f_cycleActiveWindow(){
 
 	  	dw_requestRenderEvent(DW_RENDER_ALL);
 	}
+}
+
+/*
+	This functions counts the maximized windows
+	in a workspace
+*/
+int f_countMaximizedWindows(Workspace *workspace){
+	int count = 0;
+	Node *node = NULL;
+	EditorWindow *wnd = NULL;
+
+	if(!workspace){
+		logger("[f_countMaximizedWindows] Warning: No workspace ");
+		return 0;
+	}
+	
+	if(
+		!workspace->windowList || 
+		!workspace->windowList->firstNode 
+	){
+		logger("[f_countMaximizedWindows] Warning: No windowList ");
+		return 0;
+	}
+	
+	node = workspace->windowList->firstNode; 
+	
+	while(node){
+		wnd = (EditorWindow*)node->data;
+		
+		if(!wnd){
+			logger("[f_countMaximizedWindows] Error: Window is NULL!. ");
+			exit(1);
+		}
+
+		if(wnd->status == WndStatus_MAXIMIZED){
+			count++;
+		}
+
+		node = node->next;
+	}
+
+	return count;
+}
+
+
+/*
+	This fucntions rearrange the curernt opened windows
+	as a vertical tile.
+
+	- We obtain the number of windows
+	- Based on the count, we calculate the width on each window 
+	- We arrange them next to each other
+*/
+void f_arrangeWindowsVTile(Workspace *workspace){
+	/* VIDEO_COLS VIDEO_ROWS */
+	int wndCount=0;
+	int width, i=0, wndStart = 0;
+	Node *node = NULL;
+	EditorWindow *wnd = NULL;
+
+	if(
+		!workspace ||
+		!workspace->windowList
+	){
+		logger("[f_arrangeWindows] Error: Invalid file universe.");
+		exit(1);
+	}
+	
+	/* TODO: This could nbe metadata instead of computed */
+	wndCount = f_countMaximizedWindows(workspace);
+	
+	if(wndCount == 0){
+		logger("[f_arrangeWindows] No opened windows.");
+		return;
+	}
+
+	width = VIDEO_COLS / wndCount;
+
+	node = workspace->windowList->firstNode;
+
+	while(node){
+		wnd = (EditorWindow*)node->data;
+
+		if(!wnd){
+			logger("[f_arrangeWindows] Error: Window is NULL");
+			exit(1);
+		}
+
+		if(wnd->status == WndStatus_MAXIMIZED){
+			wndStart = i * width;
+
+			wnd->x = wndStart;
+			wnd->width = width;
+			wnd->y = 0;
+			wnd->height = VIDEO_ROWS - 1;
+		}
+
+		i++;
+		node = node->next;
+	}
+
+	dw_requestRenderEvent(DW_RENDER_ALL);
+
+	return;
 }

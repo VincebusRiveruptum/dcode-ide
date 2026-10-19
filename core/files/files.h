@@ -198,5 +198,8 @@ void f_splitWindow();
 void f_cycleActiveWindow();
 void f_refreshWindows(Workspace *workspace);
 
+int f_countMaximizedWindows(Workspace *workspace);
+void f_arrangeWindowsVTile();
+
 #endif
 

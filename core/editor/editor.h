@@ -147,6 +147,7 @@ typedef struct SearchMetadata{
 } SearchMetadata;
 
 typedef struct Clipboard {
+    MemoryArena *arena;
     List *lines;
     unsigned short selectedStartX;
     unsigned short selectedEndX;
@@ -211,7 +212,9 @@ void ed_clearSelection();
 void ed_handleSelection();
 void ed_renderLineSelection();
 void ed_deleteSelection();
+
 /* ed_srch */
+bool ed_isSelectedText(struct Workspace *workspace);
 void ed_drawSearchTool();
 int ed_wordCountInStr(char *str);
 

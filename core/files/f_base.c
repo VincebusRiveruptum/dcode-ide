@@ -709,6 +709,14 @@ bool f_openFile(char *filename){
 	return true;
 }
 
+bool f_fileExist(char *filename){
+    FILE *fp = fopen(filename, "r");
+    bool exist = fp ? true : false;
+
+    fclose(fp);
+    return exist;
+}
+
 /* SAVE FILE ==============================================================================*/
 void f_saveFile(){
     size_t offset = 0;

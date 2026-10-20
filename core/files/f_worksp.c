@@ -274,6 +274,20 @@ Workspace *f_loadWorkspace(char *filename){
             
             filenameBuffer[filenameLen] = '\0';
 
+            /*
+                We check if the file really exist
+                before creating its instance
+            */
+            if(f_fileExist(filenameBuffer) == false){
+                logger(
+                    "[f_loadWorkspace] Warning: Could not open file or does not exist %s, skipping entry.", 
+                    filenameBuffer
+                );
+                j++;
+                free(taTemp);
+                continue;
+            }
+
             textArea = f_createTextArea(filenameBuffer);
             if(!textArea){
                 logger(

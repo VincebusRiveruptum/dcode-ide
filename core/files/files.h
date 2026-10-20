@@ -163,6 +163,8 @@ void f_newFile(char *filename);
 
 File *f_readFile(char *filename);
 bool f_openFile(char *filename);
+bool f_fileExist(char *filename);
+
 void f_saveFile();
 
 void f_triggerClose(bool end_program);

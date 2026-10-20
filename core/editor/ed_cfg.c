@@ -9,9 +9,17 @@ void ed_initConfig(int argc, char *argv[]){
         printf("\nCould not load config file!.");
         return ;
     }
-
+    
     log_init();   
     logger("[ed_initConfig]: %d %s", argc, argv[1]);
+
+	/* Restore previous session if setting is activated*/
+	if(settings.RESTORE_PREV_SESSION == true){
+		logger("Loading previous session...");
+		printf("\nLoading previous session...\n");
+		currentWorkspace = f_loadWorkspace(S_DEFAULT_SESSION_FILENAME);
+	}	
+
     ed_handleArguments(argc, argv);
 
     v_currentMode = settings.DEFAULT_TEXT_MODE;
@@ -37,6 +45,11 @@ void ed_handleArguments(int argc, char *argv[]){
             }
         }
     }else{
-        f_newFile(NULL);
+        if(
+            !currentWorkspace ||
+            !currentWorkspace->currentWindow
+        ){
+            f_newFile(NULL);
+        }
     }
 }

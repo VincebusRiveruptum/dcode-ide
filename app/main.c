@@ -121,6 +121,16 @@ int main(int argc, char *argv[]){
 		)) 
 			f_saveFile();
  
+		/* SAVE WORKSPACE */
+		if(hal_inp_keysPressed(
+			HAL_INP_TRIGGER_EDGE, 
+			3, 
+			HAL_KEY_LSHIFT, 
+			HAL_KEY_W, 
+			HAL_KEY_S
+		)) 
+			f_saveWorkspace(currentWorkspace, "test.wks");
+
 		/* SHELL SPAWN */
 		if(hal_inp_isKeyPressed(HAL_KEY_F9)) 
 			ed_shellSpawn();

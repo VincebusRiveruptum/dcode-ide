@@ -79,6 +79,34 @@ TextArea *f_createTextArea(char *filename){
     return textArea;
 }
 
+/* 
+	Set textArea object attributes from another one 
+	keeping the MemoryArena from the dest TextArea
+*/
+void f_setTextArea(TextArea *dest, TextArea *src){
+	if(!dest || !src){
+		logger("[f_setTextArea] Error: dest or src cant be NULL.");
+		exit(1);
+	}
+
+    dest->scrollY = src->scrollY;
+    dest->scrollX = src->scrollX;
+    dest->cursorLine = src->cursorLine;
+    dest->cursorCol = src->cursorCol; 
+    
+    dest->prevChar = src->prevChar;
+    dest->currentChar = src->currentChar;
+    dest->nextChar = src->nextChar;
+
+    dest->selectedStartX = src->selectedStartX;
+    dest->selectedEndX = src->selectedEndX;
+    dest->selectedStartLine = src->selectedStartLine;
+    dest->selectedEndLine = src->selectedEndLine;
+
+    dest->isActive = src->isActive;
+
+}
+
 void f_refreshTextArea(TextArea *textArea){
 	if(
 		!textArea ||

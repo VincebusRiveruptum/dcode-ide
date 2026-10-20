@@ -550,39 +550,21 @@ void f_newFile(char *filename){
 }
 
 /* OPEN FILE ==============================================================================*/
+/*
+    This loads a file and creates a File instance from it
+*/
 
-bool f_openFile(char *filename){
-    char *fileParsingBuffer = NULL;
+File *f_readFile(char *filename){
 	size_t fileSize = 0;
     FILE *fp = NULL;
     File *file = NULL;
-    TextArea *textArea = NULL;
+    char *fileParsingBuffer = NULL;
     MemoryArena *fileArena = NULL;
-
-    if (!currentWorkspace) {
-        currentWorkspace = f_createWorkspace();
-        if (!currentWorkspace) {
-            logger("[f_openFile]: Failed initializing workspace");
-            exit(1);
-        }
-    }
-
-    if (!currentWindow) {
-        currentWindow = f_createWindow();
-        f_addWindowToWorkspace(currentWorkspace, currentWindow);
-        currentWorkspace->currentWindow = currentWindow;
-        
-        currentWindow->x = 0;
-        currentWindow->y = 0;
-        currentWindow->width = VIDEO_COLS - 1;
-        currentWindow->height = VIDEO_ROWS - 2;
-        currentWindow->active = true;
-    }
 
     fp = fopen(filename, "r");
 
     if(fp == NULL){
-        logger("\n[f_openFile]: Error: Could not open file %s", filename);
+        logger("\n[f_readFile]: Error: Could not open file %s", filename);
         return false;
     }
 
@@ -624,8 +606,8 @@ bool f_openFile(char *filename){
     file->bufferLength = ftell(fp);
     rewind(fp);
     
-    fileParsingBuffer = (char *)malloc(file->bufferLength + 1)
-    ;
+    fileParsingBuffer = (char *)malloc(file->bufferLength + 1);
+
     if(!fileParsingBuffer){
         logger("[f_openFile]: Error: Could not allocate memory for fileParsingBuffer");
         fclose(fp);
@@ -635,21 +617,55 @@ bool f_openFile(char *filename){
 	memset(fileParsingBuffer, '\0', file->bufferLength + 1);
 	
     file->bufferLength = fread(fileParsingBuffer, sizeof(char), file->bufferLength, fp);
+    
+    _splitIntoLines(fileParsingBuffer, file->bufferLength, file);
+
+    fclose(fp);
+    free(fileParsingBuffer);
+    
+    return file;
+}
+
+bool f_openFile(char *filename){
+    TextArea *textArea = NULL;
+    File *file = NULL;
+
+    if (!currentWorkspace) {
+        currentWorkspace = f_createWorkspace();
+        if (!currentWorkspace) {
+            logger("[f_openFile]: Failed initializing workspace");
+            exit(1);
+        }
+    }
+
+    if (!currentWindow) {
+        currentWindow = f_createWindow();
+        f_addWindowToWorkspace(currentWorkspace, currentWindow);
+        currentWorkspace->currentWindow = currentWindow;
+        
+        currentWindow->x = 0;
+        currentWindow->y = 0;
+        currentWindow->width = VIDEO_COLS - 1;
+        currentWindow->height = VIDEO_ROWS - 2;
+        currentWindow->active = true;
+    }
+
+  
+    /* == FILE OPEN === */
+    file = f_readFile(filename);
 
     textArea = f_createTextArea(file->name);
 
     if(!textArea){
         logger("[f_openFile]: Error: Could not allocate memory for textArea");
-        fclose(fp);
         exit(1);
     }
-    
+
     textArea->file = file;
+
     currentWindow->textArea = textArea;
     
     f_addTextAreaToWindow(currentWindow, textArea);
-
-    _splitIntoLines(fileParsingBuffer, file->bufferLength, file);
 
     currentWindow->textArea->currentLineNode = 
         currentWindow->textArea->file->lines->firstNode;
@@ -682,9 +698,6 @@ bool f_openFile(char *filename){
         currentWindow->textArea->currentChar = 0;
         currentWindow->textArea->nextChar = 0;
     }
-
-    fclose(fp);
-    free(fileParsingBuffer);
 
     ed_statusBarMessage(
         "Opened %s successfully.", 

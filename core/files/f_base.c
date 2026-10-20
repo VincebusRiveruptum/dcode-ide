@@ -858,7 +858,8 @@ void f_triggerClose(bool end_program){
             return;
         };
 
-        if(input == 'n' || input == 'N'){            
+        if(input == 'n' || input == 'N'){     
+            f_saveWorkspace(currentWorkspace, "test.bin");       
             f_closeCurrentTextArea();
             return;
         } 
@@ -923,6 +924,8 @@ void f_triggerClose(bool end_program){
         
         f_saveFile();
     }
+
+    f_saveWorkspace(currentWorkspace, "test.bin");
 
     f_closeCurrentTextArea();
 

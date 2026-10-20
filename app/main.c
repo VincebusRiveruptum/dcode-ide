@@ -26,7 +26,10 @@ int main(int argc, char *argv[]){
 		t_initTests();
 
     dw_requestRenderEvent(DW_RENDER_ALL);
-	
+
+	currentWorkspace = f_loadWorkspace("test.bin");
+	/*
+	*/
 	while(endProgram == false){
 		ed_prepareSelectionTool();
 		
@@ -129,7 +132,7 @@ int main(int argc, char *argv[]){
 			HAL_KEY_W, 
 			HAL_KEY_S
 		)) 
-			f_saveWorkspace(currentWorkspace, "test.wks");
+			f_saveWorkspace(currentWorkspace, "test.bin");
 
 		/* SHELL SPAWN */
 		if(hal_inp_isKeyPressed(HAL_KEY_F9)) 
@@ -185,7 +188,7 @@ int main(int argc, char *argv[]){
 		
 		hal_inp_updateKeyboard();
 	}
-
+	
 	hal_inp_closeKeyboard();
 	dw_cls(textmemptr);
 	hal_vid_set25Lines();

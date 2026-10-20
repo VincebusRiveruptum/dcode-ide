@@ -316,11 +316,6 @@ Workspace *f_createWorkspace(){
 	char pathBuf[512];
 	Workspace *newWorkspace = NULL;
 
-	if(currentWorkspace){
-		logger("[f_createWorkspace]: workspace already initialized.");
-		return NULL;
-	}
-		
 	if (!hal_fs_getAbsoluteCurrentPath(pathBuf, sizeof(pathBuf))) {
 		logger("[f_createWorkspace]: invalid fullpath.");
 		return NULL;
@@ -484,6 +479,7 @@ void f_deleteTextAreaFromWindow(
 	return;
 }
 
+
 void f_deleteWindowFromWorkspace(Workspace *workspace, EditorWindow *window){
 	Node *rec = NULL;
 	TextArea *textArea = NULL;
@@ -511,6 +507,7 @@ void f_deleteWindowFromWorkspace(Workspace *workspace, EditorWindow *window){
 
 	return;
 }
+
 
 void f_deleteWorkspace(Workspace *workspace){
 	Node *rec = NULL;
@@ -673,7 +670,6 @@ void f_arrangeWindowsVTile(Workspace *workspace){
 	/* VIDEO_COLS VIDEO_ROWS */
 	int wndCount=0;
 	int width, i=0, wndStart = 0;
-	int prevEnd = 0;
 	Node *node = NULL;
 	Node *prev = NULL;
 	EditorWindow *wnd = NULL;

@@ -175,24 +175,26 @@ Workspace *f_loadWorkspace(char *filename){
     logger("[f_loadWorkspace] Info: Loading workspace %s", filename);
 
     if(!filename){
-        logger("[f_loadWorkspace] Warning: No valid workspace filename");
-        return currentWorkspace;
+        logger("[f_loadWorkspace] Warning: No valid workspace filename, creating fresh one");
+        return f_createWorkspace();
     }
 
     fp = fopen(filename, "rb");
+
     if(!fp){
         logger(
-            "[f_loadWorkspace] Warning: Could not open workspace file %s", 
+            "[f_loadWorkspace] Warning: Could not open workspace file, creating fresh one %s", 
             filename
         );
-        return currentWorkspace;
+        return f_createWorkspace();
     }
 
     workspace = f_createWorkspace();
+    
     if(!workspace){
         logger("[f_loadWorkspace] Error: Could not create workspace");
         fclose(fp);
-        return currentWorkspace;
+        exit(1);
     }
 
     tmpWndList = workspace->windowList;
@@ -269,6 +271,7 @@ Workspace *f_loadWorkspace(char *filename){
             if(filenameLen > 0){
                 fread(filenameBuffer, sizeof(char), filenameLen, fp);
             }
+            
             filenameBuffer[filenameLen] = '\0';
 
             textArea = f_createTextArea(filenameBuffer);

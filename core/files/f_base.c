@@ -925,7 +925,7 @@ void f_triggerClose(bool end_program){
         f_saveFile();
     }
 
-    f_saveWorkspace(currentWorkspace, "test.bin");
+    f_saveWorkspace(currentWorkspace, S_DEFAULT_SESSION_FILENAME);
 
     f_closeCurrentTextArea();
 

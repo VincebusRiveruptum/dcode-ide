@@ -2,6 +2,7 @@
 #include "settings.h"
 #include <stdlib.h>
 
+
 Settings settings;
 
 bool s_loadSettings(){
@@ -19,7 +20,10 @@ bool s_loadSettings(){
     
     settings.FILE_HEADROOM *= 1024;               
     
-    settings.FILE_RESIZE                
+    settings.RESTORE_PREV_SESSION                
+        = (unsigned int)atoi(getEnv("RESTORE_PREV_SESSION", 0));
+
+    settings.FILE_RESIZE               
         = (unsigned int)atoi(getEnv("FILE_RESIZE", "%d", F_FILE_RESIZE));
 
     settings.AUTOIDENTING                   

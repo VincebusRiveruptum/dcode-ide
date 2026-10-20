@@ -19,6 +19,14 @@ int main(int argc, char *argv[]){
 	ed_initConfig(argc, argv);
     
 	hal_inp_initKeyboard();
+	
+	/* Restore previous session if setting is activated*/
+	if(settings.RESTORE_PREV_SESSION == true){
+		logger("Loading previous session...");
+		printf("\nLoading previous session...\n");
+		currentWorkspace = f_loadWorkspace(S_DEFAULT_SESSION_FILENAME);
+	}
+	
 	hal_vid_init();
 
 	/* Debug only */
@@ -27,9 +35,6 @@ int main(int argc, char *argv[]){
 
     dw_requestRenderEvent(DW_RENDER_ALL);
 
-	currentWorkspace = f_loadWorkspace("test.bin");
-	/*
-	*/
 	while(endProgram == false){
 		ed_prepareSelectionTool();
 		

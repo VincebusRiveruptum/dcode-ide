@@ -26,6 +26,7 @@ SRCS = platform/linux/input/input.c \
 	core/files/f_qopen.c \
 	core/files/f_wnd.c \
 	core/files/f_nav.c \
+	core/files/f_worksp.c \
 	core/files/private.c \
 	core/editor/ed_search.c \
 	core/editor/ed_base.c \

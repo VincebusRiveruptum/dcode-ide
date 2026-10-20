@@ -3,6 +3,8 @@
 
 #include "../../app/main.h"
 
+#define S_DEFAULT_SESSION_FILENAME "session"
+
 typedef struct Settings{
     /* EDITOR SETTING */
     unsigned char DEBUG;
@@ -10,6 +12,8 @@ typedef struct Settings{
     unsigned int FILE_RESIZE;
     unsigned int FILE_HEADROOM;
     unsigned int MAX_LINE_LENGTH;
+    
+    unsigned int RESTORE_PREV_SESSION;
 
     unsigned char AUTOIDENTING;
     unsigned char AUTOCLOSING;

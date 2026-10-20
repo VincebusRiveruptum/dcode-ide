@@ -79,6 +79,34 @@ TextArea *f_createTextArea(char *filename){
     return textArea;
 }
 
+/* 
+	Set textArea object attributes from another one 
+	keeping the MemoryArena from the dest TextArea
+*/
+void f_setTextArea(TextArea *dest, TextArea *src){
+	if(!dest || !src){
+		logger("[f_setTextArea] Error: dest or src cant be NULL.");
+		exit(1);
+	}
+
+    dest->scrollY = src->scrollY;
+    dest->scrollX = src->scrollX;
+    dest->cursorLine = src->cursorLine;
+    dest->cursorCol = src->cursorCol; 
+    
+    dest->prevChar = src->prevChar;
+    dest->currentChar = src->currentChar;
+    dest->nextChar = src->nextChar;
+
+    dest->selectedStartX = src->selectedStartX;
+    dest->selectedEndX = src->selectedEndX;
+    dest->selectedStartLine = src->selectedStartLine;
+    dest->selectedEndLine = src->selectedEndLine;
+
+    dest->isActive = src->isActive;
+
+}
+
 void f_refreshTextArea(TextArea *textArea){
 	if(
 		!textArea ||
@@ -288,11 +316,6 @@ Workspace *f_createWorkspace(){
 	char pathBuf[512];
 	Workspace *newWorkspace = NULL;
 
-	if(currentWorkspace){
-		logger("[f_createWorkspace]: workspace already initialized.");
-		return NULL;
-	}
-		
 	if (!hal_fs_getAbsoluteCurrentPath(pathBuf, sizeof(pathBuf))) {
 		logger("[f_createWorkspace]: invalid fullpath.");
 		return NULL;
@@ -456,6 +479,7 @@ void f_deleteTextAreaFromWindow(
 	return;
 }
 
+
 void f_deleteWindowFromWorkspace(Workspace *workspace, EditorWindow *window){
 	Node *rec = NULL;
 	TextArea *textArea = NULL;
@@ -483,6 +507,7 @@ void f_deleteWindowFromWorkspace(Workspace *workspace, EditorWindow *window){
 
 	return;
 }
+
 
 void f_deleteWorkspace(Workspace *workspace){
 	Node *rec = NULL;
@@ -645,7 +670,6 @@ void f_arrangeWindowsVTile(Workspace *workspace){
 	/* VIDEO_COLS VIDEO_ROWS */
 	int wndCount=0;
 	int width, i=0, wndStart = 0;
-	int prevEnd = 0;
 	Node *node = NULL;
 	Node *prev = NULL;
 	EditorWindow *wnd = NULL;

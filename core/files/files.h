@@ -160,6 +160,8 @@ File *f_copyFileObject(File *oldFile, bool headroom);
 unsigned long f_getFileFullLength(TextArea *textArea);
 
 void f_newFile(char *filename);
+
+File *f_readFile(char *filename);
 bool f_openFile(char *filename);
 void f_saveFile();
 
@@ -179,6 +181,7 @@ EditorWindow *f_createWindow();
 Workspace *f_createWorkspace();
 
 void f_closeFile(File *file);
+void f_setTextArea(TextArea *dest, TextArea *src);
 void f_refreshTextArea(TextArea *textArea);
 TextArea *f_copyTextArea(TextArea *src, bool duplicate);
 void f_closeTextArea(TextArea *textArea);
@@ -200,6 +203,12 @@ void f_refreshWindows(Workspace *workspace);
 
 int f_countMaximizedWindows(Workspace *workspace);
 void f_arrangeWindowsVTile();
+
+
+/* f_worksp */
+
+Workspace *f_loadWorkspace(char *filename);
+void f_saveWorkspace(Workspace *workspace, char *filename);
 
 #endif
 

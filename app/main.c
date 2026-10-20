@@ -19,6 +19,14 @@ int main(int argc, char *argv[]){
 	ed_initConfig(argc, argv);
     
 	hal_inp_initKeyboard();
+	
+	/* Restore previous session if setting is activated*/
+	if(settings.RESTORE_PREV_SESSION == true){
+		logger("Loading previous session...");
+		printf("\nLoading previous session...\n");
+		currentWorkspace = f_loadWorkspace(S_DEFAULT_SESSION_FILENAME);
+	}
+	
 	hal_vid_init();
 
 	/* Debug only */
@@ -26,7 +34,7 @@ int main(int argc, char *argv[]){
 		t_initTests();
 
     dw_requestRenderEvent(DW_RENDER_ALL);
-	
+
 	while(endProgram == false){
 		ed_prepareSelectionTool();
 		
@@ -121,6 +129,16 @@ int main(int argc, char *argv[]){
 		)) 
 			f_saveFile();
  
+		/* SAVE WORKSPACE */
+		if(hal_inp_keysPressed(
+			HAL_INP_TRIGGER_EDGE, 
+			3, 
+			HAL_KEY_LSHIFT, 
+			HAL_KEY_W, 
+			HAL_KEY_S
+		)) 
+			f_saveWorkspace(currentWorkspace, "test.bin");
+
 		/* SHELL SPAWN */
 		if(hal_inp_isKeyPressed(HAL_KEY_F9)) 
 			ed_shellSpawn();
@@ -175,7 +193,7 @@ int main(int argc, char *argv[]){
 		
 		hal_inp_updateKeyboard();
 	}
-
+	
 	hal_inp_closeKeyboard();
 	dw_cls(textmemptr);
 	hal_vid_set25Lines();

@@ -165,7 +165,7 @@ extern bool ed_onSearchTool;
 extern time_t ed_globalAuxTimer;
 extern char statusBarMessage[ED_STATUSBAR_WIDTH];
 
-extern Clipboard ed_clipboard;
+extern Clipboard ed_globalClipboard;
 
 /* Prototypes ==============================================*/
 
@@ -207,13 +207,14 @@ bool ed_checkStatusBarMessage();
 void ed_statusBar();
 
 /* ed_sel */
-void ed_prepareSelectionTool();
+void ed_selectionTool();
 void ed_clearSelection();
 void ed_handleSelection();
 void ed_renderLineSelection();
 void ed_deleteSelection();
 
 /* ed_srch */
+int ed_searchTool();
 bool ed_isSelectedText(struct Workspace *workspace);
 void ed_drawSearchTool();
 int ed_wordCountInStr(char *str);
@@ -234,14 +235,21 @@ void dw_renderEventDispatcher();
 
 char *ed_getRandomWord();
 
-/* ed_srch */
-int ed_prepareSearchTool();
 struct SearchMetadata *ed_createSearchMetadata(char *filename);
 void ed_freeSearchMetadata(struct SearchMetadata *data);
 struct SearchMetadata *ed_resetSearchMetadata(struct SearchMetadata *data);
 void ed_drawSearchTool();
 void ed_searchMoveCursor();
 void ed_findWord();
+
+/* ed_clipb */
+void ed_initClipboard();
+void ed_clipboard();
+void ed_resetClipboard();
+void ed_freeClipboard();
+void ed_cut(struct TextArea *textArea);
+void ed_copy(struct TextArea *textArea);
+void ed_paste(struct TextArea *textArea);
 
 #endif
 

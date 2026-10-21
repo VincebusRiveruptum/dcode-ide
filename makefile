@@ -138,6 +138,9 @@ $(OBJDIR)\ed_base.obj: .\core\editor\ed_base.c $(CFLAGS_LNK)
 $(OBJDIR)\ed_cfg.obj: .\core\editor\ed_cfg.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\editor\ed_cfg.c
 
+$(OBJDIR)\ed_clipb.obj: .\core\editor\ed_clipb.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\editor\ed_clipb.c
+
 $(OBJDIR)\ed_sel.obj: .\core\editor\ed_sel.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\editor\ed_sel.c
 

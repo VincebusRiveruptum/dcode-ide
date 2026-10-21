@@ -1,6 +1,6 @@
 #include "editor.h"
 
-void ed_prepareSelectionTool(){
+void ed_selectionTool(){
     static TextArea *textArea = NULL;
 
     if(

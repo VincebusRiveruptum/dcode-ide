@@ -148,6 +148,9 @@ $(OBJDIR)/ed_shell.obj: ./core/editor/ed_shell.c $(CFLAGS_LNK)
 $(OBJDIR)/ed_statb.obj: ./core/editor/ed_statb.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ ./core/editor/ed_statb.c
 
+$(OBJDIR)/ed_clipb.obj: ./core/editor/ed_clipb.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ ./core/editor/ed_clipb.c
+
 # settings
 $(OBJDIR)/settings.obj: ./core/settings/settings.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ ./core/settings/settings.c

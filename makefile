@@ -15,7 +15,7 @@ DEPS_LIB = $(DEPSDIR)\deps.lib
 
 # Core objs
 CORE_OBJS_1 = $(OBJDIR)\test.obj $(OBJDIR)\vismem.obj $(OBJDIR)\settings.obj $(OBJDIR)\draw.obj $(OBJDIR)\fs.obj $(OBJDIR)\video.obj 
-CORE_OBJS_2 = $(OBJDIR)\ed_base.obj $(OBJDIR)\ed_cfg.obj $(OBJDIR)\ed_sel.obj $(OBJDIR)\ed_shell.obj $(OBJDIR)\ed_statb.obj $(OBJDIR)\ed_priv.obj 
+CORE_OBJS_2 = $(OBJDIR)\ed_base.obj $(OBJDIR)\ed_cfg.obj $(OBJDIR)\ed_sel.obj $(OBJDIR)\ed_shell.obj $(OBJDIR)\ed_statb.obj $(OBJDIR)\ed_priv.obj $(OBJDIR)\ed_clipb.obj 
 CORE_OBJS_3 = $(OBJDIR)\f_base.obj $(OBJDIR)\f_worksp.obj $(OBJDIR)\f_qopen.obj $(OBJDIR)\f_nav.obj $(OBJDIR)\f_wnd.obj $(OBJDIR)\private.obj $(OBJDIR)\ed_search.obj $(OBJDIR)\main.obj
 
 DEPS_OBJS = $(DEPS_OBJS_1) $(DEPS_OBJS_2)
@@ -131,6 +131,9 @@ $(OBJDIR)\ed_base.obj: .\core\editor\ed_base.c $(CFLAGS_LNK)
 
 $(OBJDIR)\ed_cfg.obj: .\core\editor\ed_cfg.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\editor\ed_cfg.c
+
+$(OBJDIR)\ed_clipb.obj: .\core\editor\ed_clipb.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\editor\ed_clipb.c
 
 $(OBJDIR)\ed_sel.obj: .\core\editor\ed_sel.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\editor\ed_sel.c

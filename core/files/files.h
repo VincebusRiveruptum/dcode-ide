@@ -172,7 +172,7 @@ void f_closeCurrentTextArea();
 void f_setCurrentFileAsModified();
 
 /* f_nav */
-void f_prepareFileNavDialog();
+void f_fileNavDialog();
 void f_drawFileNavDialog();
 
 /* f_qopen */

@@ -31,6 +31,7 @@ SRCS = platform/linux/input/input.c \
 	core/editor/ed_search.c \
 	core/editor/ed_base.c \
 	core/editor/ed_cfg.c \
+	core/editor/ed_clipb.c \
 	core/editor/ed_sel.c \
 	core/editor/ed_shell.c \
 	core/editor/ed_statb.c \

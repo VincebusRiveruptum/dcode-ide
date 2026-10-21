@@ -1,6 +1,6 @@
 #include "editor.h"
 
-Clipboard ed_clipboard = {
+Clipboard ed_globalClipboard = {
     NULL,
     NULL,
     0,
@@ -11,7 +11,7 @@ void ed_initClipboard(){
     MemoryArena *arena = NULL;
 
     arena = 
-        (MemoryArena*)mem_create_arena(
+        (MemoryArena*)mem_arena_create(
             "clipboard", 
             MEM_ARENA_2K /* Could be a setting*/
         );
@@ -24,19 +24,20 @@ void ed_initClipboard(){
         exit(1);
     }
 
-    ed_clipboard.arena = arena;
+    ed_globalClipboard.arena = arena;
 
-    ed_clearClipboard();
+    ed_resetClipboard();
 }
+
 /*
     This is the glue function between the presentation (main.c)
-    and the module layer (ed_clip.c)
+    and the module layer (ed_clipb.c)
 
     This functions listen the keyboard strokes for the clip-
     board operations.
 */
 
-void ed_prepareClipboard(){
+void ed_clipboard(){
     TextArea *textArea;
 
     if(
@@ -44,7 +45,7 @@ void ed_prepareClipboard(){
         !currentWorkspace->currentWindow ||
         !currentWorkspace->currentWindow->textArea
     ){
-        logger("[ed_prepareClipboard] Error: No file universe!.");
+        logger("[ed_clipboard] Error: No file universe!.");
         exit(1);
     }
 
@@ -52,62 +53,63 @@ void ed_prepareClipboard(){
 
     if(ed_isSelectedText(currentWorkspace) == true){
         /* Copy */
-        if(hal_inp_keysPressed(
-            HAL_INP_TRIGGER_EDGE,
-            2,
-            HAL_KEY_LCTRL,
-            HAL_KEY_C
-        )){
+        if(
+            hal_inp_keysPressed(
+                HAL_INP_TRIGGER_EDGE,
+                2,
+                HAL_KEY_LCTRL,
+                HAL_KEY_C
+            ) == true
+        ){
             ed_copy(textArea);
-        }else if(
+        } else if(
             hal_inp_keysPressed(
-            HAL_INP_TRIGGER_EDGE,
-            2,
-            HAL_KEY_LCTRL,
-            HAL_KEY_X
-        )){
+                HAL_INP_TRIGGER_EDGE,
+                2,
+                HAL_KEY_LCTRL,
+                HAL_KEY_X
+            ) == true
+        ){
             ed_cut(textArea);
-        }
-        }else if(
+        } else if(
             hal_inp_keysPressed(
-            HAL_INP_TRIGGER_EDGE,
-            2,
-            HAL_KEY_LCTRL,
-            HAL_KEY_V
-        )){
+                HAL_INP_TRIGGER_EDGE,
+                2,
+                HAL_KEY_LCTRL,
+                HAL_KEY_V
+            ) == true
+        ){
             ed_paste(textArea);
         }
     }
+
+    return;
 }
 
 void ed_freeClipboard(){
-    mem_arena_free(ed_clipboard.arena);
+    mem_arena_free(ed_globalClipboard.arena);
 }
 
 /* Clear clipboard ======================================== */
 
-void ed_clearClipboard(){
-    mem_arena_reset(ed_clipboard.arena);
+void ed_resetClipboard(){
+    mem_arena_reset(ed_globalClipboard.arena);
     
-    ed_clipboard.lines = createList(ed_clipboard.arena);
+    ed_globalClipboard.lines = createList(ed_globalClipboard.arena);
     
-    if(!ed_clipboard.lines){
+    if(!ed_globalClipboard.lines){
         logger("[ed_copy] Error : Could not create line list.");
         exit(1);
     }
 
-    ed_clipboard.selectedStartX = 0;
-    ed_clipboard.selectedEndX = 0;
-}
-
-void ed_freeClipboard(){
-    freeArena(ed_clipboard.arena);
+    ed_globalClipboard.selectedStartX = 0;
+    ed_globalClipboard.selectedEndX = 0;
 }
 
 /* Cut ==================================================== */
 
-void ed_cut(){
-    ed_copy();
+void ed_cut(TextArea *textArea){
+    ed_copy(textArea);
     ed_deleteSelection();
 }
 
@@ -127,7 +129,7 @@ void ed_copy(TextArea *textArea){
         textArea->selectedEndNode &&
         textArea->selectedEndNode->next
         ? textArea->selectedEndNode->next
-        ? NULL;
+        : NULL;
 
     rec = start;
 
@@ -140,23 +142,21 @@ void ed_copy(TextArea *textArea){
             exit(1);
         }
 
-        newLine = ed_dupLine(currLine, ed_clipboard.arena);
+        newLine = ed_dupLine(currLine, ed_globalClipboard.arena);
 
-        addGenericNode(&ed_clipboard.lines, newLine, ed_clipboard.arena);
+        addGenericNode(&ed_globalClipboard.lines, newLine, ed_globalClipboard.arena);
     }
 
     /* Update clipboard metadata */
-    ed_clipboard.selectedStartX = textArea->selectedStartX;
-    ed_clipboard.selectedEndX = textArea->selectedEndX;
+    ed_globalClipboard.selectedStartX = textArea->selectedStartX;
+    ed_globalClipboard.selectedEndX = textArea->selectedEndX;
 
     return;
 }
 
 /* Paste ================================================== */
 
-void ed_paste(){
-    TextArea *textArea = NULL;
-
+void ed_paste(TextArea *textArea){
     if(
         !currentWorkspace ||
         !currentWorkspace->currentWindow ||
@@ -165,8 +165,4 @@ void ed_paste(){
         logger("[ed_paste]: No workspace, window or current file.");
         return;
     }
-
-    textArea = 
-        currentWorkspace->currentWindow->textArea;
-
 }

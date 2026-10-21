@@ -29,17 +29,18 @@ int main(int argc, char *argv[]){
     dw_requestRenderEvent(DW_RENDER_ALL);
 
 	while(endProgram == false){
-		ed_prepareSelectionTool();
+		ed_selectionTool();
+		ed_clipboard();
 		
 		/* SEARCH TOOl */
-		if(ed_prepareSearchTool() == -1){
+		if(ed_searchTool() == -1){
 			logger("[mainLoop]: Search, continue...");
 			dw_renderEventDispatcher();
 			continue;
 		};
 		        
 		/* Switch files */
-		f_prepareFileNavDialog();
+		f_fileNavDialog();
 
 		/* Split window (Ctrl + \) */
 		if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LCTRL, HAL_KEY_BACKSLASH)) 
@@ -186,6 +187,8 @@ int main(int argc, char *argv[]){
 		
 		hal_inp_updateKeyboard();
 	}
+	
+	ed_freeClipboard();
 	
 	hal_inp_closeKeyboard();
 	dw_cls(textmemptr);

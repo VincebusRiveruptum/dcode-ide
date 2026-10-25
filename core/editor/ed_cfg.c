@@ -24,6 +24,7 @@ void ed_initConfig(int argc, char *argv[]){
 
     v_currentMode = settings.DEFAULT_TEXT_MODE;
 
+    ed_initClipboard();
     ed_updateCursor();
 }
 

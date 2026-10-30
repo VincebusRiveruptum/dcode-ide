@@ -72,7 +72,9 @@ void ed_clipboard(){
         ){
             ed_cut(textArea);
         }
-    } else if(
+    }  
+    
+    if(
             hal_inp_keysPressed(
                 HAL_INP_TRIGGER_EDGE,
                 2,
@@ -243,6 +245,10 @@ void ed_paste(TextArea *textArea){
         return;
     }
 
+    if(on_selection_tool == true){
+        ed_deleteSelection();
+    }
+
     cursorCol = textArea->cursorCol;
     
     if(
@@ -303,10 +309,14 @@ void ed_paste(TextArea *textArea){
         textArea->cursorCol += len;
 
         dw_requestRenderEvent(DW_RENDER_LINE);
-
+        
     }else{
         /* Multi line paste */
+        /* We insert the middle lines */
 
+
+
+        dw_requestRenderEvent(DW_RENDER_ALL);
     }
 
 

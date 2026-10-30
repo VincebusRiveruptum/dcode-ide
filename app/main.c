@@ -29,8 +29,8 @@ int main(int argc, char *argv[]){
     dw_requestRenderEvent(DW_RENDER_ALL);
 
 	while(endProgram == false){
-		ed_selectionTool();
 		ed_clipboard();
+		ed_selectionTool();
 		
 		/* SEARCH TOOl */
 		if(ed_searchTool() == -1){

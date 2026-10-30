@@ -1,8 +1,18 @@
-# DCode IDE
+# DCODE IDE
 
-### Modern IDE for DOS and Linux machines
+I also reject modern tech, but unfortunatelly i'm obliged to use use it on my daily basis as full stack prograamer, where the use of AI is mandatory due to the market competition and
+productivity. 
 
-DCODE IDE is a text editor and development environment designed for 32-bit DOS (386+ machines) and Linux terminal environments. It brings modern productivity features and shortcuts to vintage text-mode and terminal interfaces, bridging the gap between retro hardware and modern coding expectations.
+Otherwise, i also keep the idea that constant excercing of algorithmic thinking, code reading skills perfomance oriented and maintainable designs part for being a good software engineer.
+
+Frustrated, i decided to write this thingy on my free time as a personal excercise.  I decided to write my own programming IDE for DOS and Linux, and hoping to create a good product and compete against the great leagues in the future such as EMACS, VIM or even the new rust based editor "Fresh".
+
+It's a personal tool... i'm also a retro computer nerd who wants to write his own retro stuff, so i need a retro IDE that delivers the same modern features as VSCODE , which is the one i'm most used to for now, and requires almost no skill for using it. I havent tried new editors such as the mentioned before as i have little time and they have a different learning curve, for now an editor that kind-of resembles VSCODE would be fine, at least at the UX level as the core of the app has capability for customization for different tastes.
+
+It's designed for 32-bit DOS (386+ machines) and Linux terminal environments. It brings modern productivity features and shortcuts to vintage text-mode and terminal interfaces, bridging the gap between retro hardware and modern coding expectations. Who knows, maybe in the future i could even try writting a 16-bit DOS version out of it
+
+<img width="1172" height="876" alt="image" src="https://github.com/user-attachments/assets/07a701a1-a6cd-4612-8596-646c4fbc8f0a" />
+
 
 ## Key Features
 

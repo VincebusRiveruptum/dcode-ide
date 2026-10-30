@@ -229,7 +229,7 @@ void ed_paste(TextArea *textArea){
     Line *line, *currentLine = NULL;
     Node *currentLineNode = NULL;
 
-    char auxBuffer[MAX_FILE_LINE_LENGTH] = { '\0' };
+    static char auxBuffer[MAX_FILE_LINE_LENGTH] = { '\0' };
     unsigned short cursorCol = 0;
 
     unsigned short start, end, len;
@@ -259,7 +259,6 @@ void ed_paste(TextArea *textArea){
 
     /* Single line paste, simpler */
     if(ed_globalClipboard.lines->length == 1){
-
         start = 
             (unsigned short)
             mini(
@@ -276,14 +275,7 @@ void ed_paste(TextArea *textArea){
 
         len = end - start;
 
-        currentLineNode = textArea->currentLineNode;
-
-        if(!currentLineNode){
-            logger("[ed_paste] Error: CurrentLineNode is NULL");
-            exit(1);
-        }
-
-        currentLine = (Line*)currentLineNode->data;
+        currentLine = textArea->currentLine;
         
         line = (Line *) ed_globalClipboard.lines->firstNode->data;
 
@@ -295,7 +287,9 @@ void ed_paste(TextArea *textArea){
             line->buffer + start,  
             len
         );
-
+        
+        *(auxBuffer + cursorCol + len) = '\0';
+        /* Heres the bug */
         memcpy(
             auxBuffer + strlen(auxBuffer), 
             currentLine->buffer + cursorCol,  
@@ -304,7 +298,7 @@ void ed_paste(TextArea *textArea){
 
         memset(currentLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
         memcpy(currentLine->buffer, auxBuffer, strlen(auxBuffer));
-
+        
         currentLine->length = strlen(currentLine->buffer);
         textArea->cursorCol += len;
 

@@ -44,6 +44,9 @@ typedef struct Transformation {
 
 int m_round(float x);
 
+int maxi(int a, int b);
+int mini(int a, int b);
+
 /* GLOBAL VARS ============================================================= */
 
 extern long m_sintable[360];

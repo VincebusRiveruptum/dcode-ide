@@ -150,6 +150,12 @@ size_t ed_getClipboardHeadroom(TextArea *textArea){
 void ed_cut(TextArea *textArea){
     ed_copy(textArea);
     ed_deleteSelection();
+
+    if(ed_globalClipboard.lines->length == 1){
+        dw_requestRenderEvent(DW_RENDER_LINE);
+    }else{
+        // TODO : Still WIP
+    }
 }
 
 /* Copy =================================================== */
@@ -221,9 +227,12 @@ void ed_copy(TextArea *textArea){
 /* self explainatory ... */
 void ed_paste(TextArea *textArea){
     Line *line, *currentLine = NULL;
+    Node *currentLineNode = NULL;
 
-    static char auxBuffer[MAX_FILE_LINE_LENGTH] = { '\0' };
+    char auxBuffer[MAX_FILE_LINE_LENGTH] = { '\0' };
     unsigned short cursorCol = 0;
+
+    unsigned short start, end, len;
     
     if(
         !currentWorkspace ||
@@ -250,7 +259,31 @@ void ed_paste(TextArea *textArea){
 
     /* Single line paste, simpler */
     if(ed_globalClipboard.lines->length == 1){
-        currentLine = textArea->currentLine;
+
+        start = 
+            (unsigned short)
+            mini(
+                (int)ed_globalClipboard.selectedStartX, 
+                (int)ed_globalClipboard.selectedEndX
+            );
+
+        end = 
+            (unsigned short)
+            maxi(
+                (int)ed_globalClipboard.selectedStartX, 
+                (int)ed_globalClipboard.selectedEndX
+            );
+
+        len = end - start;
+
+        currentLineNode = textArea->currentLineNode;
+
+        if(!currentLineNode){
+            logger("[ed_paste] Error: CurrentLineNode is NULL");
+            exit(1);
+        }
+
+        currentLine = (Line*)currentLineNode->data;
         
         line = (Line *) ed_globalClipboard.lines->firstNode->data;
 
@@ -259,11 +292,9 @@ void ed_paste(TextArea *textArea){
                 
         memcpy(
             auxBuffer + cursorCol, 
-            line->buffer + ed_globalClipboard.selectedStartX,  
-            abs(ed_globalClipboard.selectedEndX - ed_globalClipboard.selectedStartX)
+            line->buffer + start,  
+            len
         );
-
-        logger("[TEST0] %s", auxBuffer);
 
         memcpy(
             auxBuffer + strlen(auxBuffer), 
@@ -271,12 +302,13 @@ void ed_paste(TextArea *textArea){
             strlen(currentLine->buffer + cursorCol)
         );
 
-        logger("[TEST1] %s", auxBuffer);
-
         memset(currentLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
         memcpy(currentLine->buffer, auxBuffer, strlen(auxBuffer));
 
-        logger("[TEST2] %s", currentLine->buffer);
+        currentLine->length = strlen(currentLine->buffer);
+        textArea->cursorCol += len;
+
+        dw_requestRenderEvent(DW_RENDER_LINE);
 
     }else{
         /* Multi line paste */

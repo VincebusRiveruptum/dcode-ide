@@ -83,6 +83,99 @@ size_t f_getLineSize(){
     return lineSize;
 }
 
+/* Creates a blank line into a certain memoryArena*/
+Line *f_createLine(MemoryArena *arena){
+    Line *newLine = NULL;
+
+    if(!arena){
+        logger("[f_createLine] ERROR: Invalid memory arena!");
+        exit(1);
+    }
+
+    newLine = (Line*)mem_arena_alloc(arena, sizeof(Line));
+    newLine->buffer = (char*)mem_arena_alloc(arena, MAX_FILE_LINE_LENGTH + 1);
+
+    if(!newLine || !newLine->buffer){
+        logger("[f_createLine] Warning: Could not create line!");        
+        return NULL;
+    }
+
+    memset(newLine->buffer, '\0', MAX_FILE_LINE_LENGTH + 1);
+    newLine->length = 0;
+    
+    return newLine;
+}
+
+
+/* Clones a lines from a memoryArena to another*/
+Line *f_dupLine(MemoryArena *arena, Line *line){
+    Line *newLine = NULL;
+
+    newLine = f_createLine(arena);
+
+    if(!newLine) return NULL;
+
+    memcpy(newLine->buffer, line->buffer, line->length);
+    newLine->buffer[line->length] = '\0';
+    newLine->length = line->length;
+
+    return newLine;
+}
+/* Clones a line list from a memory arena to another 
+    but the list is purgable, i mean, does not use
+    any specific memory arena, SO MAKE SURE YOU 
+    FREE IT AFTER ITS TEMPORAL USAGE.
+*/
+List *f_cloneLinesTempList(MemoryArena *arena, List *list){
+    int i = 0;
+    Line *tmp = NULL;
+    Node *rec = NULL;
+    List *newList = NULL;
+
+    if(
+        !arena || 
+        !list || 
+        !list->firstNode
+    ){
+        logger("[f_cloneLinesTempList] ERROR: Invalid arena or list! (NULL).");
+        exit(1);
+    }
+
+    newList = createList(NULL);
+
+    if(!newList){
+        logger("[f_cloneLinesTempList] ERROR: Could not alloc memory for newList!.");
+        exit(1);
+    }
+
+    rec = list->firstNode;
+
+    while(rec){
+
+        
+        if(!rec->data){
+            logger("[f_cloneLinesTempList] Error: Invalid line data!.");
+            exit(1);
+        };
+        
+        tmp = f_dupLine(arena, (Line*)rec->data);
+        
+        if(!tmp){
+            logger("[f_cloneLinesTempList] Error: Invalid cloned line!.");
+            exit(1);
+        }
+        
+        logger("[DEBUG] %d", i++);
+        
+        addGenericNode(&newList, (void*) tmp, arena);
+        
+        rec = rec->next;
+    }
+
+    return newList;
+}
+
+
 /* This checks if adding a new line could overflow the */
 /* textArea file memory arena. */
 /* Returns boolean value. */

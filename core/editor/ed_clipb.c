@@ -156,7 +156,7 @@ void ed_cut(TextArea *textArea){
     if(ed_globalClipboard.lines->length == 1){
         dw_requestRenderEvent(DW_RENDER_LINE);
     }else{
-        // TODO : Still WIP
+        /* TODO : Still WIP */
     }
 }
 
@@ -229,19 +229,30 @@ void ed_copy(TextArea *textArea){
 /* self explainatory ... */
 void ed_paste(TextArea *textArea){
     Line *line, *currentLine = NULL;
-    Node *currentLineNode = NULL;
+    Line *innerStart = NULL, *innerEnd = NULL;
+    Node *currentLineNode = NULL, *next = NULL;
+    Node *innerStartNode = NULL, *innerEndNode = NULL;
+    
+    Line *start = NULL, *end = NULL;
+    Node *startNode = NULL, *endNode = NULL;
+    List *lines = NULL;
 
-    static char auxBuffer[MAX_FILE_LINE_LENGTH] = { '\0' };
     unsigned short cursorCol = 0;
-
-    unsigned short start, end, len;
+    unsigned short starti, endi, len;
+    
+    /* left side */
+    static char auxbuff[MAX_FILE_LINE_LENGTH] = { '\0' };
+    /* rigth side */
+    static char auxbuff2[MAX_FILE_LINE_LENGTH] = { '\0' };
     
     if(
         !currentWorkspace ||
         !currentWorkspace->currentWindow ||
-        !currentWorkspace->currentWindow->textArea
+        !currentWorkspace->currentWindow->textArea ||
+        !currentWorkspace->currentWindow->textArea->currentLineNode ||
+        !currentWorkspace->currentWindow->textArea->currentLine
     ){
-        logger("[ed_paste]: No workspace, window or current file.");
+        logger("[ed_paste]: No workspace, window, current file or current line.");
         return;
     }
 
@@ -263,60 +274,149 @@ void ed_paste(TextArea *textArea){
 
     logger("[ed_paste] Clipboard length : %d", ed_globalClipboard.lines->length);
 
+    starti = 
+        (unsigned short)
+        mini(
+            (int)ed_globalClipboard.selectedStartX, 
+            (int)ed_globalClipboard.selectedEndX
+        );
+
+    endi = 
+        (unsigned short)
+        maxi(
+            (int)ed_globalClipboard.selectedStartX, 
+            (int)ed_globalClipboard.selectedEndX
+        );
+
+    len = endi - starti;
+
+    currentLineNode = textArea->currentLineNode;
+    currentLine = textArea->currentLine;
     /* Single line paste, simpler */
     if(ed_globalClipboard.lines->length == 1){
-        start = 
-            (unsigned short)
-            mini(
-                (int)ed_globalClipboard.selectedStartX, 
-                (int)ed_globalClipboard.selectedEndX
-            );
 
-        end = 
-            (unsigned short)
-            maxi(
-                (int)ed_globalClipboard.selectedStartX, 
-                (int)ed_globalClipboard.selectedEndX
-            );
-
-        len = end - start;
-
-        currentLine = textArea->currentLine;
         
         line = (Line *) ed_globalClipboard.lines->firstNode->data;
 
-        memset(auxBuffer, '\0', MAX_FILE_LINE_LENGTH);
-        memcpy(auxBuffer, currentLine->buffer, strlen(currentLine->buffer));
+        memset(auxbuff, '\0', MAX_FILE_LINE_LENGTH);
+        memcpy(auxbuff, currentLine->buffer, strlen(currentLine->buffer));
                 
         memcpy(
-            auxBuffer + cursorCol, 
-            line->buffer + start,  
+            auxbuff + cursorCol, 
+            line->buffer + starti,  
             len
         );
         
-        *(auxBuffer + cursorCol + len) = '\0';
+        *(auxbuff + cursorCol + len) = '\0';
         /* Heres the bug */
         memcpy(
-            auxBuffer + strlen(auxBuffer), 
+            auxbuff + strlen(auxbuff), 
             currentLine->buffer + cursorCol,  
             strlen(currentLine->buffer + cursorCol)
         );
 
         memset(currentLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
-        memcpy(currentLine->buffer, auxBuffer, strlen(auxBuffer));
+        memcpy(currentLine->buffer, auxbuff, strlen(auxbuff));
         
         currentLine->length = strlen(currentLine->buffer);
         textArea->cursorCol += len;
 
         dw_requestRenderEvent(DW_RENDER_LINE);
         
-    }else{
+    }else if(ed_globalClipboard.lines->length == 2){
         /* Multi line paste */
         /* We insert the middle lines */
 
+        dw_requestRenderEvent(DW_RENDER_ALL);
+    }else if(ed_globalClipboard.lines->length > 2){
 
+        logger("[ed_paste] Debug: Cloning clipboard line list.");
+
+        lines = 
+            f_cloneLinesTempList(
+                textArea->file->arena, 
+                ed_globalClipboard.lines
+            );
+        
+        if(
+            !lines ||
+            !lines->firstNode ||
+            !lines->firstNode->data ||
+            !lines->lastNode ||
+            !lines->lastNode->data
+        ){
+            logger("[ed_paste] Error: Could not copy lines to be pasted.");
+            exit(1);
+        }
+
+        /* 
+            Joining inner lines to election starting and
+            ending positions
+        */
+
+        startNode = lines->firstNode;
+        start = (Line*)startNode->data;
+        endNode = lines->lastNode;
+        end = (Line *) endNode->data;
+        
+        innerStartNode = startNode->next;
+        innerStart = (Line*)innerStartNode->data;
+        
+        innerEndNode = endNode->prev;
+        innerEnd = (Line*)innerEndNode->data;
+        
+        if(currentLineNode->next){
+            innerEndNode->next = currentLineNode->next;
+            currentLineNode->next->prev = innerEndNode;
+        }
+        
+        innerStartNode->prev = currentLineNode;
+        currentLineNode->next = innerStartNode;
+        
+        /* ==== */
+        /* We glue the outer sides  of the list*/
+        memset(auxbuff, '\0', MAX_FILE_LINE_LENGTH);
+        memset(auxbuff2, '\0', MAX_FILE_LINE_LENGTH);
+        memcpy(auxbuff, currentLine->buffer, textArea->cursorCol);
+        memcpy(
+            auxbuff2, 
+            currentLine->buffer + textArea->cursorCol, 
+            strlen(currentLine->buffer + textArea->cursorCol)
+        );
+        
+        logger("DEBUG: Left side : \"%s\", Right side : \"%s\".", auxbuff, auxbuff2);
+        /* start */
+        memcpy(
+            auxbuff + textArea->cursorCol, 
+            start->buffer + starti, 
+            strlen(start->buffer + starti)
+        );
+
+        *(auxbuff + strlen(auxbuff)) = '\0';
+        *(auxbuff2 + strlen(auxbuff2)) = '\0';
+
+        memset(currentLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
+        memcpy(currentLine->buffer, auxbuff, strlen(auxbuff));
+        currentLine->length = strlen(auxbuff);
+        
+        /* end */
+        memcpy(end->buffer + endi, auxbuff2, strlen(auxbuff2));        
+        end->length = strlen(end->buffer);
+        /* Update textArea line list len*/
+
+        textArea->file->lines->length += lines->length;
+
+        /* recycle border lines from the copied clipboard */
+        ed_softDeleteLine(textArea, lines->firstNode);
+        ed_softDeleteLine(textArea, lines->lastNode);
+        
+        free(lines);
+
+        /* Update cursor*/
 
         dw_requestRenderEvent(DW_RENDER_ALL);
+    }else{
+        /* NOOP*/
     }
 
 

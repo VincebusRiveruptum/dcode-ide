@@ -149,6 +149,11 @@ void f_dumpToFile(char *filename);
 void f_dumpBufferTofile(char *buffer, size_t bufferLength, char *filename);
 
 size_t f_getLineSize();
+
+Line *f_createLine(MemoryArena *arena);
+Line *f_dupLine(MemoryArena *arena, Line *line);
+List *f_cloneLinesTempList(MemoryArena *arena, List *list);
+
 bool f_checkNewLineMemory(TextArea *textArea);
 size_t f_getFileClosestSize(FILE *fp, char *filename);
 void f_resizeTextArea(TextArea *textArea);

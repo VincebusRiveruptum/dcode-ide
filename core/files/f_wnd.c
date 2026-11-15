@@ -479,7 +479,6 @@ void f_deleteTextAreaFromWindow(
 	return;
 }
 
-
 void f_deleteWindowFromWorkspace(Workspace *workspace, EditorWindow *window){
 	Node *rec = NULL;
 	TextArea *textArea = NULL;
@@ -507,7 +506,6 @@ void f_deleteWindowFromWorkspace(Workspace *workspace, EditorWindow *window){
 
 	return;
 }
-
 
 void f_deleteWorkspace(Workspace *workspace){
 	Node *rec = NULL;

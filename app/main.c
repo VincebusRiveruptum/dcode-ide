@@ -13,13 +13,12 @@
 int main(int argc, char *argv[]){
 	char c;
 	int ticks = 0;
-    
 	endProgram = false;
 	
 	ed_initConfig(argc, argv);
     
 	hal_inp_initKeyboard();
-
+	
 	hal_vid_init();
 
 	/* Debug only */
@@ -186,6 +185,8 @@ int main(int argc, char *argv[]){
 		
 		hal_inp_updateKeyboard();
 	}
+	
+	hal_disable_mouse();
 	
 	hal_inp_closeKeyboard();
 	dw_cls(textmemptr);

@@ -21,9 +21,11 @@ typedef struct Settings{
     unsigned char TAB_INDICATOR;
     unsigned char TAB_SPACE_INDICATOR;
 
+    unsigned char MOUSE;
+
     char *DEFAULT_EXTENSION;
     unsigned char AUTOSAVE;
-    unsigned char MOUSE;
+
 
     unsigned char DEFAULT_TEXT_MODE;
     /* CUSTOMIZATION */

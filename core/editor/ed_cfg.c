@@ -20,6 +20,17 @@ void ed_initConfig(int argc, char *argv[]){
 		currentWorkspace = f_loadWorkspace(S_DEFAULT_SESSION_FILENAME);
 	}	
 
+    if(settings.MOUSE == true){
+        if(!(hal_check_mouse())){
+            logger("[mainLoop] Warning: No mouse detected.");
+            printf("\nNo mouse detected.");	
+        }else{
+            printf("\nMouse detected.");	
+            logger("[mainLoop] Mouse detected.");
+            hal_enable_mouse();
+        }
+    }
+
     ed_handleArguments(argc, argv);
 
     v_currentMode = settings.DEFAULT_TEXT_MODE;

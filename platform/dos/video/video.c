@@ -131,6 +131,11 @@ unsigned char hal_vid_setVideoMode(unsigned char mode, unsigned char show_msg){
         METADATA STORED SOMEWRHER
         probably as workspace attribtute 
     */
+
+    if(settings.MOUSE && hal_check_mouse()){
+        hal_enable_mouse();
+    }
+
     f_arrangeWindowsVTile(currentWorkspace);
     return mode;
 }

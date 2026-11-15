@@ -15,6 +15,8 @@
 #include "../hal/hal_inp.h"
 #include "../hal/hal_fs.h"
 
+#include "../hal/hal_ms.h"
+
 /* PLATFORM SPECIFIC (DOS DRIVERS) */
 #if defined(__MSDOS__) || defined(__WATCOMC__)
 #include "../platform/dos/input/input.h"

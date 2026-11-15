@@ -211,7 +211,7 @@ void ed_clearSelection();
 void ed_handleSelection();
 void ed_renderLineSelection();
 void ed_deleteSelection();
-/* ed_search */
+/* ed_srch */
 void ed_drawSearchTool();
 int ed_wordCountInStr(char *str);
 
@@ -231,7 +231,7 @@ void dw_renderEventDispatcher();
 
 char *ed_getRandomWord();
 
-/* ed_search */
+/* ed_srch */
 int ed_prepareSearchTool();
 struct SearchMetadata *ed_createSearchMetadata(char *filename);
 void ed_freeSearchMetadata(struct SearchMetadata *data);

@@ -16,12 +16,12 @@ DEPS_LIB = $(DEPSDIR)\deps.lib
 # Core objs
 CORE_OBJS_1 = $(OBJDIR)\test.obj $(OBJDIR)\vismem.obj $(OBJDIR)\settings.obj $(OBJDIR)\draw.obj $(OBJDIR)\fs.obj $(OBJDIR)\video.obj 
 CORE_OBJS_2 = $(OBJDIR)\ed_base.obj $(OBJDIR)\ed_cfg.obj $(OBJDIR)\ed_sel.obj $(OBJDIR)\ed_shell.obj $(OBJDIR)\ed_statb.obj $(OBJDIR)\ed_priv.obj 
-CORE_OBJS_3 = $(OBJDIR)\f_base.obj $(OBJDIR)\f_worksp.obj $(OBJDIR)\f_qopen.obj $(OBJDIR)\f_nav.obj $(OBJDIR)\f_wnd.obj $(OBJDIR)\private.obj $(OBJDIR)\ed_search.obj $(OBJDIR)\main.obj
+CORE_OBJS_3 = $(OBJDIR)\f_base.obj $(OBJDIR)\f_worksp.obj $(OBJDIR)\f_qopen.obj $(OBJDIR)\f_nav.obj $(OBJDIR)\f_wnd.obj $(OBJDIR)\private.obj $(OBJDIR)\ed_srch.obj $(OBJDIR)\main.obj
 
 DEPS_OBJS = $(DEPS_OBJS_1) $(DEPS_OBJS_2)
 CORE_OBJS = $(CORE_OBJS_1) $(CORE_OBJS_2) $(CORE_OBJS_3) 
 
-HAL_OBJS = $(DEPSDIR)\vgaregs.obj $(DEPSDIR)\input.obj
+HAL_OBJS = $(DEPSDIR)\vgaregs.obj $(DEPSDIR)\input.obj $(DEPSDIR)\hal_ms.obj $(DEPSDIR)\mouse.obj 
 
 # ===== CAMBIO AQUÍ: El .exe solo depende de DEPS_LIB + CORE_OBJS =====
 
@@ -49,7 +49,8 @@ $(CFLAGS_LNK): .ALWAYS
 	@%create $@
 	@%append $@ /3r /s /otexan /w4 	-za
 	@%append $@ -i=. -i=hal -i=app -i=core -i=deps\data -i=deps\sort -i=deps\env -i=deps\mem -i=deps\log -i=deps\ext -i=deps\str -i=deps\imgfile -i=deps\math
-	@%append $@ -i=platform\dos\input -i=platform\dos\video -i=platform\dos\fs
+	@%append $@ -i=platform\dos\input -i=platform\dos\video -i=platform\dos\fs -i=platform\dos\mouse -i=hal\hal_ms
+
 
 # Compile rules
 # DEPS
@@ -82,9 +83,14 @@ $(DEPSDIR)\log.obj: .\deps\log\log.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\deps\log\log.c
 
 # HAL
-
 $(DEPSDIR)\input.obj: .\platform\dos\input\input.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\platform\dos\input\input.c
+
+$(DEPSDIR)\hal_ms.obj: .\hal\hal_ms.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\hal\hal_ms.c
+
+$(DEPSDIR)\mouse.obj: .\platform\dos\mouse\mouse.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\platform\dos\mouse\mouse.c
 
 $(DEPSDIR)\vgaregs.obj: .\platform\dos\video\vgaregs.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\platform\dos\video\vgaregs.c
@@ -109,8 +115,8 @@ $(OBJDIR)\f_wnd.obj: .\core\files\f_wnd.c $(CFLAGS_LNK)
 $(OBJDIR)\private.obj: .\core\files\private.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\files\private.c
 
-$(OBJDIR)\ed_search.obj: .\core\editor\ed_search.c $(CFLAGS_LNK)
-	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\editor\ed_search.c
+$(OBJDIR)\ed_srch.obj: .\core\editor\ed_srch.c $(CFLAGS_LNK)
+	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\editor\ed_srch.c
 
 $(OBJDIR)\f_nav.obj: .\core\files\f_nav.c $(CFLAGS_LNK)
 	$(CC) @$(CFLAGS_LNK) -fo=$@ .\core\files\f_nav.c

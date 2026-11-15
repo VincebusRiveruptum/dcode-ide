@@ -10,6 +10,8 @@ override CFLAGS += $(INCLUDES)
 TARGET = dcode
 
 SRCS = platform/linux/input/input.c \
+	hal/hal_ms.c \
+	platform/linux/mouse/mouse.c \
 	platform/linux/video/video.c \
 	platform/linux/fs/fs.c \
 	deps/data/data.c \
@@ -28,7 +30,7 @@ SRCS = platform/linux/input/input.c \
 	core/files/f_nav.c \
 	core/files/f_worksp.c \
 	core/files/private.c \
-	core/editor/ed_search.c \
+	core/editor/ed_srch.c \
 	core/editor/ed_base.c \
 	core/editor/ed_cfg.c \
 	core/editor/ed_sel.c \

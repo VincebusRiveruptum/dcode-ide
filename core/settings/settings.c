@@ -46,6 +46,9 @@ bool s_loadSettings(){
         = (unsigned char)atoi(getEnv("DEFAULT_TEXT_MODE", "1"));
     
 
+    settings.MOUSE             
+        = (unsigned char)atoi(getEnv("MOUSE", "1"));
+    
     /* Validate that DEFUALT_VIDEO_MODE is never 0 or ther will be an infite loop when trying to switch video modes. */
     if (
         settings.DEFAULT_TEXT_MODE == 0 || 

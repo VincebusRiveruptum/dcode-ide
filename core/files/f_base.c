@@ -181,7 +181,7 @@ List *f_cloneLinesTempList(MemoryArena *arena, List *list){
 /* Returns boolean value. */
 /* FUll = false */
 /* space available = True */
-bool f_checkNewLineMemory(TextArea *textArea){
+bool f_checkNewLineMemory(TextArea *textArea, unsigned int linecount){
 
     if(
         !textArea ||
@@ -193,7 +193,7 @@ bool f_checkNewLineMemory(TextArea *textArea){
     }
     
     if(
-        (f_getLineSize() + textArea->file->arena->offset) >= 
+        ((f_getLineSize() * linecount) + textArea->file->arena->offset) >= 
         textArea->file->arena->size 
         &&
         (textArea->file->deletedLines->length == 0)

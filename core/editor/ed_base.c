@@ -724,7 +724,7 @@ void ed_newLine(){
     };
     
     /* Check if adding a new line fulls file arena */
-    if(f_checkNewLineMemory(textArea) == false){
+    if(f_checkNewLineMemory(textArea, 1) == false){
         if(settings.FILE_RESIZE == true){
             f_resizeTextArea(textArea);
         }else{

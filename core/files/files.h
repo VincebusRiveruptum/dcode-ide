@@ -154,7 +154,7 @@ Line *f_createLine(MemoryArena *arena);
 Line *f_dupLine(MemoryArena *arena, Line *line);
 List *f_cloneLinesTempList(MemoryArena *arena, List *list);
 
-bool f_checkNewLineMemory(TextArea *textArea);
+bool f_checkNewLineMemory(TextArea *textArea, unsigned int linecount);
 size_t f_getFileClosestSize(FILE *fp, char *filename);
 void f_resizeTextArea(TextArea *textArea);
 bool f_checkFileRefs(File *file);

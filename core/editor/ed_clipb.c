@@ -52,6 +52,7 @@ void ed_clipboard(){
 
     if(ed_isSelectedText(currentWorkspace) == true){
         /* Copy */
+        
         /* TODO: disable CTRL + C exitting */
         if(
             hal_inp_keysPressed(
@@ -163,11 +164,11 @@ void ed_cut(TextArea *textArea){
 /* Copy =================================================== */
 /* Copy selected lines into the clipboard's line list */
 void ed_copy(TextArea *textArea){
-    Node *start, *afterEnd, *rec;
+    Node *rec, *end;
     Line *currLine = NULL, *newLine = NULL;
     size_t headroom = 0;
     MemoryArena *newArena = NULL;
-
+  
     if(!textArea){
         logger("[ed_copy] Error: textArea is NULL.");
         exit(1);
@@ -193,22 +194,43 @@ void ed_copy(TextArea *textArea){
 
     ed_resetClipboard();
 
-    start = textArea->selectedStartNode;
-    afterEnd = 
-        textArea->selectedEndNode &&
-        textArea->selectedEndNode->next
-        ? textArea->selectedEndNode->next
-        : NULL;
+    /*  
+        Copy text block nodes must be ascendent, so we have 
+        order Start and end nodes by the index.
+    */
+    
+    /* Start ...*/
+    if(
+        mini(textArea->selectedStartLine, textArea->selectedEndLine) ==
+        textArea->selectedStartLine    
+    ){
+        rec =  textArea->selectedStartNode;
 
-    rec = start;
+    }else{
+        rec =  textArea->selectedEndNode;
+    }
 
-    while(rec != afterEnd){
+    /* End ... */
+    if(
+        maxi(textArea->selectedStartLine, textArea->selectedEndLine) ==
+        textArea->selectedStartLine
+    ){
+        end = textArea->selectedStartNode;
+    }else{
+        end = textArea->selectedEndNode;
+    }
+
+    end = 
+        end->next
+        ? end->next
+        : NULL ;
+
+    while(rec != end){
         /* Copy node */
         currLine = (Line*)rec->data;
 
         if(!currLine){
-            logger("[ed_copy] Error: currLine must not be NULL.");
-            exit(1);
+            continue;
         }
 
         newLine = ed_dupLine(currLine, ed_globalClipboard.arena);
@@ -255,7 +277,7 @@ void ed_paste(TextArea *textArea){
         logger("[ed_paste]: No workspace, window, current file or current line.");
         return;
     }
-
+    
     if(on_selection_tool == true){
         ed_deleteSelection();
     }
@@ -289,6 +311,10 @@ void ed_paste(TextArea *textArea){
         );
 
     len = endi - starti;
+
+    if(f_checkNewLineMemory(textArea, len)){
+        f_resizeTextArea(textArea);
+    }
 
     currentLineNode = textArea->currentLineNode;
     currentLine = textArea->currentLine;
@@ -349,6 +375,7 @@ void ed_paste(TextArea *textArea){
             exit(1);
         }
 
+
         /* 
             Joining inner lines to election starting and
             ending positions
@@ -400,21 +427,21 @@ void ed_paste(TextArea *textArea){
         currentLine->length = strlen(auxbuff);
         
         /* end */
+        memset(end->buffer + endi, 0, MAX_FILE_LINE_LENGTH - endi);
         memcpy(end->buffer + endi, auxbuff2, strlen(auxbuff2));        
         end->length = strlen(end->buffer);
-        /* Update textArea line list len*/
 
-        textArea->file->lines->length += lines->length;
-
-        /* recycle border lines from the copied clipboard */
+        /* recycle first temp line as in not being used */
         ed_softDeleteLine(textArea, lines->firstNode);
-        ed_softDeleteLine(textArea, lines->lastNode);
-        
-        free(lines);
+
+        /* Update textArea line list len*/
+        textArea->file->lines->length += lines->length ;
 
         /* Update cursor*/
-
         dw_requestRenderEvent(DW_RENDER_ALL);
+
+        /* We free the list instance BUT NOT THE NODES IN IT*/
+        free(lines);
     }else{
         /* NOOP*/
     }

@@ -2,7 +2,7 @@
 
 /* ============================================================================ */
 
-void f_prepareFileNavDialog(){
+void f_fileNavDialog(){
 	if(hal_inp_keysPressed(HAL_INP_TRIGGER_EDGE, 2, HAL_KEY_LALT, HAL_KEY_LSHIFT)){
 		f_onFileNavigation = true;
 		

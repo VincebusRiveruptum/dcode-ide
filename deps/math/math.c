@@ -79,3 +79,14 @@ long m_costable[360] = {
     240, 241, 243, 244, 246, 247, 248, 249, 250, 251,
     252, 253, 253, 254, 255, 255, 255
 };
+
+/* Returns the highest of two given integeres */
+int maxi(int a, int b){
+    return a > b ? a : b;
+}
+
+/* Returns the lowest of two given integeres */
+int mini(int a, int b){
+    return a < b ? a : b;
+}
+

@@ -277,12 +277,12 @@ void addNode(List **list, Node *newNode, MemoryArena *arena){
     (*list)->length++;
 }
 
-/* Adds data to a list in a generi way */
-/* The data is auto-wrapped to a NOde. */
+/* Adds data to a certain list in a simple way */
+/* The data gets auto-wrapped into a Node. */
 void addGenericNode(List **list, void *data, MemoryArena *arena){
 	Node *newNode = NULL;
 
-    if(arena != NULL){
+    if(arena){
         newNode = (Node*)mem_arena_alloc(arena, sizeof(Node));
     }else{
         newNode = (Node*)malloc(sizeof(Node));

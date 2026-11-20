@@ -25,7 +25,7 @@
     -1 = will break it
     1 = will continue it
 */
-int ed_prepareSearchTool(){
+int ed_searchTool(){
     if(
 		hal_inp_keysPressed(
 			HAL_INP_TRIGGER_EDGE, 

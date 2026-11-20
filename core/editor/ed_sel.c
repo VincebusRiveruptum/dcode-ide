@@ -1,6 +1,6 @@
 #include "editor.h"
 
-void ed_prepareSelectionTool(){
+void ed_selectionTool(){
     static TextArea *textArea = NULL;
 
     if(
@@ -414,4 +414,37 @@ void ed_deleteSelection(void){
 
     ed_updateScrollY();
     f_setCurrentFileAsModified();
+}
+
+/*
+    This functions tells if there is 
+    a selected text block right now
+*/
+
+bool ed_isSelectedText(Workspace *workspace){
+    TextArea *textArea = NULL;
+    if(
+        !workspace ||
+        !workspace->currentWindow ||
+        !workspace->currentWindow->textArea
+    ){
+        logger("[ed_isSelectedText] Error: Invalid workspace/window/textArea universe.");
+        exit(1);
+    }
+
+    textArea = workspace->currentWindow->textArea;
+
+    if(
+        (textArea->selectedStartX >= 0) &&
+        (textArea->selectedEndX >= 0 ) &&
+        (textArea->selectedStartLine >= 0) &&
+        (textArea->selectedEndLine >= 0) &&
+        textArea->selectedStartNode &&
+        textArea->selectedEndNode
+    ){
+        return true;
+    }
+
+    return false;
+
 }

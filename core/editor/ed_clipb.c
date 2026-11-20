@@ -349,12 +349,7 @@ void ed_paste(TextArea *textArea){
 
         dw_requestRenderEvent(DW_RENDER_LINE);
         
-    }else if(ed_globalClipboard.lines->length == 2){
-        /* Multi line paste */
-        /* We insert the middle lines */
-
-        dw_requestRenderEvent(DW_RENDER_ALL);
-    }else if(ed_globalClipboard.lines->length > 2){
+    }else if(ed_globalClipboard.lines->length >= 2){
 
         logger("[ed_paste] Debug: Cloning clipboard line list.");
 
@@ -428,11 +423,7 @@ void ed_paste(TextArea *textArea){
         currentLine->length = strlen(auxbuff);
         
         /* end */
-        
         memset(end->buffer + endi, 0, MAX_FILE_LINE_LENGTH - endi);
-
-        logger("DEBUG: Left side : \"%s\", Right side : \"%s\"... \"%s\".", auxbuff, auxbuff2, end->buffer);
-        
         memcpy(end->buffer + endi, auxbuff2, strlen(auxbuff2));
                 
         end->length = strlen(end->buffer);

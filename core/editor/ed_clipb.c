@@ -393,8 +393,8 @@ void ed_paste(TextArea *textArea){
         innerEnd = (Line*)innerEndNode->data;
         
         if(currentLineNode->next){
-            innerEndNode->next = currentLineNode->next;
-            currentLineNode->next->prev = innerEndNode;
+            endNode->next = currentLineNode->next;
+            currentLineNode->next->prev = endNode;
         }
         
         innerStartNode->prev = currentLineNode;
@@ -411,7 +411,7 @@ void ed_paste(TextArea *textArea){
             strlen(currentLine->buffer + textArea->cursorCol)
         );
         
-        logger("DEBUG: Left side : \"%s\", Right side : \"%s\".", auxbuff, auxbuff2);
+
         /* start */
         memcpy(
             auxbuff + textArea->cursorCol, 
@@ -420,16 +420,24 @@ void ed_paste(TextArea *textArea){
         );
 
         *(auxbuff + strlen(auxbuff)) = '\0';
-        *(auxbuff2 + strlen(auxbuff2)) = '\0';
+        /**(auxbuff2 + strlen(auxbuff2)) = '\0';
+        */
 
         memset(currentLine->buffer, '\0', MAX_FILE_LINE_LENGTH);
         memcpy(currentLine->buffer, auxbuff, strlen(auxbuff));
         currentLine->length = strlen(auxbuff);
         
         /* end */
+        
         memset(end->buffer + endi, 0, MAX_FILE_LINE_LENGTH - endi);
-        memcpy(end->buffer + endi, auxbuff2, strlen(auxbuff2));        
+
+        logger("DEBUG: Left side : \"%s\", Right side : \"%s\"... \"%s\".", auxbuff, auxbuff2, end->buffer);
+        
+        memcpy(end->buffer + endi, auxbuff2, strlen(auxbuff2));
+                
         end->length = strlen(end->buffer);
+        
+        *(end->buffer + strlen(end->buffer)) = '\0';
 
         /* recycle first temp line as in not being used */
         ed_softDeleteLine(textArea, lines->firstNode);

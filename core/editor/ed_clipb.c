@@ -122,8 +122,7 @@ void ed_resetClipboard(){
 size_t ed_getClipboardHeadroom(TextArea *textArea){
     size_t size, len;
     unsigned short startLine, endLine;
-    unsigned short start, end;
-
+    
     if(!textArea){
         logger("[ed_getClipboardHeadroom] Error: textArea is NULL");
         exit(1);
@@ -294,8 +293,6 @@ void ed_paste(TextArea *textArea){
         return;
     }
 
-    logger("[ed_paste] Clipboard length : %d", ed_globalClipboard.lines->length);
-
     starti = 
         (unsigned short)
         mini(
@@ -320,8 +317,6 @@ void ed_paste(TextArea *textArea){
     currentLine = textArea->currentLine;
     /* Single line paste, simpler */
     if(ed_globalClipboard.lines->length == 1){
-
-        
         line = (Line *) ed_globalClipboard.lines->firstNode->data;
 
         memset(auxbuff, '\0', MAX_FILE_LINE_LENGTH);
@@ -350,9 +345,6 @@ void ed_paste(TextArea *textArea){
         dw_requestRenderEvent(DW_RENDER_LINE);
         
     }else if(ed_globalClipboard.lines->length >= 2){
-
-        logger("[ed_paste] Debug: Cloning clipboard line list.");
-
         lines = 
             f_cloneLinesTempList(
                 textArea->file->arena, 

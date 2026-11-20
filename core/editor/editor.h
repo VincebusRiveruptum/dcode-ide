@@ -178,6 +178,7 @@ void ed_initConfig(int argc, char *argv[]);
 void ed_handleArguments(int argc, char *argv[]);
 
 /* ed_base */
+struct Line *ed_dupLine(struct Line *src, struct MemoryArena *arena);
 void ed_putCursor(unsigned char x, unsigned char y);
 void ed_moveCursor(short x, short y);
 void ed_typeChar(char c);

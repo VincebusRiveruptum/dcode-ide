@@ -58,7 +58,7 @@ void ed_clipboard(){
             hal_inp_keysPressed(
                 HAL_INP_TRIGGER_EDGE,
                 2,
-                HAL_KEY_LALT,
+                HAL_KEY_LCTRL,
                 HAL_KEY_C
             ) == true
         ){
@@ -67,7 +67,7 @@ void ed_clipboard(){
             hal_inp_keysPressed(
                 HAL_INP_TRIGGER_EDGE,
                 2,
-                HAL_KEY_LALT,
+                HAL_KEY_LCTRL,
                 HAL_KEY_X
             ) == true
         ){
@@ -79,7 +79,7 @@ void ed_clipboard(){
             hal_inp_keysPressed(
                 HAL_INP_TRIGGER_EDGE,
                 2,
-                HAL_KEY_LALT,
+                HAL_KEY_LCTRL,
                 HAL_KEY_V
             ) == true
         ){

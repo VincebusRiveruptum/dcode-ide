@@ -37,8 +37,13 @@ static void __interrupt __far keyISR() {
     extended = 0;
     
     /* Consume Delete key to avoid BIOS interference/beeping */
-    if (sc == HAL_KEY_DELETE || sc == (HAL_KEY_DELETE | 0x80)) {
+    if (
+        sc == HAL_KEY_DELETE || 
+        sc == (HAL_KEY_DELETE | 0x80) ||
+        (inp_state[HAL_KEY_LCTRL] && inp_state[HAL_KEY_C])
+    ) {
         outPortb(0x20, 0x20); /* Acknowledge PIC */
+        
         return;
     }
 

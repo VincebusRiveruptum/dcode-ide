@@ -806,7 +806,9 @@ bool f_fileExist(char *filename){
     FILE *fp = fopen(filename, "r");
     bool exist = fp ? true : false;
 
-    fclose(fp);
+    if(fp)
+        fclose(fp);
+
     return exist;
 }
 
@@ -960,7 +962,7 @@ void f_triggerClose(bool end_program){
         };
 
         if(input == 'n' || input == 'N'){     
-            f_saveWorkspace(currentWorkspace, "test.bin");       
+            f_saveWorkspace(currentWorkspace, S_DEFAULT_SESSION_FILENAME);       
             f_closeCurrentTextArea();
             return;
         } 

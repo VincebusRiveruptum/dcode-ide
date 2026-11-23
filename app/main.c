@@ -35,6 +35,7 @@ int main(int argc, char *argv[]){
 		if(ed_searchTool() == -1){
 			logger("[mainLoop]: Search, continue...");
 			dw_renderEventDispatcher();
+			hal_inp_updateKeyboard();
 			continue;
 		};
 		        
@@ -130,7 +131,7 @@ int main(int argc, char *argv[]){
 			HAL_KEY_W, 
 			HAL_KEY_S
 		)) 
-			f_saveWorkspace(currentWorkspace, "test.bin");
+			f_saveWorkspace(currentWorkspace, S_DEFAULT_SESSION_FILENAME);
 
 		/* SHELL SPAWN */
 		if(hal_inp_isKeyPressed(HAL_KEY_F9)) 

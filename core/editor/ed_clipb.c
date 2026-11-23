@@ -156,7 +156,7 @@ void ed_cut(TextArea *textArea){
     if(ed_globalClipboard.lines->length == 1){
         dw_requestRenderEvent(DW_RENDER_LINE);
     }else{
-        /* TODO : Still WIP */
+        dw_requestRenderEvent(DW_RENDER_ALL);
     }
 }
 

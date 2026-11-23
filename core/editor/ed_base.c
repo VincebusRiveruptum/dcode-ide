@@ -175,12 +175,19 @@ void ed_renderCurrentLine(){
 		exit(1);
 	} 
 	
-	strcpy(
+    memset(tempLineBuffer, 0, 1024);
+    
+	strncpy(
 		tempLineBuffer, 
 		(currentWindow->textArea->currentLine->buffer
 		+
+		currentWindow->textArea->scrollX),
+        strlen(currentWindow->textArea->currentLine->buffer
+		+
 		currentWindow->textArea->scrollX)
 	);
+    
+    logger("%s", tempLineBuffer);
 
 	xpos = 
 		currentWindow->x + 
@@ -674,6 +681,13 @@ void ed_supr(){
         logger("[ed_supr]: Invalid window/textArea/file instance");
         exit(1);
     };
+
+    if(on_selection_tool == true){
+        ed_deleteSelection();
+        ed_clearSelection();
+        dw_requestRenderEvent(DW_RENDER_SELECTION);
+        return;
+    }
 
     x = textArea->cursorCol;
     

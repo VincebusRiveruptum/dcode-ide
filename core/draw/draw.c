@@ -1154,7 +1154,7 @@ void dw_c_lineFormatter(
 	char *srcBuffer
 ){
 	unsigned char tjump=0;
-	unsigned short *start = NULL;
+	unsigned short *start = NULL, *end = NULL;
 	char *commentStartPtr = NULL;
 	unsigned char fgcolor = COLOR_LIGHT_GRAY;
 	unsigned char bgcolor = COLOR_BLACK;
@@ -1166,8 +1166,9 @@ void dw_c_lineFormatter(
 	commentStartPtr = strstr(srcBuffer,"//");
 
 	start = destBuffer + ( y * destWidth) + x;
+    end = destBuffer + ( y * destWidth) + destWidth;
 
-	while(*srcBuffer != '\0'){
+	while(start < end){
 		/* Check if current character is a comment or not */
 		if(commentStartPtr && srcBuffer >= commentStartPtr)
 			fgcolor = settings.clang_colors[DW_RESWORD_COMMENT];
@@ -1214,14 +1215,15 @@ void dw_txt_lineFormatter(
 	char *srcBuffer
 ){
 	unsigned char tjump=0;
-	unsigned short *start = NULL;
+    unsigned short *start = NULL, *end = NULL;
 
 	if(!destBuffer) return;
 	if(!srcBuffer) return;
 
 	start = destBuffer + ( y * destWidth) + x;
+    end = destBuffer + ( y * destWidth) + destWidth;
 
-	while(*srcBuffer != '\0'){
+	while(start < end){
 		switch(*srcBuffer){
 			case '\t':
 				tjump=0;

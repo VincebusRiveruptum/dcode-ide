@@ -682,6 +682,13 @@ void ed_supr(){
         exit(1);
     };
 
+    if(on_selection_tool == true){
+        ed_deleteSelection();
+        ed_clearSelection();
+        dw_requestRenderEvent(DW_RENDER_SELECTION);
+        return;
+    }
+
     x = textArea->cursorCol;
     
     node = textArea->currentLineNode;

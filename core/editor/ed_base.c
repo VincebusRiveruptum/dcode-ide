@@ -175,12 +175,19 @@ void ed_renderCurrentLine(){
 		exit(1);
 	} 
 	
-	strcpy(
+    memset(tempLineBuffer, 0, 1024);
+    
+	strncpy(
 		tempLineBuffer, 
 		(currentWindow->textArea->currentLine->buffer
 		+
+		currentWindow->textArea->scrollX),
+        strlen(currentWindow->textArea->currentLine->buffer
+		+
 		currentWindow->textArea->scrollX)
 	);
+    
+    logger("%s", tempLineBuffer);
 
 	xpos = 
 		currentWindow->x + 

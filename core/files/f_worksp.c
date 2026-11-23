@@ -279,6 +279,8 @@ Workspace *f_loadWorkspace(char *filename){
                 before creating its instance
             */
             if(f_fileExist(filenameBuffer) == false){
+                fread(taTemp, sizeof(TextArea), 1, fp);
+                
                 logger(
                     "[f_loadWorkspace] Warning: Could not open file or does not exist %s, skipping entry.", 
                     filenameBuffer

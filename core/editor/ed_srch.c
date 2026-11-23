@@ -49,7 +49,7 @@ int ed_searchTool(){
                 dw_requestRenderEvent(DW_RENDER_ALL);
             }else if (!hal_inp_isKeyDown(HAL_KEY_ENTER)){
                 ed_findWord();
-                dw_requestRenderEvent(DW_RENDER_ALL);
+                /*dw_requestRenderEvent(DW_RENDER_ALL);*/
             }else{                
                 ed_searchMoveCursor();
                 dw_requestRenderEvent(DW_RENDER_SEARCH);
@@ -219,11 +219,16 @@ void ed_findWord(){
     if(!searchMetadata->arena){
         sprintf(searchArenaName, "%s","SRCH");
         searchMetadata->arena = (MemoryArena *)mem_arena_create(searchArenaName, MEM_ARENA_8K);
-    } 
+    }
+    
 
     wordLen = strlen(searchMetadata->dialogInputBuffer);
 
     if (wordLen == 0) return;
+
+    /* Discard previous matches, keep the SearchMetadata header at arena start */
+    searchMetadata->arena->offset = 
+        (sizeof(SearchMetadata) + 15) & ~15;
 
     searchMetadata->wordCount = 0;
     searchMetadata->words = NULL;
